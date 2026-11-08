@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from components.styles import CUSTOM_CSS
 from components.navigation import render_navigation
+from components.search_view import render_search_results_view
 from database.seed_data import seed_database
 from views.landing import render_landing_page
 from views.auth import render_auth_page
@@ -47,6 +48,12 @@ def main():
 
     # 5. Render Navigation
     render_navigation()
+
+    # 5.1 Handle Active Global Search Overlay
+    active_search = st.session_state.get("global_search_query", "").strip()
+    if active_search:
+        render_search_results_view(active_search)
+        return
 
     # 6. Current Routing
     current_page = st.session_state.get("current_page", "landing")

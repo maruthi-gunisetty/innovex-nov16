@@ -248,6 +248,54 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
     width: 300px;
 }
 
+/* Sleek Interactive Top Navigation Search Input */
+[data-testid="stTextInput"]:has(input[placeholder*="Search for concepts"]) {
+    margin-bottom: 0 !important;
+}
+
+[data-testid="stTextInput"]:has(input[placeholder*="Search for concepts"]) > div {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+[data-testid="stTextInput"]:has(input[placeholder*="Search for concepts"]) input {
+    background-color: #F5F6F8 !important;
+    border: 1px solid #E4E8ED !important;
+    border-radius: 8px !important;
+    padding: 0.35rem 0.75rem 0.35rem 2.2rem !important;
+    font-size: 0.8rem !important;
+    color: #172943 !important;
+    height: 35px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: 10px center !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-testid="stTextInput"]:has(input[placeholder*="Search for concepts"]) input:focus {
+    border-color: #D6B56D !important;
+    background-color: #FFFFFF !important;
+    box-shadow: 0 0 0 2px rgba(214, 181, 109, 0.22) !important;
+    color: #172943 !important;
+}
+
+/* Quick Search Clear & Popover Buttons in Top Bar */
+button[key="top_search_clear_btn"] {
+    height: 35px !important;
+    min-height: 35px !important;
+    border-radius: 8px !important;
+    border: 1px solid #E4E8ED !important;
+    background-color: #F5F6F8 !important;
+    color: #718096 !important;
+    font-weight: 700 !important;
+}
+
+button[key="top_search_clear_btn"]:hover {
+    border-color: #D96B6B !important;
+    color: #D96B6B !important;
+    background-color: #FDF2F2 !important;
+}
+
 .lm-user-pill {
     display: flex;
     align-items: center;

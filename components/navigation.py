@@ -12,6 +12,7 @@ from database.db import get_user_by_username, get_user_by_email
 from core.auth_service import AuthService
 from core.course_manager import get_active_course, render_course_selector
 from components.brand import render_sidebar_brand, render_topbar_brand, BRAND_NAME, TAGLINE
+from components.search_view import render_search_input
 from components.styles import get_icon
 
 
@@ -28,12 +29,7 @@ def render_navigation():
         with col_logo_mini:
             render_topbar_brand()
         with col_search_box:
-            st.markdown("""
-            <div class="lm-search-box">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#718096" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-                <span>Search for concepts, progress, assignments...</span>
-            </div>
-            """, unsafe_allow_html=True)
+            render_search_input()
 
     with col_user_portal:
         if user:
