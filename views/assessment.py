@@ -2,6 +2,7 @@
 LearnSphere AI: Intelligent Adaptive Assessment Module
 Delivers multiple choice questions with labeled distractors, real-time BKT updates,
 response latency recording, and immediate misconception feedback.
+Modern minimalist SaaS design inspired by Linear and Stripe.
 """
 
 import streamlit as st
@@ -22,10 +23,10 @@ def render_assessment_page(user: dict):
 
     st.markdown("""
     <div style="margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.75rem; font-weight: 700; color: #0f172a; margin: 0;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; color: #172554; margin: 0; letter-spacing: -0.025em;">
             Intelligent Adaptive Assessment
         </h2>
-        <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.25rem;">
+        <p style="color: #64748B; font-size: 0.875rem; margin-top: 0.25rem;">
             Test your comprehension. The AI engine dynamically evaluates your latent concept mastery and diagnoses specific cognitive bugs.
         </p>
     </div>
@@ -63,7 +64,6 @@ def render_assessment_page(user: dict):
     # 2. Determine questions pool based on difficulty mode
     actual_diff = None
     if difficulty_mode == "Adaptive (AI Selected)":
-        # Calculate adaptive difficulty using student's current mastery
         if selected_concept_id:
             m_rec = get_student_concept_mastery(user_id, selected_concept_id)
             current_mastery = m_rec["mastery_prob"] if m_rec else 0.20
@@ -77,7 +77,6 @@ def render_assessment_page(user: dict):
     questions = get_questions_by_concept_and_difficulty(selected_concept_id, actual_diff)
 
     if not questions:
-        # Fallback to any difficulty for this concept if none found in exact tier
         questions = get_questions_by_concept_and_difficulty(selected_concept_id, "all")
 
     if not questions:
@@ -107,11 +106,11 @@ def render_assessment_page(user: dict):
             <div>
                 <span class="ls-badge badge-demo" style="margin-right: 0.5rem;">Question {q_idx + 1} of {len(questions)}</span>
                 <span class="ls-badge {diff_badge_class}">{current_q['difficulty'].capitalize()}</span>
-                <span style="color: #64748b; font-size: 0.85rem; margin-left: 0.75rem;">Topic: {current_q['concept_name']}</span>
+                <span style="color: #64748B; font-size: 0.85rem; margin-left: 0.75rem;">Topic: {current_q['concept_name']}</span>
             </div>
-            <div style="font-size: 0.825rem; color: #64748b;">ID: #{current_q['id']}</div>
+            <div style="font-size: 0.8rem; color: #64748B;">Item ID: #{current_q['id']}</div>
         </div>
-        <h3 style="font-size: 1.15rem; font-weight: 600; color: #0f172a; margin-bottom: 0.75rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem; letter-spacing: -0.015em;">
             {current_q['title']}
         </h3>
         <p style="color: #334155; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">
@@ -146,17 +145,14 @@ def render_assessment_page(user: dict):
             st.error("Please select an answer option before submitting.")
         else:
             elapsed_time = round(time.time() - st.session_state.get(q_key, time.time()), 2)
-            # Find chosen option object
             chosen_opt = next(opt for opt in options if opt["text"] == selected_text)
             is_correct = bool(chosen_opt.get("is_correct", False))
             misconception_code = chosen_opt.get("misconception_code")
 
-            # Retrieve current student BKT mastery
             concept_id = current_q["concept_id"]
             m_rec = get_student_concept_mastery(user_id, concept_id)
             prior_mastery = m_rec["mastery_prob"] if m_rec else 0.20
 
-            # Run Bayesian Knowledge Tracing update
             bkt = BayesianKnowledgeTracing(
                 p_init=m_rec.get("p_init", 0.20) if m_rec else 0.20,
                 p_transit=m_rec.get("p_transit", 0.15) if m_rec else 0.15,
@@ -165,7 +161,6 @@ def render_assessment_page(user: dict):
             )
             posterior_obs, next_prior = bkt.update(prior_mastery, is_correct)
 
-            # Persist to database
             update_student_mastery_record(user_id, concept_id, next_prior, is_correct)
             attempt_id = record_assessment_attempt(
                 user_id=user_id,
@@ -198,7 +193,7 @@ def render_assessment_page(user: dict):
                 <div style="font-weight: 700; color: #166534; font-size: 1.05rem; margin-bottom: 0.35rem;">
                     Correct Answer Verified
                 </div>
-                <div style="color: #14532d; font-size: 0.9rem; line-height: 1.55; margin-bottom: 0.5rem;">
+                <div style="color: #14532D; font-size: 0.9rem; line-height: 1.55; margin-bottom: 0.5rem;">
                     {res['chosen_opt']['explanation']}
                 </div>
                 <div style="font-size: 0.825rem; color: #166534;">
@@ -214,16 +209,16 @@ def render_assessment_page(user: dict):
 
             st.markdown(f"""
             <div class="ls-diagnostic-box">
-                <div style="font-weight: 700; color: #9f1239; font-size: 1.05rem; margin-bottom: 0.35rem;">
+                <div style="font-weight: 700; color: #991B1B; font-size: 1.05rem; margin-bottom: 0.35rem;">
                     Misconception Identified: {m_name}
                 </div>
                 <div style="color: #881337; font-size: 0.9rem; line-height: 1.55; margin-bottom: 0.5rem;">
                     <strong>Why this error occurs:</strong> {res['chosen_opt']['explanation']}
                 </div>
-                <div style="background-color: #ffffff; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid #fecdd3; color: #9f1239; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                <div style="background-color: #FFFFFF; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid #FECDD3; color: #991B1B; font-size: 0.85rem; margin-bottom: 0.5rem;">
                     <strong>Pedagogical Remediation:</strong> {m_rem}
                 </div>
-                <div style="font-size: 0.825rem; color: #9f1239;">
+                <div style="font-size: 0.825rem; color: #991B1B;">
                     BKT Mastery adjusted from <strong>{res['prior_mastery']:.1%}</strong> to <strong>{res['posterior_mastery']:.1%}</strong>.
                 </div>
             </div>
@@ -231,7 +226,7 @@ def render_assessment_page(user: dict):
 
         st.markdown(f"""
         <div class="ls-info-box">
-            <strong style="color: #1e293b;">Comprehensive Solution:</strong>
+            <strong style="color: #172554;">Comprehensive Solution:</strong>
             <p style="color: #475569; font-size: 0.875rem; margin-top: 0.25rem; line-height: 1.55;">
                 {res['explanation']}
             </p>
@@ -250,4 +245,3 @@ def render_assessment_page(user: dict):
                 st.session_state["current_page"] = "learning_library"
                 st.session_state["selected_lesson_code"] = current_q["concept_code"]
                 st.rerun()
-

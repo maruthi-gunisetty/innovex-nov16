@@ -21,11 +21,11 @@ def render_navigation():
     with col_nav_brand:
         st.markdown("""
         <div style="display: flex; align-items: center; padding: 0.4rem 0;">
-            <div style="font-size: 1.35rem; font-weight: 700; color: #0f172a; letter-spacing: -0.02em;">
-                LearnSphere <span style="color: #4f46e5;">AI</span>
+            <div style="font-size: 1.35rem; font-weight: 700; color: #172554; letter-spacing: -0.025em;">
+                LearnSphere <span style="color: #635BDB;">AI</span>
             </div>
-            <span style="font-size: 0.8rem; font-weight: 500; color: #64748b; margin-left: 0.75rem; border-left: 1px solid #cbd5e1; padding-left: 0.75rem;">
-                Adaptive Intelligence &bull; PS 03
+            <span class="ls-badge badge-violet" style="margin-left: 0.75rem;">
+                PS 03 Intelligent Education
             </span>
         </div>
         """, unsafe_allow_html=True)

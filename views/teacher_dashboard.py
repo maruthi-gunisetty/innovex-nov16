@@ -2,6 +2,7 @@
 LearnSphere AI: Faculty and Teacher Dashboard
 Provides class-wide learning telemetry, cohort mastery distributions,
 common misconception trends, and individual student diagnostic inspection.
+Modern minimalist SaaS design inspired by Linear and Stripe.
 """
 
 import streamlit as st
@@ -23,13 +24,13 @@ def render_teacher_dashboard(user: dict):
 
     st.markdown(f"""
     <div style="margin-bottom: 1.5rem;">
-        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 0.25rem 0.65rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background-color: #EEF2FF; color: #635BDB; border: 1px solid #C7D2FE; padding: 0.25rem 0.65rem; border-radius: 6px; font-size: 0.725rem; font-weight: 600; text-transform: uppercase;">
             Faculty Management Portal
         </div>
-        <h2 style="font-size: 1.75rem; font-weight: 700; color: #0f172a; margin-top: 0.5rem; margin-bottom: 0.25rem;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; color: #172554; margin-top: 0.5rem; margin-bottom: 0.25rem; letter-spacing: -0.025em;">
             Cohort Performance and Learning Gap Analytics
         </h2>
-        <p style="color: #64748b; font-size: 0.9rem;">
+        <p style="color: #64748B; font-size: 0.875rem;">
             Instructor: {user['full_name']} &bull; Monitor cohort-wide knowledge distribution and diagnose systemic instructional gaps.
         </p>
     </div>
@@ -65,7 +66,6 @@ def render_teacher_dashboard(user: dict):
         </div>
         """, unsafe_allow_html=True)
     with col4:
-        # Calculate cohort average BKT mastery
         cm_list = overview["concept_masteries"]
         cohort_avg = (sum(c["avg_mastery"] for c in cm_list) / len(cm_list)) if cm_list else 0.20
         st.markdown(f"""
@@ -96,16 +96,17 @@ def render_teacher_dashboard(user: dict):
             y="avg_pct",
             labels={"concept_name": "Curriculum Concept", "avg_pct": "Average BKT Mastery (%)"},
             color="avg_pct",
-            color_continuous_scale=["#dc2626", "#d97706", "#2563eb", "#16a34a"]
+            color_continuous_scale=["#DC2626", "#F59E0B", "#2563EB", "#16A34A"]
         )
         fig_cm.add_hline(y=60, line_dash="dash", line_color="#475569", annotation_text="Target Benchmark (60%)")
         fig_cm.update_layout(
             height=280,
             margin=dict(l=10, r=10, t=10, b=10),
-            paper_bgcolor="#ffffff",
-            plot_bgcolor="#ffffff",
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
             coloraxis_showscale=False,
-            yaxis=dict(range=[0, 100], gridcolor="#f1f5f9")
+            yaxis=dict(range=[0, 100], gridcolor="#F1F5F9"),
+            font=dict(family="Inter, sans-serif", size=12, color="#0F172A")
         )
         st.plotly_chart(fig_cm, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -127,10 +128,10 @@ def render_teacher_dashboard(user: dict):
             m_name = meta["name"] if meta else item["misconception_code"]
             with cols[idx]:
                 st.markdown(f"""
-                <div style="background-color: #ffffff; border: 1px solid #fecaca; border-radius: 6px; padding: 1rem; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: 700; color: #dc2626;">{item['count']}</div>
-                    <div style="font-weight: 600; color: #0f172a; font-size: 0.85rem; margin-top: 0.25rem;">{m_name}</div>
-                    <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">{meta['category'] if meta else ''}</div>
+                <div style="background-color: #FFFFFF; border: 1px solid #FECACA; border-radius: 8px; padding: 1rem; text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #DC2626;">{item['count']}</div>
+                    <div style="font-weight: 600; color: #172554; font-size: 0.85rem; margin-top: 0.25rem;">{m_name}</div>
+                    <div style="font-size: 0.725rem; color: #64748B; margin-top: 0.25rem;">{meta['category'] if meta else ''}</div>
                 </div>
                 """, unsafe_allow_html=True)
     else:
@@ -162,11 +163,11 @@ def render_teacher_dashboard(user: dict):
             for m in stu_mastery:
                 cls_info = bkt.classify_mastery(m["mastery_prob"])
                 st.markdown(f"""
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #F1F5F9; font-size: 0.85rem;">
                     <span><strong>{m['concept_name']}</strong></span>
                     <span>
                         <span class="ls-badge {cls_info['badge_class']}">{cls_info['tier']}</span>
-                        <strong style="margin-left: 0.5rem;">{m['mastery_prob']:.1%}</strong>
+                        <strong style="margin-left: 0.5rem; color: #0F172A;">{m['mastery_prob']:.1%}</strong>
                     </span>
                 </div>
                 """, unsafe_allow_html=True)
@@ -179,13 +180,13 @@ def render_teacher_dashboard(user: dict):
                     m_code = att.get("misconception_code")
                     m_info = MisconceptionEngine.get_info(m_code)
                     st.markdown(f"""
-                    <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 4px; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; font-size: 0.825rem;">
+                    <div style="background-color: #FFF1F2; border: 1px solid #FECDD3; border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; font-size: 0.825rem;">
                         <strong>{att['question_title']}</strong> &bull; {att['concept_name']}<br>
-                        <span style="color: #9f1239;">Diagnostic Code: <strong>{m_code}</strong> ({m_info['name'] if m_info else ''})</span>
+                        <span style="color: #991B1B;">Diagnostic Code: <strong>{m_code}</strong> ({m_info['name'] if m_info else ''})</span>
                     </div>
                     """, unsafe_allow_html=True)
             else:
-                st.markdown("<p style='color: #16a34a; font-size: 0.85rem;'>No recent incorrect attempts recorded for this student.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color: #16A34A; font-size: 0.85rem;'>No recent incorrect attempts recorded for this student.</p>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -201,4 +202,3 @@ def render_teacher_dashboard(user: dict):
             mime="text/csv",
             use_container_width=True
         )
-

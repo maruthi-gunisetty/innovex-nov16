@@ -290,12 +290,12 @@ When you assign `b = a`, where `a` is a list, variable `b` does not receive a di
 a = [1, 2, 3]
 b = a        # Aliasing!
 b.append(4)
-print(a)     # [1, 2, 3, 4] -- a is affected!
+print(a)     # [1, 2, 3, 4] (a is affected)
 
 # To create an independent shallow copy:
 c = a.copy() # or list(a) or a[:]
 c.append(5)
-print(a)     # [1, 2, 3, 4] -- a remains intact
+print(a)     # [1, 2, 3, 4] (a remains intact)
 ```""",
         "code_examples": [
             {

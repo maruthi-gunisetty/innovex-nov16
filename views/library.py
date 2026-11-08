@@ -2,6 +2,7 @@
 LearnSphere AI: Comprehensive Learning Content Library
 Displays in-depth modules covering Python concepts, memory models,
 code examples, common cognitive mistakes, and practice exercises.
+Modern minimalist SaaS design inspired by Notion and Stripe.
 """
 
 import streamlit as st
@@ -17,10 +18,10 @@ def render_library_page(user: dict):
 
     st.markdown("""
     <div style="margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.75rem; font-weight: 700; color: #0f172a; margin: 0;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; color: #172554; margin: 0; letter-spacing: -0.025em;">
             Python Learning Content Library
         </h2>
-        <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.25rem;">
+        <p style="color: #64748B; font-size: 0.875rem; margin-top: 0.25rem;">
             Rigorous conceptual curriculum designed to prevent subtle cognitive bugs and establish robust mental models.
         </p>
     </div>
@@ -30,7 +31,6 @@ def render_library_page(user: dict):
     lesson_titles = [f"{l['order_index']}. {l['concept_name']}" for l in lessons]
     lesson_codes = [l["concept_code"] for l in lessons]
 
-    # Pre-select lesson if passed via session state
     preselected_code = st.session_state.pop("selected_lesson_code", None)
     default_idx = 0
     if preselected_code and preselected_code in lesson_codes:
@@ -49,15 +49,15 @@ def render_library_page(user: dict):
     <div class="ls-card">
         <div class="ls-card-header">
             <div>
-                <span class="ls-badge badge-demo">Module {lesson['order_index']}</span>
-                <span style="font-size: 0.85rem; color: #64748b; margin-left: 0.5rem;">{lesson['reading_time_min']} min estimated reading</span>
+                <span class="ls-badge badge-violet">Module {lesson['order_index']}</span>
+                <span style="font-size: 0.8rem; color: #64748B; margin-left: 0.5rem;">{lesson['reading_time_min']} min estimated reading</span>
             </div>
             {completed_badge}
         </div>
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">
+        <h2 style="font-size: 1.45rem; font-weight: 700; color: #172554; margin-bottom: 0.5rem; letter-spacing: -0.02em;">
             {lesson['title']}
         </h2>
-        <p style="color: #475569; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">
+        <p style="color: #475569; font-size: 0.925rem; line-height: 1.6; margin-bottom: 0.75rem;">
             {lesson['summary']}
         </p>
     </div>
@@ -66,10 +66,10 @@ def render_library_page(user: dict):
     # 3. Learning Objectives
     st.markdown("""
     <div class="ls-card">
-        <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.75rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
             Learning Objectives
         </h4>
-        <ul style="color: #334155; font-size: 0.9rem; line-height: 1.7; padding-left: 1.25rem; margin: 0;">
+        <ul style="color: #334155; font-size: 0.875rem; line-height: 1.7; padding-left: 1.25rem; margin: 0;">
     """, unsafe_allow_html=True)
     for obj in lesson["learning_objectives"]:
         st.markdown(f"<li>{obj}</li>", unsafe_allow_html=True)
@@ -78,10 +78,10 @@ def render_library_page(user: dict):
     # 4. Introduction and Detailed Conceptual Explanation
     st.markdown(f"""
     <div class="ls-card">
-        <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.75rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
             Conceptual Framework
         </h4>
-        <p style="color: #334155; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">
+        <p style="color: #334155; font-size: 0.925rem; line-height: 1.6; margin-bottom: 0.5rem;">
             {lesson['introduction']}
         </p>
     </div>
@@ -92,7 +92,7 @@ def render_library_page(user: dict):
     # 5. Interactive Python Code Examples
     st.markdown("""
     <div class="ls-card" style="margin-top: 1.5rem;">
-        <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.75rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
             Annotated Code Demonstrations
         </h4>
     </div>
@@ -112,7 +112,7 @@ def render_library_page(user: dict):
     # 6. Common Mistakes and Misconceptions Analysis
     st.markdown("""
     <div class="ls-card" style="margin-top: 1.5rem;">
-        <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.75rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
             Common Cognitive Pitfalls in This Topic
         </h4>
         <div class="ls-card-desc">Recognizing these anti-patterns directly prevents assessment errors.</div>
@@ -121,11 +121,11 @@ def render_library_page(user: dict):
 
     for cm in lesson["common_mistakes"]:
         st.markdown(f"""
-        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; margin-bottom: 1rem;">
-            <div style="font-weight: 600; color: #991b1b; font-size: 0.95rem; margin-bottom: 0.5rem;">
+        <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem;">
+            <div style="font-weight: 600; color: #DC2626; font-size: 0.95rem; margin-bottom: 0.5rem;">
                 Mistake Pattern: {cm['title']}
             </div>
-            <p style="color: #475569; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">
+            <p style="color: #475569; font-size: 0.85rem; line-height: 1.55; margin-bottom: 0.75rem;">
                 {cm['explanation']}
             </p>
         </div>
@@ -142,7 +142,7 @@ def render_library_page(user: dict):
     # 7. Practice Exercises
     st.markdown("""
     <div class="ls-card" style="margin-top: 1.5rem;">
-        <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.75rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
             Practice Exercises
         </h4>
     </div>
@@ -157,7 +157,7 @@ def render_library_page(user: dict):
     # 8. Interactive Python Code Sandbox
     st.markdown("""
     <div class="ls-card" style="margin-top: 1.5rem;">
-        <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.35rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.35rem;">
             Interactive Python Code Sandbox
         </h4>
         <div class="ls-card-desc">Experiment with the concepts taught in this module. Edit and execute Python code in real-time.</div>
@@ -190,7 +190,7 @@ def render_library_page(user: dict):
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 8. Action Controls: Completion Toggle and Assessment Jump
+    # 9. Action Controls: Completion Toggle and Assessment Jump
     st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
     col_comp, col_test = st.columns([1, 1])
 
@@ -207,4 +207,3 @@ def render_library_page(user: dict):
             st.session_state["current_page"] = "assessment"
             st.session_state["assessment_concept_id"] = lesson["concept_id"]
             st.rerun()
-

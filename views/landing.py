@@ -1,7 +1,8 @@
 """
-LearnSphere AI: Public Landing Page
-Professional SaaS introduction presenting the problem statement,
-Bayesian Knowledge Tracing architecture, and platform capabilities.
+LearnSphere AI: Public SaaS Landing Page
+Modern minimalist interface inspired by Linear, Stripe, and Notion.
+Color system: Deep Navy #172554, AI Violet #635BDB, Canvas #F8FAFC, Cards #FFFFFF.
+Zero emojis, strict professional typography, and responsive layouts.
 """
 
 import streamlit as st
@@ -11,15 +12,15 @@ from components.styles import get_icon
 def render_landing_page():
     # Hero Section
     st.markdown("""
-    <div style="text-align: center; padding: 2.5rem 1rem 2rem 1rem; max-width: 860px; margin: 0 auto;">
-        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.25rem;">
+    <div style="text-align: center; padding: 2.75rem 1rem 2rem 1rem; max-width: 880px; margin: 0 auto;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background-color: #EEF2FF; color: #635BDB; border: 1px solid #C7D2FE; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.775rem; font-weight: 600; margin-bottom: 1.25rem;">
             Problem Statement 03: Intelligent Education
         </div>
-        <h1 style="font-size: 2.75rem; font-weight: 800; color: #0f172a; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 1.25rem;">
+        <h1 style="font-size: 2.85rem; font-weight: 800; color: #172554; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 1.25rem;">
             Learning That Understands Every Student.
         </h1>
-        <p style="font-size: 1.15rem; color: #475569; line-height: 1.6; margin-bottom: 2rem;">
-            An intelligent learning platform that identifies knowledge gaps, understands learning difficulties, detects misconceptions, and creates personalized educational journeys.
+        <p style="font-size: 1.15rem; color: #64748B; line-height: 1.6; margin-bottom: 2rem;">
+            An intelligent educational platform that identifies knowledge gaps, models latent concept mastery with Bayesian Knowledge Tracing, detects cognitive misconceptions, and constructs adaptive learning journeys.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -44,30 +45,32 @@ def render_landing_page():
 
     # Demonstration Fake Login Credentials Card
     st.markdown("""
-    <div class="ls-card" style="margin-top: 2rem; border-left: 4px solid #4f46e5; background-color: #fbfcfe;">
+    <div class="ls-card" style="margin-top: 2rem; border-left: 4px solid #635BDB; background-color: #FFFFFF;">
         <div class="ls-card-header">
             <div>
-                <span class="ls-badge badge-demo">Evaluation Credentials</span>
-                <h3 class="ls-card-title" style="margin-top: 0.35rem;">Fake Login Credentials &bull; Quick Access</h3>
-                <div class="ls-card-desc">Use the Login Portal in the right side top corner or log in with these pre-seeded accounts:</div>
+                <span class="ls-badge badge-violet">Evaluation Credentials</span>
+                <h3 class="ls-card-title" style="margin-top: 0.35rem;">Evaluation Credentials &bull; Quick Access</h3>
+                <div class="ls-card-desc">Use the Login Portal in the right side top corner or sign in using these pre-seeded accounts:</div>
             </div>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
-            <div style="background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 1rem;">
-                <div style="font-weight: 600; font-size: 0.95rem; color: #1e40af;">Student Account (Requested)</div>
-                <div style="font-size: 0.85rem; color: #0f172a; margin: 0.25rem 0;">Email / User: <code>student@123</code></div>
-                <div style="font-size: 0.85rem; color: #0f172a; margin-bottom: 0.5rem;">Password: <code>student123</code></div>
-                <div style="font-size: 0.75rem; color: #475569;">Active cognitive misconceptions in Loops and Recursion.</div>
+            <div style="background-color: #F8FAFC; border: 1px solid #BFDBFE; border-radius: 8px; padding: 1.1rem;">
+                <div style="font-weight: 600; font-size: 0.95rem; color: #172554;">Student Account (Requested)</div>
+                <div style="font-size: 0.85rem; color: #0F172A; margin: 0.25rem 0;">Email / User: <code>student@123</code></div>
+                <div style="font-size: 0.85rem; color: #0F172A; margin-bottom: 0.5rem;">Password: <code>student123</code></div>
+                <div style="font-size: 0.775rem; color: #64748B;">Active cognitive misconceptions in Loops and Recursion.</div>
             </div>
-            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem;">
-                <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a;">Advanced Student (Sophia Chen)</div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Username: <code>sophia_chen</code> &bull; Pass: <code>student123</code></div>
-                <div style="font-size: 0.75rem; color: #475569;">High curriculum mastery, advancing into algorithmic synthesis.</div>
+            <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1.1rem;">
+                <div style="font-weight: 600; font-size: 0.95rem; color: #172554;">Advanced Student (Sophia Chen)</div>
+                <div style="font-size: 0.85rem; color: #0F172A; margin: 0.25rem 0;">Username: <code>sophia_chen</code></div>
+                <div style="font-size: 0.85rem; color: #0F172A; margin-bottom: 0.5rem;">Password: <code>student123</code></div>
+                <div style="font-size: 0.775rem; color: #64748B;">High curriculum mastery, advancing into algorithmic synthesis.</div>
             </div>
-            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem;">
-                <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a;">Faculty Portal (Dr. Sarah Bennett)</div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Username: <code>dr_bennett</code> &bull; Pass: <code>learnsphere123</code></div>
-                <div style="font-size: 0.75rem; color: #475569;">Cohort-wide mastery analytics and student deep-dive inspection.</div>
+            <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1.1rem;">
+                <div style="font-weight: 600; font-size: 0.95rem; color: #172554;">Faculty Portal (Dr. Sarah Bennett)</div>
+                <div style="font-size: 0.85rem; color: #0F172A; margin: 0.25rem 0;">Username: <code>dr_bennett</code></div>
+                <div style="font-size: 0.85rem; color: #0F172A; margin-bottom: 0.5rem;">Password: <code>learnsphere123</code></div>
+                <div style="font-size: 0.775rem; color: #64748B;">Cohort-wide mastery analytics and student deep-dive inspection.</div>
             </div>
         </div>
     </div>
@@ -80,17 +83,18 @@ def render_landing_page():
     <div class="ls-card">
         <div class="ls-card-header">
             <h3 class="ls-card-title">Problem Statement and Proposed Solution</h3>
+            <span class="ls-card-desc">Addressing the structural bottleneck of conventional assessment</span>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-            <div style="padding: 1rem; background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-                <h4 style="color: #991b1b; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem;">The Challenge in Conventional Learning</h4>
-                <p style="color: #475569; font-size: 0.875rem; line-height: 1.55; margin: 0;">
+            <div style="padding: 1.25rem; background-color: #F8FAFC; border-radius: 8px; border: 1px solid #E2E8F0;">
+                <h4 style="color: #DC2626; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem;">The Challenge in Conventional Learning</h4>
+                <p style="color: #475569; font-size: 0.875rem; line-height: 1.6; margin: 0;">
                     Traditional e-learning platforms treat assessment as static binary scoring. A score of 70% does not reveal which foundational concepts are missing, whether mistakes stem from simple slips or deep cognitive misconceptions, or what sequential topic the learner is cognitively ready to acquire next.
                 </p>
             </div>
-            <div style="padding: 1rem; background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-                <h4 style="color: #1e40af; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem;">The LearnSphere AI Approach</h4>
-                <p style="color: #475569; font-size: 0.875rem; line-height: 1.55; margin: 0;">
+            <div style="padding: 1.25rem; background-color: #F8FAFC; border-radius: 8px; border: 1px solid #E2E8F0;">
+                <h4 style="color: #172554; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem;">The LearnSphere AI Approach</h4>
+                <p style="color: #475569; font-size: 0.875rem; line-height: 1.6; margin: 0;">
                     LearnSphere AI implements genuine Bayesian Knowledge Tracing to infer latent student mastery after every interaction. By combining probabilistic mastery modeling with labeled distractor misconception diagnostics, the platform delivers targeted pedagogical interventions tailored to each learner.
                 </p>
             </div>
@@ -106,27 +110,27 @@ def render_landing_page():
             <span class="ls-card-desc">Interpretable Probabilistic Machine Learning</span>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
-            <div style="padding: 1rem; border: 1px solid #f1f5f9; border-radius: 6px;">
-                <div style="font-weight: 600; color: #0f172a; margin-bottom: 0.35rem;">1. Knowledge State Modeling</div>
-                <p style="color: #64748b; font-size: 0.825rem; line-height: 1.5; margin: 0;">
+            <div style="padding: 1.1rem; border: 1px solid #E2E8F0; border-radius: 8px; background-color: #F8FAFC;">
+                <div style="font-weight: 600; color: #172554; margin-bottom: 0.35rem;">1. Knowledge State Modeling</div>
+                <p style="color: #64748B; font-size: 0.825rem; line-height: 1.55; margin: 0;">
                     Estimates latent concept mastery using Bayesian Knowledge Tracing with parameters: Initial Mastery P(L0), Learning Transition P(T), Guess Probability P(G), and Slip Probability P(S).
                 </p>
             </div>
-            <div style="padding: 1rem; border: 1px solid #f1f5f9; border-radius: 6px;">
-                <div style="font-weight: 600; color: #0f172a; margin-bottom: 0.35rem;">2. Cognitive Misconception Detection</div>
-                <p style="color: #64748b; font-size: 0.825rem; line-height: 1.5; margin: 0;">
+            <div style="padding: 1.1rem; border: 1px solid #E2E8F0; border-radius: 8px; background-color: #F8FAFC;">
+                <div style="font-weight: 600; color: #172554; margin-bottom: 0.35rem;">2. Cognitive Misconception Detection</div>
+                <p style="color: #64748B; font-size: 0.825rem; line-height: 1.55; margin: 0;">
                     Every incorrect answer option is mapped to a verified cognitive bug (e.g., Off-by-One indexing, mutable reference aliasing, or unreturned recursion) rather than marked as an undifferentiated failure.
                 </p>
             </div>
-            <div style="padding: 1rem; border: 1px solid #f1f5f9; border-radius: 6px;">
-                <div style="font-weight: 600; color: #0f172a; margin-bottom: 0.35rem;">3. Adaptive Question Selection</div>
-                <p style="color: #64748b; font-size: 0.825rem; line-height: 1.5; margin: 0;">
+            <div style="padding: 1.1rem; border: 1px solid #E2E8F0; border-radius: 8px; background-color: #F8FAFC;">
+                <div style="font-weight: 600; color: #172554; margin-bottom: 0.35rem;">3. Adaptive Question Selection</div>
+                <p style="color: #64748B; font-size: 0.825rem; line-height: 1.55; margin: 0;">
                     Maintains the student in their Zone of Proximal Development by matching real-time BKT mastery levels to appropriate question difficulties (Beginner, Intermediate, Advanced).
                 </p>
             </div>
-            <div style="padding: 1rem; border: 1px solid #f1f5f9; border-radius: 6px;">
-                <div style="font-weight: 600; color: #0f172a; margin-bottom: 0.35rem;">4. Prerequisite-Aware Pathways</div>
-                <p style="color: #64748b; font-size: 0.825rem; line-height: 1.5; margin: 0;">
+            <div style="padding: 1.1rem; border: 1px solid #E2E8F0; border-radius: 8px; background-color: #F8FAFC;">
+                <div style="font-weight: 600; color: #172554; margin-bottom: 0.35rem;">4. Prerequisite-Aware Pathways</div>
+                <p style="color: #64748B; font-size: 0.825rem; line-height: 1.55; margin: 0;">
                     Evaluates concept dependency directed acyclic graphs (DAGs) to identify root prerequisite gaps when advanced topics encounter resistance.
                 </p>
             </div>
@@ -136,27 +140,27 @@ def render_landing_page():
 
     # Mathematical Rigor Box
     st.markdown("""
-    <div class="ls-card" style="background-color: #fbfcfe; border-left: 4px solid #4f46e5;">
-        <h4 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem;">
+    <div class="ls-card" style="border-left: 4px solid #635BDB;">
+        <h4 style="font-size: 1rem; font-weight: 600; color: #172554; margin-bottom: 0.5rem;">
             Mathematical Foundation: Bayesian Knowledge Tracing Formulation
         </h4>
-        <p style="color: #475569; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.75rem;">
+        <p style="color: #475569; font-size: 0.875rem; line-height: 1.6; margin-bottom: 0.75rem;">
             Following the Corbett and Anderson framework, when an observation is received, posterior mastery is updated using Bayes' rule:
         </p>
-        <div style="background-color: #ffffff; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 0.825rem; color: #1e293b; margin-bottom: 0.5rem;">
-            P(L_t | Correct) = [P(L_t) * (1 - P(S))] / [P(L_t) * (1 - P(S)) + (1 - P(L_t)) * P(G)]<br>
-            P(L_t | Incorrect) = [P(L_t) * P(S)] / [P(L_t) * P(S) + (1 - P(L_t)) * (1 - P(G))]<br>
-            P(L_t+1) = P(L_t | obs) + [1 - P(L_t | obs)] * P(T)
-        </div>
-        <div style="color: #64748b; font-size: 0.8rem;">
-            This formulation maintains interpretable probabilities, eliminates random guessing noise, and distinguishes probabilistic competence from measured raw test percentage.
-        </div>
     </div>
     """, unsafe_allow_html=True)
 
+    col_m1, col_m2 = st.columns(2)
+    with col_m1:
+        st.caption("Posterior Update (Given Correct Response):")
+        st.latex(r"P(L_t \mid \text{obs}=1) = \frac{P(L_t)(1 - P(S))}{P(L_t)(1 - P(S)) + (1 - P(L_t))P(G)}")
+    with col_m2:
+        st.caption("Next State Transition (Prior for Next Opportunity):")
+        st.latex(r"P(L_{t+1}) = P(L_t \mid \text{obs}) + [1 - P(L_t \mid \text{obs})] \times P(T)")
+
     # Platform Capabilities & Technology
     st.markdown("""
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.5rem; margin-bottom: 2rem;">
         <div class="ls-card" style="margin-bottom: 0;">
             <div class="ls-card-header">
                 <h4 class="ls-card-title">Benefits for Students</h4>
@@ -200,4 +204,3 @@ def render_landing_page():
         LearnSphere AI &copy; 2026. Built for PS 03 Intelligent Education. All rights reserved.
     </div>
     """, unsafe_allow_html=True)
-
