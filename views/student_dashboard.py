@@ -9,7 +9,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from database.db import (
-    get_student_mastery, get_user_attempts, get_user_lesson_progress
+    get_student_mastery, get_user_attempts, get_user_lesson_progress,
+    get_all_learning_content
 )
 from core.bkt import BayesianKnowledgeTracing
 from core.recommender import RecommenderEngine
@@ -128,7 +129,144 @@ def render_student_dashboard(user: dict):
         st.info("You are on track across all curriculum prerequisites. Continue through the learning library.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 4. Concept Mastery Grid (BKT Estimates)
+    # 4. Weak Concepts and Strong Concepts Breakdown
+    strong_concepts = [m for m in mastery_data if m["mastery_prob"] >= 0.70]
+    weak_concepts = [m for m in mastery_data if m["mastery_prob"] < 0.60]
+
+    col_weak, col_strong = st.columns(2)
+    with col_weak:
+        st.markdown("""
+        <div class="ls-card" style="border-left: 4px solid #DC2626;">
+            <div class="ls-card-header">
+                <div>
+                    <span class="ls-badge badge-novice">Attention Required</span>
+                    <h3 class="ls-card-title" style="margin-top: 0.25rem;">Weak Concepts</h3>
+                    <div class="ls-card-desc">Concepts below the 60% proficiency threshold requiring focused practice.</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        if weak_concepts:
+            for wc in weak_concepts:
+                col_w_text, col_w_btn = st.columns([3, 1.2])
+                with col_w_text:
+                    st.markdown(f"""
+                    <div style="padding: 0.5rem 0; border-bottom: 1px solid #F1F5F9;">
+                        <strong style="color: #172554; font-size: 0.9rem;">{wc['concept_name']}</strong>
+                        <div style="font-size: 0.775rem; color: #DC2626; font-weight: 600;">
+                            BKT Mastery: {wc['mastery_prob']:.1%} &bull; {wc['total_attempts']} attempts
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_w_btn:
+                    if st.button("Practice Concept", key=f"weak_prac_{wc['concept_id']}", use_container_width=True, type="primary"):
+                        st.session_state["current_page"] = "assessment"
+                        st.session_state["assessment_concept_id"] = wc["concept_id"]
+                        st.rerun()
+        else:
+            st.markdown("<p style='color: #16A34A; font-size: 0.85rem; padding: 0.5rem 0;'>No weak concepts detected. All active topics meet the proficiency benchmark.</p>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_strong:
+        st.markdown("""
+        <div class="ls-card" style="border-left: 4px solid #16A34A;">
+            <div class="ls-card-header">
+                <div>
+                    <span class="ls-badge badge-mastered">Demonstrated Fluency</span>
+                    <h3 class="ls-card-title" style="margin-top: 0.25rem;">Strong Concepts</h3>
+                    <div class="ls-card-desc">Topics exceeding 70% BKT mastery with demonstrated fluency.</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        if strong_concepts:
+            for sc in strong_concepts:
+                col_s_text, col_s_btn = st.columns([3, 1.2])
+                with col_s_text:
+                    st.markdown(f"""
+                    <div style="padding: 0.5rem 0; border-bottom: 1px solid #F1F5F9;">
+                        <strong style="color: #172554; font-size: 0.9rem;">{sc['concept_name']}</strong>
+                        <div style="font-size: 0.775rem; color: #16A34A; font-weight: 600;">
+                            BKT Mastery: {sc['mastery_prob']:.1%} &bull; {sc['correct_attempts']}/{sc['total_attempts']} correct
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_s_btn:
+                    if st.button("Advanced Drill", key=f"strong_drill_{sc['concept_id']}", use_container_width=True, type="secondary"):
+                        st.session_state["current_page"] = "assessment"
+                        st.session_state["assessment_concept_id"] = sc["concept_id"]
+                        st.rerun()
+        else:
+            st.markdown("<p style='color: #64748B; font-size: 0.85rem; padding: 0.5rem 0;'>Continue completing assessments to demonstrate concept mastery.</p>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # 5. Upcoming Learning Activities and Pending Tasks
+    all_lessons = get_all_learning_content()
+    pending_tasks = []
+
+    # Incomplete curriculum lessons
+    for les in all_lessons:
+        cid = les["id"]
+        if not lesson_progress.get(cid, False):
+            pending_tasks.append({
+                "type": "Curriculum Module",
+                "badge": "badge-violet",
+                "title": f"Study {les['concept_name']}: {les['title']}",
+                "detail": f"{les['reading_time_min']} min reading &bull; Conceptual foundation and code sandbox",
+                "action_type": "library",
+                "target_code": les["concept_code"],
+                "btn_label": "Run Task: Open Lesson"
+            })
+
+    # Weak concepts needing reinforcement
+    for wc in weak_concepts[:2]:
+        pending_tasks.append({
+            "type": "Diagnostic Drill",
+            "badge": "badge-novice",
+            "title": f"Strengthen Mastery in {wc['concept_name']}",
+            "detail": f"Current BKT score {wc['mastery_prob']:.0%} is below benchmark (60%). Reinforce latent mastery.",
+            "action_type": "assessment",
+            "target_id": wc["concept_id"],
+            "btn_label": "Run Task: Take Drill"
+        })
+
+    st.markdown("""
+    <div class="ls-card">
+        <div class="ls-card-header">
+            <div>
+                <span class="ls-badge badge-violet">Action Queue</span>
+                <h3 class="ls-card-title" style="margin-top: 0.25rem;">Upcoming Learning Activities and Pending Tasks</h3>
+                <div class="ls-card-desc">Scheduled curriculum modules, diagnostic exercises, and cognitive remediation tasks ready to run.</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if pending_tasks:
+        for idx, task in enumerate(pending_tasks[:5]):
+            col_t_info, col_t_btn = st.columns([4, 1.2])
+            with col_t_info:
+                st.markdown(f"""
+                <div style="padding: 0.65rem 0; border-bottom: 1px solid #F1F5F9;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <span class="ls-badge {task['badge']}">{task['type']}</span>
+                        <strong style="color: #0F172A; font-size: 0.925rem;">{task['title']}</strong>
+                    </div>
+                    <div style="color: #64748B; font-size: 0.825rem;">{task['detail']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            with col_t_btn:
+                st.markdown("<div style='margin-top: 0.25rem;'></div>", unsafe_allow_html=True)
+                if st.button(task["btn_label"], key=f"run_pending_task_{idx}", use_container_width=True, type="primary"):
+                    if task["action_type"] == "library":
+                        st.session_state["current_page"] = "learning_library"
+                        st.session_state["selected_lesson_code"] = task["target_code"]
+                    else:
+                        st.session_state["current_page"] = "assessment"
+                        st.session_state["assessment_concept_id"] = task["target_id"]
+                    st.rerun()
+    else:
+        st.markdown("<p style='color: #16A34A; font-size: 0.85rem;'>All curriculum modules and practice drills completed. You are completely caught up!</p>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # 6. Concept Mastery Grid (BKT Estimates)
     st.markdown("""
     <div class="ls-card">
         <div class="ls-card-header">
