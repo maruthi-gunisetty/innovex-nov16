@@ -68,6 +68,9 @@ def _render_student_login():
         if user:
             st.session_state["user"] = user
             st.session_state["current_page"] = "student_dashboard"
+            st.session_state["_synced_page"] = "student_dashboard"
+            st.session_state["sidebar_nav_radio"] = "Dashboard"
+            st.session_state["_active_nav_label"] = "Dashboard"
             st.session_state.pop("auth_tab", None)
             st.rerun()
 
@@ -98,6 +101,9 @@ def _render_student_login():
             if AuthService.verify_password(password, user["salt"], user["password_hash"]):
                 st.session_state["user"] = user
                 st.session_state["current_page"] = "student_dashboard"
+                st.session_state["_synced_page"] = "student_dashboard"
+                st.session_state["sidebar_nav_radio"] = "Dashboard"
+                st.session_state["_active_nav_label"] = "Dashboard"
                 st.session_state.pop("auth_tab", None)
                 st.success(f"Welcome back, {user['full_name']}.")
                 st.rerun()
@@ -122,6 +128,9 @@ def _render_teacher_login():
         if user:
             st.session_state["user"] = user
             st.session_state["current_page"] = "teacher_dashboard"
+            st.session_state["_synced_page"] = "teacher_dashboard"
+            st.session_state["sidebar_nav_radio"] = "Dashboard"
+            st.session_state["_active_nav_label"] = "Dashboard"
             st.session_state.pop("auth_tab", None)
             st.rerun()
 
@@ -152,6 +161,9 @@ def _render_teacher_login():
             if AuthService.verify_password(password, user["salt"], user["password_hash"]):
                 st.session_state["user"] = user
                 st.session_state["current_page"] = "teacher_dashboard"
+                st.session_state["_synced_page"] = "teacher_dashboard"
+                st.session_state["sidebar_nav_radio"] = "Dashboard"
+                st.session_state["_active_nav_label"] = "Dashboard"
                 st.session_state.pop("auth_tab", None)
                 st.success(f"Authenticated as {user['full_name']}.")
                 st.rerun()
@@ -245,6 +257,9 @@ def _render_demo_switcher():
             if user:
                 st.session_state["user"] = user
                 st.session_state["current_page"] = "student_dashboard"
+                st.session_state["_synced_page"] = "student_dashboard"
+                st.session_state["sidebar_nav_radio"] = "Dashboard"
+                st.session_state["_active_nav_label"] = "Dashboard"
                 st.rerun()
 
     with col2:
@@ -265,6 +280,9 @@ def _render_demo_switcher():
             if user:
                 st.session_state["user"] = user
                 st.session_state["current_page"] = "student_dashboard"
+                st.session_state["_synced_page"] = "student_dashboard"
+                st.session_state["sidebar_nav_radio"] = "Dashboard"
+                st.session_state["_active_nav_label"] = "Dashboard"
                 st.rerun()
 
     with col3:
@@ -285,5 +303,8 @@ def _render_demo_switcher():
             if user:
                 st.session_state["user"] = user
                 st.session_state["current_page"] = "teacher_dashboard"
+                st.session_state["_synced_page"] = "teacher_dashboard"
+                st.session_state["sidebar_nav_radio"] = "Dashboard"
+                st.session_state["_active_nav_label"] = "Dashboard"
                 st.rerun()
 
