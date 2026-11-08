@@ -42,7 +42,37 @@ def render_landing_page():
             st.session_state["auth_tab"] = "demo"
             st.rerun()
 
-    st.markdown("<div style='margin-top: 3rem;'></div>", unsafe_allow_html=True)
+    # Demonstration Fake Login Credentials Card
+    st.markdown("""
+    <div class="ls-card" style="margin-top: 2rem; border-left: 4px solid #4f46e5; background-color: #fbfcfe;">
+        <div class="ls-card-header">
+            <div>
+                <span class="ls-badge badge-demo">Evaluation Credentials</span>
+                <h3 class="ls-card-title" style="margin-top: 0.35rem;">Fake Login Credentials &bull; Quick Access</h3>
+                <div class="ls-card-desc">Use the Login Portal in the right side top corner or log in with these pre-seeded accounts:</div>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem;">
+                <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a;">Student Profile (Alex Rivera)</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Username: <code>alex_rivera</code> &bull; Pass: <code>learnsphere123</code></div>
+                <div style="font-size: 0.75rem; color: #475569;">Active cognitive misconceptions in Loops and Recursion.</div>
+            </div>
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem;">
+                <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a;">Advanced Student (Sophia Chen)</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Username: <code>sophia_chen</code> &bull; Pass: <code>learnsphere123</code></div>
+                <div style="font-size: 0.75rem; color: #475569;">High curriculum mastery, advancing into algorithmic synthesis.</div>
+            </div>
+            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem;">
+                <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a;">Faculty Portal (Dr. Sarah Bennett)</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Username: <code>dr_bennett</code> &bull; Pass: <code>learnsphere123</code></div>
+                <div style="font-size: 0.75rem; color: #475569;">Cohort-wide mastery analytics and student deep-dive inspection.</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
 
     # Problem Statement and Proposed Solution
     st.markdown("""

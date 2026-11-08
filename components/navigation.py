@@ -1,32 +1,129 @@
 """
-LearnSphere AI: Navigation System
-Coordinates top brand banner, role-aware sidebar navigation, and session termination.
-Zero emojis, strict professional typography, and responsive state handling.
+LearnSphere AI: Navigation and Header Management
+Features a responsive top navbar with Login Portal in the right-side top corner,
+fake/demonstration login credentials, and role-based sidebar navigation.
+Zero emojis, strict professional typography, and seamless session control.
 """
 
 import streamlit as st
-from components.styles import get_icon
+from database.db import get_user_by_username
+from core.auth_service import AuthService
 
 
 def render_navigation():
     user = st.session_state.get("user")
 
-    # Render top brand bar
-    st.markdown("""
-    <div class="ls-navbar">
-        <div class="ls-brand">
-            LearnSphere <span>AI</span>
-        </div>
-        <div style="font-size: 0.825rem; font-weight: 500; color: #64748b; letter-spacing: 0.02em;">
-            Adaptive Intelligence &bull; PS 03
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # ==========================================================
+    # TOP NAVBAR WITH LOGIN PORTAL IN THE RIGHT SIDE TOP CORNER
+    # ==========================================================
+    col_nav_brand, col_nav_portal = st.columns([1.6, 1.4])
 
-    # Render Sidebar
+    with col_nav_brand:
+        st.markdown("""
+        <div style="display: flex; align-items: center; padding: 0.4rem 0;">
+            <div style="font-size: 1.35rem; font-weight: 700; color: #0f172a; letter-spacing: -0.02em;">
+                LearnSphere <span style="color: #4f46e5;">AI</span>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 500; color: #64748b; margin-left: 0.75rem; border-left: 1px solid #cbd5e1; padding-left: 0.75rem;">
+                Adaptive Intelligence &bull; PS 03
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_nav_portal:
+        if user:
+            # Authenticated Top-Right Status
+            col_u_info, col_u_out = st.columns([2, 1])
+            with col_u_info:
+                role_cap = user.get("role", "student").capitalize()
+                demo_label = " (Demo Profile)" if user.get("is_demo") else ""
+                st.markdown(f"""
+                <div style="text-align: right; padding-top: 0.35rem;">
+                    <strong style="color: #0f172a; font-size: 0.9rem;">{user['full_name']}</strong>
+                    <div style="font-size: 0.75rem; color: #64748b;">{role_cap}{demo_label}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            with col_u_out:
+                if st.button("Sign Out", key="top_signout_action", use_container_width=True, type="secondary"):
+                    st.session_state.clear()
+                    st.session_state["current_page"] = "landing"
+                    st.rerun()
+
+        else:
+            # Unauthenticated: Login Portal in Right-Side Top Corner
+            col_port_drop, col_port_btn = st.columns([1.5, 1])
+
+            with col_port_drop:
+                with st.popover("Login Portal & Fake Credentials", use_container_width=True):
+                    st.markdown("""
+                    <div style="margin-bottom: 0.5rem;">
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a;">Demonstration Login Credentials</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">Use these fake accounts to evaluate the platform:</div>
+                    </div>
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.65rem; margin-bottom: 0.75rem; font-size: 0.8rem; line-height: 1.5;">
+                        <div style="margin-bottom: 0.35rem;">
+                            <strong>Student 1:</strong> <code>alex_rivera</code> &bull; Password: <code>learnsphere123</code><br>
+                            <span style="color: #64748b; font-size: 0.75rem;">Active cognitive bugs in Loops & Recursion</span>
+                        </div>
+                        <div style="margin-bottom: 0.35rem;">
+                            <strong>Student 2:</strong> <code>sophia_chen</code> &bull; Password: <code>learnsphere123</code><br>
+                            <span style="color: #64748b; font-size: 0.75rem;">Advanced mastery profile</span>
+                        </div>
+                        <div>
+                            <strong>Faculty:</strong> <code>dr_bennett</code> &bull; Password: <code>learnsphere123</code><br>
+                            <span style="color: #64748b; font-size: 0.75rem;">Teacher cohort analytics portal</span>
+                        </div>
+                    </div>
+                    <div style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.35rem; color: #0f172a;">Instant One-Click Access:</div>
+                    """, unsafe_allow_html=True)
+
+                    if st.button("Quick Login as Alex Rivera", key="pop_btn_alex", use_container_width=True):
+                        u = get_user_by_username("alex_rivera")
+                        if u:
+                            st.session_state["user"] = u
+                            st.session_state["current_page"] = "student_dashboard"
+                            st.rerun()
+
+                    if st.button("Quick Login as Sophia Chen", key="pop_btn_sophia", use_container_width=True):
+                        u = get_user_by_username("sophia_chen")
+                        if u:
+                            st.session_state["user"] = u
+                            st.session_state["current_page"] = "student_dashboard"
+                            st.rerun()
+
+                    if st.button("Quick Login as Dr. Sarah Bennett", key="pop_btn_teacher", use_container_width=True):
+                        u = get_user_by_username("dr_bennett")
+                        if u:
+                            st.session_state["user"] = u
+                            st.session_state["current_page"] = "teacher_dashboard"
+                            st.rerun()
+
+                    st.markdown("<hr style='margin: 0.65rem 0;'>", unsafe_allow_html=True)
+                    st.markdown("<div style='font-weight: 600; font-size: 0.8rem; margin-bottom: 0.25rem;'>Standard Credentials Sign In:</div>", unsafe_allow_html=True)
+                    quick_u = st.text_input("Username or Email", key="top_quick_u")
+                    quick_p = st.text_input("Password", type="password", key="top_quick_p")
+                    if st.button("Sign In to Portal", key="top_quick_submit", type="primary", use_container_width=True):
+                        u = get_user_by_username(quick_u)
+                        if u and AuthService.verify_password(quick_p, u["salt"], u["password_hash"]):
+                            st.session_state["user"] = u
+                            st.session_state["current_page"] = "student_dashboard" if u["role"] == "student" else "teacher_dashboard"
+                            st.rerun()
+                        else:
+                            st.error("Invalid credentials.")
+
+            with col_port_btn:
+                if st.button("Sign In Portal", key="top_signin_portal_nav", use_container_width=True, type="primary"):
+                    st.session_state["current_page"] = "auth"
+                    st.rerun()
+
+    st.markdown("<hr style='border-color: #e2e8f0; margin: 0.75rem 0 1.5rem 0;'>", unsafe_allow_html=True)
+
+    # ==========================================================
+    # SIDEBAR NAVIGATION
+    # ==========================================================
     with st.sidebar:
         st.markdown("""
-        <div style="padding: 0.5rem 0 1.25rem 0; border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
+        <div style="padding: 0.25rem 0 1rem 0; border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
             <div style="font-weight: 700; font-size: 1.1rem; color: #0f172a;">LearnSphere AI</div>
             <div style="font-size: 0.75rem; color: #64748b;">Adaptive Education Platform</div>
         </div>
@@ -35,7 +132,7 @@ def render_navigation():
         if user:
             # Authenticated User Badge
             role_label = user.get("role", "student").capitalize()
-            demo_text = " (Demo)" if user.get("is_demo") else ""
+            demo_text = " (Demo Profile)" if user.get("is_demo") else ""
             st.markdown(f"""
             <div style="background-color: #f1f5f9; border-radius: 6px; padding: 0.75rem; margin-bottom: 1.25rem;">
                 <div style="font-weight: 600; font-size: 0.875rem; color: #0f172a;">{user['full_name']}</div>
@@ -66,7 +163,6 @@ def render_navigation():
                     "Settings": "settings"
                 }
 
-            # Map current page
             curr = st.session_state.get("current_page", list(page_options.values())[0])
             curr_label = next((k for k, v in page_options.items() if v == curr), list(page_options.keys())[0])
 
@@ -75,30 +171,27 @@ def render_navigation():
 
             st.markdown("<hr style='border-color: #e2e8f0; margin: 1.5rem 0;'>", unsafe_allow_html=True)
 
-            if st.button("Sign Out", use_container_width=True, type="secondary"):
+            if st.button("Sign Out from Application", use_container_width=True, type="secondary"):
                 st.session_state.clear()
                 st.session_state["current_page"] = "landing"
                 st.rerun()
 
         else:
-            # Public Navigation Options
-            pub_options = {
-                "Platform Overview": "landing",
-                "Sign In / Register": "auth"
-            }
-            curr = st.session_state.get("current_page", "landing")
-            if curr not in pub_options.values():
-                curr = "landing"
-            curr_label = next((k for k, v in pub_options.items() if v == curr), "Platform Overview")
-
-            selected_pub = st.radio("Explore", list(pub_options.keys()), index=list(pub_options.keys()).index(curr_label))
-            st.session_state["current_page"] = pub_options[selected_pub]
-
-            st.markdown("<hr style='border-color: #e2e8f0; margin: 1.5rem 0;'>", unsafe_allow_html=True)
+            # Unauthenticated Sidebar: Clean Info and Fake Credentials (NO 'Platform Overview')
             st.markdown("""
-            <div style="font-size: 0.8rem; color: #64748b; line-height: 1.5;">
-                <strong>Quick Evaluation:</strong><br>
-                Navigate to Sign In &rarr; Demonstration Mode to immediately test sample student and faculty personas.
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+                <div style="font-weight: 600; font-size: 0.85rem; color: #0f172a; margin-bottom: 0.35rem;">Login Portal Credentials</div>
+                <div style="font-size: 0.75rem; color: #64748b; line-height: 1.5; margin-bottom: 0.75rem;">
+                    Sign in using the portal in the top right corner or with these fake demo accounts:
+                </div>
+                <div style="font-size: 0.75rem; color: #334155; line-height: 1.6;">
+                    &bull; <strong>Student:</strong> <code>alex_rivera</code><br>
+                    &bull; <strong>Teacher:</strong> <code>dr_bennett</code><br>
+                    &bull; <strong>Password:</strong> <code>learnsphere123</code>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
+            if st.button("Open Login Portal", key="side_open_auth_btn", use_container_width=True, type="primary"):
+                st.session_state["current_page"] = "auth"
+                st.rerun()
