@@ -17,7 +17,7 @@ def render_landing_page():
             Learning That Understands Every Student.
         </h1>
         <p style="font-size: 1.15rem; color: #64748B; line-height: 1.6; margin-bottom: 2rem;">
-            An intelligent educational platform that identifies knowledge gaps, models latent concept mastery with Bayesian Knowledge Tracing, detects cognitive misconceptions, and constructs adaptive learning journeys.
+            An intelligent learning platform that identifies knowledge gaps, understands learning difficulties and creates personalized educational journeys.
         </p>
     </div>
     """, unsafe_allow_html=True)
