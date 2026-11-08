@@ -11,6 +11,7 @@ import streamlit as st
 from database.db import get_user_by_username, get_user_by_email
 from core.auth_service import AuthService
 from core.course_manager import get_active_course, render_course_selector
+from components.brand import render_sidebar_brand, render_topbar_brand, BRAND_NAME, TAGLINE
 from components.styles import get_icon
 
 
@@ -23,14 +24,9 @@ def render_navigation():
     col_search, col_user_portal = st.columns([1.6, 1.4])
 
     with col_search:
-        col_logo_mini, col_search_box = st.columns([0.45, 1.55])
+        col_logo_mini, col_search_box = st.columns([0.65, 1.35])
         with col_logo_mini:
-            st.markdown("""
-            <div style="display: flex; align-items: center; gap: 6px; padding-top: 0.25rem;">
-                <div style="width: 28px; height: 28px; border-radius: 6px; background-color: #243B64; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem;">LS</div>
-                <div style="font-weight: 700; font-size: 1.05rem; color: #243B64; letter-spacing: -0.02em;">LearnSphere</div>
-            </div>
-            """, unsafe_allow_html=True)
+            render_topbar_brand()
         with col_search_box:
             st.markdown("""
             <div class="lm-search-box">
@@ -82,11 +78,11 @@ def render_navigation():
             # Unauthenticated: Login Portal in Right-Side Top Corner
             col_port_drop, col_port_btn = st.columns([1.5, 1])
             with col_port_drop:
-                with st.popover("Login Portal & Fake Credentials", use_container_width=True):
+                with st.popover("SARVAVIDYA Evaluation Portal", use_container_width=True):
                     st.markdown("""
                     <div style="margin-bottom: 0.5rem;">
-                        <div style="font-weight: 700; font-size: 0.925rem; color: #243B64;">Demonstration Login Credentials</div>
-                        <div style="font-size: 0.75rem; color: #718096;">Pre-seeded accounts for evaluation:</div>
+                        <div style="font-weight: 700; font-size: 0.925rem; color: #172943;">SARVAVIDYA Evaluation Credentials</div>
+                        <div style="font-size: 0.75rem; color: #718096;">Pre-seeded accounts for academic evaluation:</div>
                     </div>
                     <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.65rem; margin-bottom: 0.75rem; font-size: 0.8rem; line-height: 1.5;">
                         <div style="margin-bottom: 0.4rem; padding-bottom: 0.35rem; border-bottom: 1px solid #E4E8ED;">
@@ -149,16 +145,8 @@ def render_navigation():
     # LEFT COMPACT SIDEBAR (Matching Reference Proportions)
     # ==========================================================
     with st.sidebar:
-        # Brand Logo Header matching reference
-        st.markdown("""
-        <div style="padding: 0.25rem 0 0.75rem 0; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #E4E8ED; margin-bottom: 0.75rem;">
-            <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #243B64, #3976B9); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">LS</div>
-            <div>
-                <div style="font-weight: 700; font-size: 1.05rem; color: #243B64; line-height: 1.2;">LearnSphere<span style="color: #3976B9;">AI</span></div>
-                <div style="font-size: 0.675rem; color: #718096;">Adaptive Intelligence</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        # Brand Logo Header matching SARVAVIDYA identity
+        render_sidebar_brand()
 
         if user:
             active_c = get_active_course()
@@ -224,15 +212,15 @@ def render_navigation():
                 st.session_state["current_page"] = nav_map[selected_nav]
                 st.rerun()
 
-            # Bottom Sidebar CTA Card (Matching "Student Group" card in reference image)
+            # Bottom Sidebar CTA Card (Matching SARVAVIDYA identity)
             st.markdown("""
             <div class="lm-sidebar-cta">
                 <div class="lm-sidebar-cta-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 </div>
-                <div style="font-weight: 700; font-size: 0.85rem; color: #243B64;">Student Group</div>
-                <div style="font-size: 0.7rem; color: #718096; margin-top: 0.2rem; line-height: 1.4;">
-                    Collaborate with peer learners, ask AI, and join live study cohorts.
+                <div style="font-weight: 700; font-size: 0.85rem; color: #FFFFFF;">SARVAVIDYA Cohort</div>
+                <div style="font-size: 0.7rem; color: #D6B56D; margin-top: 0.2rem; line-height: 1.4;">
+                    Collaborate with peer scholars, explore cross-domain topics, and join live study cohorts.
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -245,7 +233,7 @@ def render_navigation():
             # Unauthenticated Sidebar Info
             st.markdown("""
             <div style="background-color: #FFFFFF; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.85rem; margin-bottom: 0.75rem;">
-                <div style="font-weight: 600; font-size: 0.8rem; color: #243B64; margin-bottom: 0.25rem;">Evaluation Credentials</div>
+                <div style="font-weight: 700; font-size: 0.8rem; color: #172943; margin-bottom: 0.25rem;">SARVAVIDYA Credentials</div>
                 <div style="font-size: 0.725rem; color: #718096; line-height: 1.5;">
                     Sign in with the top-right portal:<br>
                     &bull; <strong>Student:</strong> <code>student@123</code><br>

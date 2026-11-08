@@ -1,26 +1,32 @@
 """
-LearnSphere AI: Public Educational Management Landing Page
-Enterprise educational design language matching the reference dashboard:
-Primary Navy #243B64, Secondary Blue #3976B9, Light Blue #EAF2FA,
-Cards #FFFFFF, Borders #E4E8ED, Canvas #F5F6F8.
-Zero emojis, strict professional typography, and responsive layouts.
+SARVAVIDYA: Public Educational Management Landing Page
+Brand: SARVAVIDYA
+Tagline: One Platform. Every Subject. Infinite Knowledge.
+Colors: Deep Navy #172943, Royal Navy #243B64, Premium Gold #D6B56D, Soft Gold #E8C879, White #FFFFFF.
+Zero emojis, strict professional typography, and responsive SaaS layout.
 """
 
 import streamlit as st
+from components.brand import render_full_hero_brand, BRAND_NAME, TAGLINE
 
 
 def render_landing_page():
     # Hero Section
     st.markdown("""
-    <div style="text-align: center; padding: 2.25rem 1rem 1.75rem 1rem; max-width: 860px; margin: 0 auto;">
-        <div style="display: inline-flex; align-items: center; gap: 6px; background-color: #EAF2FA; color: #243B64; border: 1px solid #D2E4F6; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem;">
-            Enterprise Educational Management &bull; Adaptive Intelligence
+    <div style="text-align: center; padding: 1.5rem 1rem 1rem 1rem; max-width: 900px; margin: 0 auto;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background-color: #FAF5EA; color: #172943; border: 1px solid #E8C879; padding: 0.25rem 0.85rem; border-radius: 9999px; font-size: 0.725rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+            Unified Multi-Subject Cognitive Architecture
         </div>
-        <h1 style="font-size: 2.45rem; font-weight: 800; color: #243B64; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 1rem;">
-            Learning That Understands Every Student.
-        </h1>
-        <p style="font-size: 1.05rem; color: #718096; line-height: 1.55; margin-bottom: 1.75rem;">
-            An intelligent learning platform that identifies knowledge gaps, understands learning difficulties and creates personalized educational journeys.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Full SARVAVIDYA Brand Hero Lockup (Golden Lotus + Open Book + SARVAVIDYA + Tagline)
+    render_full_hero_brand(center=True)
+
+    st.markdown("""
+    <div style="text-align: center; max-width: 820px; margin: 0 auto 1.5rem auto;">
+        <p style="font-size: 1.05rem; color: #718096; line-height: 1.6; margin: 0;">
+            An internationally competitive learning platform unifying <strong>Programming</strong>, <strong>Mathematics</strong>, <strong>Engineering</strong>, and <strong>Science</strong>. Diagnosing student misconceptions with Corbett & Anderson Bayesian Knowledge Tracing and delivering adaptive learning pathways.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -45,32 +51,32 @@ def render_landing_page():
 
     # Demonstration Fake Login Credentials Card
     st.markdown("""
-    <div class="lm-card" style="margin-top: 1.5rem; border-left: 4px solid #3976B9;">
+    <div class="lm-card" style="margin-top: 1.5rem; border-left: 4px solid #D6B56D;">
         <div class="lm-card-header">
             <div>
                 <span class="lm-pill pill-ahead">Evaluation Credentials</span>
-                <h3 class="lm-card-title" style="margin-top: 0.25rem;">Evaluation Credentials &bull; Quick Access</h3>
-                <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Sign in using the top-right Login Portal or use these credentials:</div>
+                <h3 class="lm-card-title" style="margin-top: 0.25rem;">SARVAVIDYA Evaluation Credentials &bull; Quick Access</h3>
+                <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Sign in using the top-right portal or use these verified accounts:</div>
             </div>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.85rem; margin-top: 0.5rem;">
-            <div style="background-color: #F5F6F8; border: 1px solid #D2E4F6; border-radius: 8px; padding: 0.9rem;">
-                <div style="font-weight: 700; font-size: 0.875rem; color: #243B64;">Student Account (Requested)</div>
+            <div style="background-color: #F5F6F8; border: 1px solid #E8C879; border-radius: 8px; padding: 0.9rem;">
+                <div style="font-weight: 700; font-size: 0.875rem; color: #172943;">Student Account</div>
                 <div style="font-size: 0.8rem; color: #263445; margin: 0.2rem 0;">Email / User: <code>student@123</code></div>
                 <div style="font-size: 0.8rem; color: #263445; margin-bottom: 0.4rem;">Password: <code>student123</code></div>
-                <div style="font-size: 0.725rem; color: #718096;">Active telemetry with struggle points in Loops and Recursion.</div>
+                <div style="font-size: 0.725rem; color: #718096;">Active telemetry across Python, C Systems, and Calculus.</div>
             </div>
             <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.9rem;">
-                <div style="font-weight: 700; font-size: 0.875rem; color: #243B64;">Faculty / Teacher Account</div>
+                <div style="font-weight: 700; font-size: 0.875rem; color: #172943;">Faculty / Instructor Account</div>
                 <div style="font-size: 0.8rem; color: #263445; margin: 0.2rem 0;">User: <code>dr_bennett</code></div>
                 <div style="font-size: 0.8rem; color: #263445; margin-bottom: 0.4rem;">Password: <code>learnsphere123</code></div>
-                <div style="font-size: 0.725rem; color: #718096;">Cohort-wide mastery distributions and systemic misconception telemetry.</div>
+                <div style="font-size: 0.725rem; color: #718096;">Multi-subject cohort telemetry and systemic misconception analytics.</div>
             </div>
             <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.9rem;">
-                <div style="font-weight: 700; font-size: 0.875rem; color: #243B64;">Advanced Student Profile</div>
+                <div style="font-weight: 700; font-size: 0.875rem; color: #172943;">Advanced Scholar Profile</div>
                 <div style="font-size: 0.8rem; color: #263445; margin: 0.2rem 0;">User: <code>sophia_chen</code></div>
                 <div style="font-size: 0.8rem; color: #263445; margin-bottom: 0.4rem;">Password: <code>student123</code></div>
-                <div style="font-size: 0.725rem; color: #718096;">High proficiency student profile exceeding mastery thresholds.</div>
+                <div style="font-size: 0.725rem; color: #718096;">High-mastery profile excelling in Algorithms and Linear Algebra.</div>
             </div>
         </div>
     </div>
@@ -79,7 +85,7 @@ def render_landing_page():
     # Core AI System & Features Grid
     st.markdown("""
     <div style="margin-top: 1.5rem; margin-bottom: 0.75rem;">
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: #243B64; margin-bottom: 0.25rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #172943; margin-bottom: 0.25rem;">
             Educational Management & Adaptive Intelligence
         </h3>
         <p style="color: #718096; font-size: 0.825rem; margin: 0;">
@@ -99,7 +105,7 @@ def render_landing_page():
             <p style="color: #718096; font-size: 0.825rem; line-height: 1.55; margin-bottom: 0.75rem;">
                 Estimates latent student mastery using empirical parameters: prior mastery, learning transit probability, slip probability, and guess probability.
             </p>
-            <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 6px; padding: 0.65rem; font-size: 0.775rem; color: #263445;">
+            <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 6px; padding: 0.65rem; font-size: 0.775rem; color: #172943;">
                 P(L<sub>t</sub>) = P(L<sub>t-1</sub> | Obs) + (1 - P(L<sub>t-1</sub> | Obs)) &times; P(T)
             </div>
         </div>
@@ -113,17 +119,17 @@ def render_landing_page():
                 <span class="lm-pill pill-ahead">Distractor Diagnostics</span>
             </div>
             <p style="color: #718096; font-size: 0.825rem; line-height: 1.55; margin-bottom: 0.75rem;">
-                Identifies 10 computer science misconceptions directly from chosen answer choices, distinguishing careless slips from deep mental model bugs.
+                Identifies deep cognitive fallacies across Programming, Mathematics, Engineering, and Science directly from student response selections.
             </p>
-            <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 6px; padding: 0.65rem; font-size: 0.775rem; color: #263445;">
-                Examples: Off-by-one indexing, missing recursion base cases, reference alias mutation.
+            <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 6px; padding: 0.65rem; font-size: 0.775rem; color: #172943;">
+                Examples: Pointer dereferencing, recursion base omission, power-rule exponent fallacies.
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     # Footer
-    st.markdown("""
+    st.markdown(f"""
     <div style="text-align: center; padding: 2rem 0 1rem 0; margin-top: 2rem; border-top: 1px solid #E4E8ED; color: #718096; font-size: 0.775rem;">
-        LearnSphere AI &copy; 2026. Adaptive Intelligence for Personalized Learning. All rights reserved.
+        <strong>{BRAND_NAME}</strong> &copy; 2026 &bull; {TAGLINE} &bull; Enterprise Educational Management. All rights reserved.
     </div>
     """, unsafe_allow_html=True)

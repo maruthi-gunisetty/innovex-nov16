@@ -27,9 +27,10 @@ from views.settings import render_settings_page
 
 def main():
     # 1. Page Configuration (Strictly no emojis)
+    favicon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "brand", "favicon.png")
     st.set_page_config(
-        page_title="LearnSphere AI - Adaptive Education Platform",
-        page_icon=None,
+        page_title="SARVAVIDYA – One Platform. Every Subject. Infinite Knowledge.",
+        page_icon=favicon_path if os.path.exists(favicon_path) else None,
         layout="wide",
         initial_sidebar_state="expanded"
     )

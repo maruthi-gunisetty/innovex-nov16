@@ -1,9 +1,15 @@
 """
-LearnSphere AI: Enterprise Educational Management Design System
-Closely reproducing the visual design language, layout structure, proportions,
-typography, navigation, and dashboard organization of the reference dashboard.
-Colors: Primary Navy #243B64, Secondary Blue #3976B9, Light Blue #EAF2FA,
-Canvas #F5F6F8, Cards #FFFFFF, Borders #E4E8ED, Success #36A879, Warning #E9AA45, Danger #D96B6B.
+SARVAVIDYA: Enterprise Educational Management Design System
+Brand Identity:
+- Deep Navy: #172943
+- Royal Navy: #243B64
+- Premium Gold: #D6B56D
+- Soft Gold: #E8C879
+- White: #FFFFFF
+- Canvas Background: #F5F6F8
+- Borders: #E4E8ED
+- Success: #36A879, Warning: #E9AA45, Danger: #D96B6B
+Tagline: One Platform. Every Subject. Infinite Knowledge.
 Zero emojis, strict professional typography, and compact information density.
 """
 
@@ -20,7 +26,7 @@ ICONS = {
     "settings": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>""",
     "search": """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>""",
     "bell": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>""",
-    "trophy": """<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E9AA45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>""",
+    "trophy": """<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6B56D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>""",
     "check": """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>""",
     "alert": """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>"""
 }
@@ -28,11 +34,11 @@ ICONS = {
 CUSTOM_CSS = """
 <style>
 /* Modern Typography - Inter */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #263445;
+    color: #172943;
     background-color: #F5F6F8;
 }
 
@@ -81,7 +87,7 @@ footer {
     max-width: 1320px !important;
 }
 
-/* Sidebar Customization - Compact White 210px matching reference */
+/* Sidebar Customization - Compact White 220px */
 [data-testid="stSidebar"] {
     background-color: #FFFFFF !important;
     border-right: 1px solid #E4E8ED !important;
@@ -93,7 +99,7 @@ footer {
     gap: 0.35rem !important;
 }
 
-/* Sidebar Radio Navigation Override */
+/* Sidebar Radio Navigation */
 [data-testid="stSidebar"] .stRadio > div {
     gap: 0.25rem !important;
 }
@@ -109,21 +115,22 @@ footer {
 }
 
 [data-testid="stSidebar"] .stRadio label:hover {
-    background-color: #F5F6F8 !important;
-    color: #263445 !important;
+    background-color: #F8FAFC !important;
+    color: #172943 !important;
 }
 
 [data-testid="stSidebar"] .stRadio label[data-checked="true"],
 [data-testid="stSidebar"] .stRadio label[data-selected="true"],
 [data-testid="stSidebar"] .stRadio label:has(input:checked) {
-    background-color: #EAF2FA !important;
-    color: #243B64 !important;
+    background-color: #FAF5EA !important;
+    color: #172943 !important;
     font-weight: 600 !important;
+    border-left: 3px solid #D6B56D !important;
 }
 
 /* ==========================================================
    GLOBAL RADIO BUTTON STYLING (Sidebar & Assessment Pages)
-   Ensures the radio circle fills with blue (#3976B9) when selected.
+   Ensures the radio circle fills with gold (#D6B56D) when selected.
    ========================================================== */
 
 /* 1. Unselected Radio Circle: Neutral border with clean white interior */
@@ -163,11 +170,11 @@ div[role="radiogroup"] label > div > div:first-child > div,
 .stRadio [data-testid="stRadioOption"]:hover > div > div:first-child,
 .stRadio label:hover > div > div:first-child,
 div[role="radiogroup"] label:hover > div > div:first-child {
-    border-color: #3976B9 !important;
-    background-color: #F8FAFC !important;
+    border-color: #D6B56D !important;
+    background-color: #FAF5EA !important;
 }
 
-/* 4. SELECTED Radio Circle: Fills with Blue (#3976B9) */
+/* 4. SELECTED Radio Circle: Fills with Gold (#D6B56D) */
 .stRadio [data-testid="stRadioOption"]:has(input:checked) div[class*="ex50key4"],
 .stRadio [data-testid="stRadioOption"][data-selected="true"] div[class*="ex50key4"],
 .stRadio [data-testid="stRadioOption"]:has(input:checked) > div > div:first-child,
@@ -183,12 +190,12 @@ div[role="radiogroup"] label[data-selected="true"] > div > div:first-child,
 div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child,
 [data-testid="stRadioGroup"] label:has(input:checked) > div > div:first-child,
 [data-testid="stRadioGroup"] label[data-selected="true"] > div > div:first-child {
-    background-color: #3976B9 !important;
-    border: 2px solid #3976B9 !important;
-    box-shadow: 0 0 0 2px rgba(57, 118, 185, 0.25) !important;
+    background-color: #D6B56D !important;
+    border: 2px solid #D6B56D !important;
+    box-shadow: 0 0 0 2px rgba(214, 181, 109, 0.28) !important;
 }
 
-/* 5. SELECTED Radio Inner Dot: Crisp 5px white center dot */
+/* 5. SELECTED Radio Inner Dot: Crisp 6px white center dot */
 .stRadio [data-testid="stRadioOption"]:has(input:checked) div[class*="ex50key5"],
 .stRadio [data-testid="stRadioOption"][data-selected="true"] div[class*="ex50key5"],
 .stRadio [data-testid="stRadioOption"]:has(input:checked) > div > div:first-child > div,
@@ -225,7 +232,7 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 1px 3px rgba(36, 59, 100, 0.03);
+    box-shadow: 0 1px 3px rgba(23, 41, 67, 0.04);
 }
 
 .lm-search-box {
@@ -238,7 +245,7 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
     padding: 0.35rem 0.75rem;
     color: #718096;
     font-size: 0.8rem;
-    width: 320px;
+    width: 300px;
 }
 
 .lm-user-pill {
@@ -251,14 +258,14 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: #EAF2FA;
-    color: #3976B9;
+    background-color: #172943;
+    color: #D6B56D;
     font-weight: 700;
     font-size: 0.75rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #D2E4F6;
+    border: 1px solid #D6B56D;
 }
 
 /* Reference Card Component */
@@ -268,7 +275,7 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
     border-radius: 12px;
     padding: 1.1rem 1.25rem;
     margin-bottom: 0.9rem;
-    box-shadow: 0 1px 3px rgba(36, 59, 100, 0.03);
+    box-shadow: 0 1px 3px rgba(23, 41, 67, 0.03);
 }
 
 .lm-card-header {
@@ -282,14 +289,14 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
 .lm-card-title {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #243B64;
+    color: #172943;
     margin: 0;
     letter-spacing: -0.01em;
 }
 
 .lm-card-link {
     font-size: 0.75rem;
-    color: #3976B9;
+    color: #D6B56D;
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
@@ -323,7 +330,7 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
 .lm-stat-val {
     font-size: 1.45rem;
     font-weight: 700;
-    color: #243B64;
+    color: #172943;
     line-height: 1.15;
 }
 
@@ -344,7 +351,7 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
 }
 
 .lm-progress-bar {
-    background-color: #36A879;
+    background: linear-gradient(90deg, #D6B56D, #36A879);
     height: 100%;
     border-radius: 9999px;
 }
@@ -374,9 +381,9 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
 }
 
 .pill-ahead {
-    background-color: #EAF2FA;
-    color: #3976B9;
-    border: 1px solid #D2E4F6;
+    background-color: #FAF5EA;
+    color: #BA9447;
+    border: 1px solid #E8C879;
 }
 
 .pill-completed {
@@ -385,40 +392,23 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
     border: 1px solid #C6ECD9;
 }
 
-/* Outline Pill Button (View button in reference) */
-.lm-btn-outline {
-    border: 1px solid #3976B9 !important;
-    color: #3976B9 !important;
-    background-color: #FFFFFF !important;
-    border-radius: 9999px !important;
-    padding: 2px 12px !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    line-height: 1.4 !important;
-    min-height: unset !important;
-    height: auto !important;
-}
-
-.lm-btn-outline:hover {
-    background-color: #EAF2FA !important;
-}
-
 /* Bottom Sidebar Action Card */
 .lm-sidebar-cta {
-    background-color: #EAF2FA;
-    border: 1px solid #D2E4F6;
+    background: linear-gradient(135deg, #172943, #243B64);
+    border: 1px solid #D6B56D;
     border-radius: 12px;
     padding: 0.9rem;
     margin-top: 1rem;
     text-align: center;
+    color: #FFFFFF;
 }
 
 .lm-sidebar-cta-icon {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background-color: #3976B9;
-    color: #FFFFFF;
+    background-color: #D6B56D;
+    color: #172943;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -427,22 +417,25 @@ div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
 
 /* Primary Button Styling */
 button[kind="primary"] {
-    background-color: #3976B9 !important;
-    border: 1px solid #3976B9 !important;
+    background-color: #172943 !important;
+    border: 1px solid #D6B56D !important;
+    color: #FFFFFF !important;
     border-radius: 8px !important;
     font-size: 0.825rem !important;
     font-weight: 600 !important;
     padding: 0.45rem 1rem !important;
+    box-shadow: 0 1px 3px rgba(23, 41, 67, 0.15) !important;
 }
 
 button[kind="primary"]:hover {
     background-color: #243B64 !important;
-    border-color: #243B64 !important;
+    border-color: #E8C879 !important;
+    color: #FFFFFF !important;
 }
 
 button[kind="secondary"] {
     background-color: #FFFFFF !important;
-    color: #263445 !important;
+    color: #172943 !important;
     border: 1px solid #E4E8ED !important;
     border-radius: 8px !important;
     font-size: 0.825rem !important;
@@ -451,8 +444,9 @@ button[kind="secondary"] {
 }
 
 button[kind="secondary"]:hover {
-    background-color: #F5F6F8 !important;
-    border-color: #CBD5E1 !important;
+    background-color: #FAF5EA !important;
+    border-color: #D6B56D !important;
+    color: #172943 !important;
 }
 
 /* Tables */
@@ -477,11 +471,11 @@ button[kind="secondary"]:hover {
 .lm-table td {
     padding: 0.6rem 0.85rem;
     border-bottom: 1px solid #F5F6F8;
-    color: #263445;
+    color: #172943;
 }
 
 .lm-table tr:hover td {
-    background-color: #F8FAFC;
+    background-color: #FAF5EA;
 }
 
 /* Popover styling for Login Portal */
@@ -489,7 +483,7 @@ button[kind="secondary"]:hover {
     background-color: #FFFFFF !important;
     border: 1px solid #E4E8ED !important;
     border-radius: 12px !important;
-    box-shadow: 0 10px 25px rgba(36, 59, 100, 0.12) !important;
+    box-shadow: 0 10px 25px rgba(23, 41, 67, 0.15) !important;
     padding: 1rem !important;
     max-width: 420px !important;
     z-index: 999999 !important;

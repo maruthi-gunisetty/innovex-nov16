@@ -40,7 +40,7 @@ def render_misconception_page(user: dict):
         st.markdown(f"""
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
             <div>
-                <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">{active_course['name']} Intelligence</h2>
+                <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">SARVAVIDYA Cognitive Intelligence &bull; {active_course['name']}</h2>
                 <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Corbett & Anderson (1995) Bayesian Knowledge Tracing & Cognitive Distractor Diagnostics.</div>
             </div>
         </div>

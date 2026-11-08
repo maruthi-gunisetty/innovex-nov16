@@ -9,16 +9,15 @@ from core.auth_service import AuthService
 from database.db import (
     get_user_by_username, get_user_by_email, create_user
 )
+from components.brand import render_full_hero_brand, BRAND_NAME, TAGLINE
 
 
 def render_auth_page():
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.65rem; font-weight: 700; color: #243B64; margin-bottom: 0.35rem;">
-            Access LearnSphere AI
-        </h2>
-        <p style="color: #718096; font-size: 0.85rem;">
-            Sign in to your learning dashboard or launch a pre-configured demonstration profile.
+    render_full_hero_brand(center=True)
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 1.25rem;">
+        <p style="color: #718096; font-size: 0.85rem; margin: 0;">
+            Sign in to your personalized multi-subject workspace or launch a verified academic persona.
         </p>
     </div>
     """, unsafe_allow_html=True)

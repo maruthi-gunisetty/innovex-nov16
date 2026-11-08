@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="goldLinear" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8C879" />
+      <stop offset="50%" stop-color="#D6B56D" />
+      <stop offset="100%" stop-color="#BA9447" />
+    </linearGradient>
+    <linearGradient id="goldPetalLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F2D898" />
+      <stop offset="100%" stop-color="#C59E4E" />
+    </linearGradient>
+    <linearGradient id="goldPetalRight" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F2D898" />
+      <stop offset="100%" stop-color="#C59E4E" />
+    </linearGradient>
+    <radialGradient id="aiCoreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="35%" stop-color="#E8C879" />
+      <stop offset="80%" stop-color="#D6B56D" />
+      <stop offset="100%" stop-color="#172943" stop-opacity="0" />
+    </radialGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Open Book Base (Foundation of Wisdom) -->
+  <g id="open-book-base">
+    <!-- Left Page Arc -->
+    <path d="M 60,86 C 44,85 26,89 16,95 C 16,77 34,70 60,71 Z" 
+          fill="url(#goldLinear)" opacity="0.9" />
+    <path d="M 60,86 C 46,84 32,87 20,92 C 22,78 38,73 60,74 Z" 
+          fill="#172943" opacity="0.25" />
+
+    <!-- Right Page Arc -->
+    <path d="M 60,86 C 76,85 94,89 104,95 C 104,77 86,70 60,71 Z" 
+          fill="url(#goldLinear)" opacity="0.9" />
+    <path d="M 60,86 C 74,84 88,87 100,92 C 98,78 82,73 60,74 Z" 
+          fill="#172943" opacity="0.25" />
+
+    <!-- Book Spine Rib -->
+    <line x1="60" y1="71" x2="60" y2="88" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" opacity="0.8" />
+  </g>
+
+  <!-- 4 Elegant Lotus Petals (Programming, Mathematics, Engineering, Science) -->
+  <g id="lotus-petals">
+    <!-- 1. Outer Left Petal: Programming (Syntax & Computation) -->
+    <path d="M 60,71 C 45,68 25,62 18,45 C 18,36 29,32 38,39 C 48,47 56,60 60,71 Z" 
+          fill="url(#goldPetalLeft)" opacity="0.92" />
+
+    <!-- 2. Inner Left Petal: Mathematics (Logic & Precision) -->
+    <path d="M 60,71 C 52,58 40,44 48,22 C 55,20 60,33 60,71 Z" 
+          fill="url(#goldLinear)" opacity="0.96" />
+
+    <!-- 3. Inner Right Petal: Engineering (Systems & Design) -->
+    <path d="M 60,71 C 60,33 65,20 72,22 C 80,44 68,58 60,71 Z" 
+          fill="url(#goldLinear)" opacity="0.96" />
+
+    <!-- 4. Outer Right Petal: Science (Observation & Discovery) -->
+    <path d="M 60,71 C 64,60 72,47 82,39 C 91,32 102,36 102,45 C 95,62 75,68 60,71 Z" 
+          fill="url(#goldPetalRight)" opacity="0.92" />
+  </g>
+
+  <!-- Central AI Geometric Core & Neural Node -->
+  <g id="ai-core">
+    <!-- Fine Geometric Synthesis Lines -->
+    <line x1="60" y1="71" x2="60" y2="46" stroke="#FFFFFF" stroke-width="1" stroke-dasharray="2,2" opacity="0.7" />
+    <line x1="38" y1="39" x2="60" y2="46" stroke="#FFFFFF" stroke-width="0.8" opacity="0.45" />
+    <line x1="48" y1="22" x2="60" y2="46" stroke="#FFFFFF" stroke-width="0.8" opacity="0.45" />
+    <line x1="72" y1="22" x2="60" y2="46" stroke="#FFFFFF" stroke-width="0.8" opacity="0.45" />
+    <line x1="82" y1="39" x2="60" y2="46" stroke="#FFFFFF" stroke-width="0.8" opacity="0.45" />
+
+    <!-- Outer Diamond / Star Facet -->
+    <polygon points="60,36 63.5,43.5 71,46 63.5,48.5 60,56 56.5,48.5 49,46 56.5,43.5" 
+             fill="url(#goldLinear)" stroke="#FFFFFF" stroke-width="0.8" filter="url(#softGlow)" />
+
+    <!-- Central Glowing AI Point -->
+    <circle cx="60" cy="46" r="3.2" fill="url(#aiCoreGlow)" />
+    <circle cx="60" cy="46" r="1.5" fill="#FFFFFF" />
+  </g>
+</svg>
