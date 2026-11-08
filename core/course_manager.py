@@ -69,3 +69,4 @@ def render_course_selector(key: str = "track_selector", label: str = "Curriculum
             st.rerun()
 
     return selected_course
+

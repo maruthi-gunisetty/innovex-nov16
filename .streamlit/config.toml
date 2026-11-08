@@ -9,6 +9,11 @@ font = "sans serif"
 headless = true
 enableCORS = false
 enableXsrfProtection = true
+runOnSave = true
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = false
 
 [browser]
 gatherUsageStats = false

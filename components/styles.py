@@ -40,13 +40,45 @@ html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Page Container Density */
-.block-container {
-    padding-top: 0.75rem !important;
+/* Completely eliminate Streamlit default header, decoration, and rerun toolbar overlay */
+header[data-testid="stHeader"],
+[data-testid="stHeader"],
+.stAppHeader,
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+#MainMenu,
+footer {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    z-index: -9999 !important;
+}
+
+.stApp > header {
+    display: none !important;
+}
+
+[data-testid="stAppViewContainer"] {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Page Container Density - Zero Top Gap */
+.block-container,
+[data-testid="stAppViewBlockContainer"],
+.main .block-container {
+    padding-top: 0.35rem !important;
     padding-bottom: 2rem !important;
     padding-left: 1.5rem !important;
     padding-right: 1.5rem !important;
-    max-width: 1280px !important;
+    max-width: 1320px !important;
 }
 
 /* Sidebar Customization - Compact White 210px matching reference */
@@ -450,6 +482,23 @@ button[kind="secondary"]:hover {
 
 .lm-table tr:hover td {
     background-color: #F8FAFC;
+}
+
+/* Popover styling for Login Portal */
+[data-testid="stPopoverBody"] {
+    background-color: #FFFFFF !important;
+    border: 1px solid #E4E8ED !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(36, 59, 100, 0.12) !important;
+    padding: 1rem !important;
+    max-width: 420px !important;
+    z-index: 999999 !important;
+}
+
+[data-testid="stPopover"] button {
+    border-radius: 8px !important;
+    font-size: 0.825rem !important;
+    font-weight: 600 !important;
 }
 </style>
 """
