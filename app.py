@@ -56,19 +56,22 @@ def main():
         return
 
     # 6. Current Routing
-    current_page = st.session_state.get("current_page", "landing")
+    current_page = st.session_state.get("current_page", "student_dashboard")
     user = st.session_state.get("user")
 
-    # Access Guard: Redirect to auth if attempting to view private page while unauthenticated
+    # Access Guard: Auto-provision demo account if accessing learning platform pages
     protected_pages = [
         "student_dashboard", "assessment", "learning_path",
         "learning_library", "misconceptions", "analytics",
         "teacher_dashboard", "settings"
     ]
     if current_page in protected_pages and not user:
-        st.session_state["current_page"] = "auth"
-        render_auth_page()
-        return
+        from database.db import get_user_by_email, get_user_by_username
+        if current_page == "teacher_dashboard":
+            user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123")
+        else:
+            user = get_user_by_email("student@123") or get_user_by_username("student@123")
+        st.session_state["user"] = user
 
     # Route Rendering
     if current_page == "landing":

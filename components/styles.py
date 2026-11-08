@@ -92,12 +92,29 @@ footer {
     max-width: 1320px !important;
 }
 
-/* Sidebar Customization - Compact White 220px */
+/* Sidebar Customization - Compact White 225px, Always Visible */
+section[data-testid="stSidebar"],
 [data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
+    transform: none !important;
+    margin-left: 0 !important;
     background-color: #FFFFFF !important;
     border-right: 1px solid #E4E8ED !important;
-    width: 220px !important;
-    min-width: 200px !important;
+    width: 225px !important;
+    min-width: 210px !important;
+    max-width: 240px !important;
+    z-index: 100 !important;
+}
+
+/* Ensure sidebar collapse toggle button is accessible if needed */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 999999 !important;
 }
 
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
