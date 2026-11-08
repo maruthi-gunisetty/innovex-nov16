@@ -14,21 +14,33 @@ from core.search_service import SearchService
 from core.course_manager import set_active_course_by_id, get_active_course
 
 
+def clear_search():
+    """Resets global search query and bumps widget key version to prevent widget re-binding errors."""
+    st.session_state["global_search_query"] = ""
+    st.session_state["search_input_version"] = st.session_state.get("search_input_version", 0) + 1
+
+
 def render_search_input():
     """
     Renders the live interactive search bar in the top navigation bar.
-    Directly replaces the former static mock <div> with an active Streamlit search field.
+    Uses versioned widget keys so setting search terms programmatically never mutates active widget state.
     """
+    if "search_input_version" not in st.session_state:
+        st.session_state["search_input_version"] = 0
+    if "global_search_query" not in st.session_state:
+        st.session_state["global_search_query"] = ""
+
+    curr_version = st.session_state["search_input_version"]
+    current_val = st.session_state["global_search_query"]
+
     col_input, col_action = st.columns([0.88, 0.12])
-    
-    current_val = st.session_state.get("global_search_query", "")
 
     with col_input:
         new_val = st.text_input(
             "Search for concepts, progress, assignments...",
             value=current_val,
             placeholder="Search for concepts, progress, assignments...",
-            key="global_search_input",
+            key=f"search_box_input_{curr_version}",
             label_visibility="collapsed"
         )
         # If user pressed Enter with a new query
@@ -39,8 +51,7 @@ def render_search_input():
     with col_action:
         if current_val:
             if st.button("✕", key="top_search_clear_btn", help="Clear search query", use_container_width=True):
-                st.session_state["global_search_query"] = ""
-                st.session_state["global_search_input"] = ""
+                clear_search()
                 st.rerun()
         else:
             with st.popover("⚡", use_container_width=True, help="Explore popular search terms"):
@@ -61,7 +72,7 @@ def render_search_input():
                 for label, term in suggestions:
                     if st.button(label, key=f"sug_btn_{term}", use_container_width=True):
                         st.session_state["global_search_query"] = term
-                        st.session_state["global_search_input"] = term
+                        st.session_state["search_input_version"] = curr_version + 1
                         st.rerun()
 
 
@@ -70,6 +81,7 @@ def render_search_results_view(query: str):
     Renders the complete, structured Search Results view when a search query is active.
     Allows students and faculty to immediately jump to the matching lesson, assessment, or module.
     """
+    curr_version = st.session_state.get("search_input_version", 0)
     results = SearchService.search(query)
     total = results["total_count"]
 
@@ -93,8 +105,7 @@ def render_search_results_view(query: str):
     col_btn_back, _ = st.columns([0.3, 0.7])
     with col_btn_back:
         if st.button("← Return to Previous View", key="search_return_btn", type="secondary", use_container_width=True):
-            st.session_state["global_search_query"] = ""
-            st.session_state["global_search_input"] = ""
+            clear_search()
             st.rerun()
 
     if total == 0:
@@ -116,27 +127,27 @@ def render_search_results_view(query: str):
         with col_s1:
             if st.button("Loops & Iteration", key="empty_sug_loops", use_container_width=True):
                 st.session_state["global_search_query"] = "loops"
-                st.session_state["global_search_input"] = "loops"
+                st.session_state["search_input_version"] = curr_version + 1
                 st.rerun()
         with col_s2:
             if st.button("Pointers (C)", key="empty_sug_pointers", use_container_width=True):
                 st.session_state["global_search_query"] = "pointers"
-                st.session_state["global_search_input"] = "pointers"
+                st.session_state["search_input_version"] = curr_version + 1
                 st.rerun()
         with col_s3:
             if st.button("Limits & Continuity", key="empty_sug_limits", use_container_width=True):
                 st.session_state["global_search_query"] = "limits"
-                st.session_state["global_search_input"] = "limits"
+                st.session_state["search_input_version"] = curr_version + 1
                 st.rerun()
         with col_s4:
             if st.button("Adaptive Assessments", key="empty_sug_assess", use_container_width=True):
                 st.session_state["global_search_query"] = "assessment"
-                st.session_state["global_search_input"] = "assessment"
+                st.session_state["search_input_version"] = curr_version + 1
                 st.rerun()
         with col_s5:
             if st.button("BKT Mastery Progress", key="empty_sug_prog", use_container_width=True):
                 st.session_state["global_search_query"] = "progress"
-                st.session_state["global_search_input"] = "progress"
+                st.session_state["search_input_version"] = curr_version + 1
                 st.rerun()
         return
 
@@ -165,8 +176,7 @@ def render_search_results_view(query: str):
                 st.write("")
                 if st.button(mod["action_label"], key=f"btn_mod_{mod['id']}", use_container_width=True, type="primary"):
                     st.session_state["current_page"] = mod["target_page"]
-                    st.session_state["global_search_query"] = ""
-                    st.session_state["global_search_input"] = ""
+                    clear_search()
                     st.rerun()
 
     # 2. Concepts & Knowledge Components
@@ -198,8 +208,7 @@ def render_search_results_view(query: str):
                         set_active_course_by_id(concept["course_id"])
                     st.session_state["active_concept_id"] = concept["id"]
                     st.session_state["current_page"] = "learning_library"
-                    st.session_state["global_search_query"] = ""
-                    st.session_state["global_search_input"] = ""
+                    clear_search()
                     st.rerun()
             with c_action2:
                 st.write("")
@@ -208,8 +217,7 @@ def render_search_results_view(query: str):
                         set_active_course_by_id(concept["course_id"])
                     st.session_state["assessment_concept_id"] = concept["id"]
                     st.session_state["current_page"] = "assessment"
-                    st.session_state["global_search_query"] = ""
-                    st.session_state["global_search_input"] = ""
+                    clear_search()
                     st.rerun()
 
     # 3. Learning Content / Lessons
@@ -241,8 +249,7 @@ def render_search_results_view(query: str):
                         set_active_course_by_id(lesson["course_id"])
                     st.session_state["active_concept_id"] = lesson["concept_id"]
                     st.session_state["current_page"] = "learning_library"
-                    st.session_state["global_search_query"] = ""
-                    st.session_state["global_search_input"] = ""
+                    clear_search()
                     st.rerun()
 
     # 4. Adaptive Assessment Practice Drills
@@ -274,8 +281,7 @@ def render_search_results_view(query: str):
                         set_active_course_by_id(q["course_id"])
                     st.session_state["assessment_concept_id"] = q["concept_id"]
                     st.session_state["current_page"] = "assessment"
-                    st.session_state["global_search_query"] = ""
-                    st.session_state["global_search_input"] = ""
+                    clear_search()
                     st.rerun()
 
     # 5. Courses & Discipline Tracks
@@ -305,7 +311,5 @@ def render_search_results_view(query: str):
                 if st.button("Switch Track", key=f"btn_crs_switch_{course['id']}", use_container_width=True, type="primary"):
                     set_active_course_by_id(course["id"])
                     st.session_state["current_page"] = "student_dashboard"
-                    st.session_state["global_search_query"] = ""
-                    st.session_state["global_search_input"] = ""
+                    clear_search()
                     st.rerun()
-

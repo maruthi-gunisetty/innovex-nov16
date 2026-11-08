@@ -63,11 +63,13 @@ def render_course_selector(key: str = "track_selector", label: str = "Curriculum
             default_idx = idx
             break
 
+    widget_key = f"{key}_{active_course['code']}"
+
     selected_label = st.selectbox(
         label,
         course_labels,
         index=default_idx,
-        key=key,
+        key=widget_key,
         label_visibility="collapsed"
     )
 
