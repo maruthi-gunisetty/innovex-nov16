@@ -6,7 +6,7 @@ Zero emojis, strict professional typography, and seamless session control.
 """
 
 import streamlit as st
-from database.db import get_user_by_username
+from database.db import get_user_by_username, get_user_by_email
 from core.auth_service import AuthService
 
 
@@ -102,7 +102,7 @@ def render_navigation():
                     quick_u = st.text_input("Username or Email", key="top_quick_u")
                     quick_p = st.text_input("Password", type="password", key="top_quick_p")
                     if st.button("Sign In to Portal", key="top_quick_submit", type="primary", use_container_width=True):
-                        u = get_user_by_username(quick_u)
+                        u = get_user_by_username(quick_u) or get_user_by_email(quick_u)
                         if u and AuthService.verify_password(quick_p, u["salt"], u["password_hash"]):
                             st.session_state["user"] = u
                             st.session_state["current_page"] = "student_dashboard" if u["role"] == "student" else "teacher_dashboard"
