@@ -78,10 +78,10 @@ def render_navigation():
             # Unauthenticated: Login Portal in Right-Side Top Corner
             col_port_drop, col_port_btn = st.columns([1.5, 1])
             with col_port_drop:
-                with st.popover("SARVAVIDYA Evaluation Portal", use_container_width=True):
+                with st.popover("Sarva Vidya Evaluation Portal", use_container_width=True):
                     st.markdown("""
                     <div style="margin-bottom: 0.5rem;">
-                        <div style="font-weight: 700; font-size: 0.925rem; color: #172943;">SARVAVIDYA Evaluation Credentials</div>
+                        <div style="font-weight: 700; font-size: 0.925rem; color: #172943;">Sarva Vidya Evaluation Credentials</div>
                         <div style="font-size: 0.75rem; color: #718096;">Pre-seeded accounts for academic evaluation:</div>
                     </div>
                     <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.65rem; margin-bottom: 0.75rem; font-size: 0.8rem; line-height: 1.5;">
@@ -212,13 +212,13 @@ def render_navigation():
                 st.session_state["current_page"] = nav_map[selected_nav]
                 st.rerun()
 
-            # Bottom Sidebar CTA Card (Matching SARVAVIDYA identity)
+            # Bottom Sidebar CTA Card (Matching Sarva Vidya identity)
             st.markdown("""
             <div class="lm-sidebar-cta">
                 <div class="lm-sidebar-cta-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 </div>
-                <div style="font-weight: 700; font-size: 0.85rem; color: #FFFFFF;">SARVAVIDYA Cohort</div>
+                <div style="font-weight: 700; font-size: 0.85rem; color: #FFFFFF;">Sarva Vidya Cohort</div>
                 <div style="font-size: 0.7rem; color: #D6B56D; margin-top: 0.2rem; line-height: 1.4;">
                     Collaborate with peer scholars, explore cross-domain topics, and join live study cohorts.
                 </div>
@@ -233,7 +233,7 @@ def render_navigation():
             # Unauthenticated Sidebar Info
             st.markdown("""
             <div style="background-color: #FFFFFF; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.85rem; margin-bottom: 0.75rem;">
-                <div style="font-weight: 700; font-size: 0.8rem; color: #172943; margin-bottom: 0.25rem;">SARVAVIDYA Credentials</div>
+                <div style="font-weight: 700; font-size: 0.8rem; color: #172943; margin-bottom: 0.25rem;">Sarva Vidya Credentials</div>
                 <div style="font-size: 0.725rem; color: #718096; line-height: 1.5;">
                     Sign in with the top-right portal:<br>
                     &bull; <strong>Student:</strong> <code>student@123</code><br>

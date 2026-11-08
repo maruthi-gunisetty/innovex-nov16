@@ -55,7 +55,7 @@ def render_landing_page():
         <div class="lm-card-header">
             <div>
                 <span class="lm-pill pill-ahead">Evaluation Credentials</span>
-                <h3 class="lm-card-title" style="margin-top: 0.25rem;">SARVAVIDYA Evaluation Credentials &bull; Quick Access</h3>
+                <h3 class="lm-card-title" style="margin-top: 0.25rem;">Sarva Vidya Evaluation Credentials &bull; Quick Access</h3>
                 <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Sign in using the top-right portal or use these verified accounts:</div>
             </div>
         </div>

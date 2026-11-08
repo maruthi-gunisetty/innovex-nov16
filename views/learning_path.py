@@ -34,7 +34,7 @@ def render_learning_path_page(user: dict):
         st.markdown(f"""
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
             <div>
-                <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">SARVAVIDYA Knowledge Roadmap &bull; {active_course['name']}</h2>
+                <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">Sarva Vidya Knowledge Roadmap &bull; {active_course['name']}</h2>
                 <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Sequential concept progression governed by prerequisite mastery gates.</div>
             </div>
         </div>

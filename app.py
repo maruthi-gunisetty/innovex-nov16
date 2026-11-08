@@ -29,7 +29,7 @@ def main():
     # 1. Page Configuration (Strictly no emojis)
     favicon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "brand", "favicon.png")
     st.set_page_config(
-        page_title="SARVAVIDYA – One Platform. Every Subject. Infinite Knowledge.",
+        page_title="Sarva Vidya – One Platform. Every Subject. Infinite Knowledge.",
         page_icon=favicon_path if os.path.exists(favicon_path) else None,
         layout="wide",
         initial_sidebar_state="expanded"

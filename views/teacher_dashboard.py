@@ -72,7 +72,7 @@ def render_teacher_dashboard(user: dict):
         sub_label = f"Cohort: {selected_filter_label}" if selected_course_id else "All Active Tracks"
         st.markdown(f"""
         <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.75rem;">
-            <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">SARVAVIDYA Faculty Intelligence</h2>
+            <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">Sarva Vidya Faculty Intelligence</h2>
             <span style="font-size: 0.775rem; color: #718096; font-weight: 500;">Instructor: {user['full_name']} &bull; {sub_label}</span>
         </div>
         """, unsafe_allow_html=True)

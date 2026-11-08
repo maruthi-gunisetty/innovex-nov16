@@ -20,7 +20,7 @@ def render_settings_page(user: dict):
     st.markdown("""
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
         <div>
-            <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">SARVAVIDYA Profile & Settings</h2>
+            <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">Sarva Vidya Profile & Settings</h2>
             <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Manage personal credentials, adaptive assessment preferences, and system maintenance.</div>
         </div>
     </div>

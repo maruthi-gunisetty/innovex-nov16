@@ -60,7 +60,7 @@ def render_student_dashboard(user: dict):
     with col_title:
         st.markdown(f"""
         <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.75rem;">
-            <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">SARVAVIDYA Dashboard</h2>
+            <h2 style="font-size: 1.45rem; font-weight: 700; color: #172943; margin: 0; letter-spacing: -0.02em;">Sarva Vidya Dashboard</h2>
             <span style="font-size: 0.775rem; color: #718096; font-weight: 500;">{active_course['name']} &bull; One Platform. Every Subject. Infinite Knowledge.</span>
         </div>
         """, unsafe_allow_html=True)
