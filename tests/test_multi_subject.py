@@ -150,8 +150,8 @@ class TestMultiSubjectPlatform(unittest.TestCase):
 
         # Query through standard database methods
         qc_concepts = get_concepts_by_course(c_id)
-        self.assertEqual(len(qc_concepts), 1)
-        self.assertEqual(qc_concepts[0]["code"], "QC_SUPERPOSITION")
+        self.assertGreaterEqual(len(qc_concepts), 1)
+        self.assertIn("QC_SUPERPOSITION", [c["code"] for c in qc_concepts])
 
         # Dynamic fallback diagnosis works automatically without code modifications
         diag = MisconceptionEngine.diagnose_attempt(

@@ -1606,6 +1606,10 @@ def seed_database(force: bool = False) -> None:
 
         conn.commit()
 
+    # 5B. Seed Extended Curriculum (DSA, Quantum, Digital Electronics, Physics)
+    from database.extended_seed_data import seed_extended_curriculum
+    seed_extended_curriculum(force=force)
+
     # 6. Seed Demo Users
     pwd_hash, salt = AuthService.hash_password("student123")
     student_id = create_user(
