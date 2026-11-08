@@ -33,9 +33,25 @@ def render_search_input():
     curr_version = st.session_state["search_input_version"]
     current_val = st.session_state["global_search_query"]
 
-    col_input, col_action = st.columns([0.88, 0.12])
+    if current_val:
+        col_input, col_action = st.columns([0.90, 0.10])
+        with col_input:
+            new_val = st.text_input(
+                "Search for concepts, progress, assignments...",
+                value=current_val,
+                placeholder="Search for concepts, progress, assignments...",
+                key=f"search_box_input_{curr_version}",
+                label_visibility="collapsed"
+            )
+            if new_val != current_val:
+                st.session_state["global_search_query"] = new_val
+                st.rerun()
 
-    with col_input:
+        with col_action:
+            if st.button("✕", key="top_search_clear_btn", help="Clear search query", use_container_width=True):
+                clear_search()
+                st.rerun()
+    else:
         new_val = st.text_input(
             "Search for concepts, progress, assignments...",
             value=current_val,
@@ -43,37 +59,9 @@ def render_search_input():
             key=f"search_box_input_{curr_version}",
             label_visibility="collapsed"
         )
-        # If user pressed Enter with a new query
         if new_val != current_val:
             st.session_state["global_search_query"] = new_val
             st.rerun()
-
-    with col_action:
-        if current_val:
-            if st.button("✕", key="top_search_clear_btn", help="Clear search query", use_container_width=True):
-                clear_search()
-                st.rerun()
-        else:
-            with st.popover("⚡", use_container_width=True, help="Explore popular search terms"):
-                st.markdown("""
-                <div style="font-weight: 700; font-size: 0.825rem; color: #172943; margin-bottom: 0.35rem;">
-                    Suggested Searches
-                </div>
-                """, unsafe_allow_html=True)
-                suggestions = [
-                    ("Loops & Control Flow", "loops"),
-                    ("Variables & Data Types", "variables"),
-                    ("Pointers & Memory (C)", "pointers"),
-                    ("Limits & Continuity (Math)", "limits"),
-                    ("Adaptive Assessments", "assessment"),
-                    ("Student Progress & BKT", "progress"),
-                    ("AI Misconceptions", "misconceptions"),
-                ]
-                for label, term in suggestions:
-                    if st.button(label, key=f"sug_btn_{term}", use_container_width=True):
-                        st.session_state["global_search_query"] = term
-                        st.session_state["search_input_version"] = curr_version + 1
-                        st.rerun()
 
 
 def render_search_results_view(query: str):
