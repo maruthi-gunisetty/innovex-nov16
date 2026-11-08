@@ -53,18 +53,37 @@ def render_auth_page():
 
 def _render_student_login():
     st.markdown("""
-    <div class="lm-card">
-        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.75rem;">
+    <div class="lm-card" style="margin-bottom: 0.75rem;">
+        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.25rem;">
             Student Sign In
         </h4>
+        <div style="font-size: 0.8rem; color: #64748b;">
+            Default demo credentials pre-filled: <code>student@123</code> / <code>student123</code>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("1-Click Instant Student Login (student@123)", key="quick_btn_student", type="primary", use_container_width=True):
+        user = get_user_by_email("student@123") or get_user_by_username("student@123")
+        if user:
+            st.session_state["user"] = user
+            st.session_state["current_page"] = "student_dashboard"
+            st.session_state.pop("auth_tab", None)
+            st.rerun()
+
+    st.markdown("""
+    <div style="display: flex; align-items: center; text-align: center; margin: 0.75rem 0; color: #94a3b8; font-size: 0.75rem;">
+        <div style="flex-grow: 1; border-bottom: 1px solid #e2e8f0;"></div>
+        <span style="padding: 0 8px;">OR SIGN IN WITH FORM</span>
+        <div style="flex-grow: 1; border-bottom: 1px solid #e2e8f0;"></div>
     </div>
     """, unsafe_allow_html=True)
 
     with st.form("student_login_form"):
-        username = st.text_input("Username or Email", placeholder="e.g. student@123", key="stu_login_user")
-        password = st.text_input("Password", type="password", key="stu_login_pass")
-        st.caption("Demonstration Student Credentials: Email: `student@123` &bull; Password: `student123`")
-        submitted = st.form_submit_button("Sign In as Student", type="primary", use_container_width=True)
+        username = st.text_input("Username or Email", value="student@123", placeholder="e.g. student@123", key="stu_login_user")
+        password = st.text_input("Password", value="student123", type="password", key="stu_login_pass")
+        st.caption("Pre-filled Demo Credentials: Email: `student@123` &bull; Password: `student123`")
+        submitted = st.form_submit_button("Sign In as Student", use_container_width=True)
 
         if submitted:
             if not username or not password:
@@ -88,17 +107,37 @@ def _render_student_login():
 
 def _render_teacher_login():
     st.markdown("""
-    <div class="lm-card">
-        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.75rem;">
+    <div class="lm-card" style="margin-bottom: 0.75rem;">
+        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.25rem;">
             Teacher and Faculty Sign In
         </h4>
+        <div style="font-size: 0.8rem; color: #64748b;">
+            Default demo credentials pre-filled: <code>teacher@123</code> / <code>teacher123</code>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("1-Click Instant Teacher Login (teacher@123)", key="quick_btn_teacher", type="primary", use_container_width=True):
+        user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123")
+        if user:
+            st.session_state["user"] = user
+            st.session_state["current_page"] = "teacher_dashboard"
+            st.session_state.pop("auth_tab", None)
+            st.rerun()
+
+    st.markdown("""
+    <div style="display: flex; align-items: center; text-align: center; margin: 0.75rem 0; color: #94a3b8; font-size: 0.75rem;">
+        <div style="flex-grow: 1; border-bottom: 1px solid #e2e8f0;"></div>
+        <span style="padding: 0 8px;">OR SIGN IN WITH FORM</span>
+        <div style="flex-grow: 1; border-bottom: 1px solid #e2e8f0;"></div>
     </div>
     """, unsafe_allow_html=True)
 
     with st.form("teacher_login_form"):
-        username = st.text_input("Username or Email", placeholder="e.g. dr_bennett", key="tchr_login_user")
-        password = st.text_input("Password", type="password", key="tchr_login_pass")
-        submitted = st.form_submit_button("Sign In to Faculty Portal", type="primary", use_container_width=True)
+        username = st.text_input("Username or Email", value="teacher@123", placeholder="e.g. teacher@123", key="tchr_login_user")
+        password = st.text_input("Password", value="teacher123", type="password", key="tchr_login_pass")
+        st.caption("Pre-filled Demo Credentials: Email: `teacher@123` &bull; Password: `teacher123`")
+        submitted = st.form_submit_button("Sign In to Faculty Portal", use_container_width=True)
 
         if submitted:
             if not username or not password:
@@ -230,19 +269,19 @@ def _render_demo_switcher():
 
     with col3:
         st.markdown("""
-        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; height: 100%;">
-            <div style="font-weight: 600; color: #0f172a; margin-bottom: 0.25rem;">Dr. Sarah Bennett</div>
-            <div style="color: #64748b; font-size: 0.75rem; margin-bottom: 0.75rem;">Teacher Persona</div>
+        <div style="background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 1.25rem; height: 100%;">
+            <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem;">Teacher Demo (teacher@123)</div>
+            <div style="color: #64748b; font-size: 0.75rem; margin-bottom: 0.5rem;">User/Email: <code>teacher@123</code> &bull; Pass: <code>teacher123</code></div>
             <div style="font-size: 0.825rem; color: #475569; line-height: 1.5; margin-bottom: 1rem;">
-                Instructor portal with access to cohort-wide mastery distributions, common misconception frequencies, and student inspection tools.
+                Faculty portal with access to cohort-wide mastery distributions, common misconception frequencies, and student inspection tools.
             </div>
             <div style="margin-bottom: 0.5rem;">
                 <span class="ls-badge badge-proficient">Faculty Role</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Launch Teacher Portal", key="launch_teacher", use_container_width=True):
-            user = get_user_by_username("dr_bennett")
+        if st.button("Launch Teacher Profile (teacher@123)", key="launch_teacher", use_container_width=True, type="primary"):
+            user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123") or get_user_by_username("dr_bennett")
             if user:
                 st.session_state["user"] = user
                 st.session_state["current_page"] = "teacher_dashboard"

@@ -1659,6 +1659,17 @@ def seed_database(force: bool = False) -> None:
         is_demo=1
     )
 
+    t123_pwd_hash, t123_salt = AuthService.hash_password("teacher123")
+    create_user(
+        username="teacher@123",
+        email="teacher@123",
+        password_hash=t123_pwd_hash,
+        salt=t123_salt,
+        full_name="Dr. Sarah Bennett",
+        role="teacher",
+        is_demo=1
+    )
+
     # 7. Populate Simulated Learning Histories for Demo Accounts across Multi-Subject Tracks
     _seed_alex_history(student_id, concept_id_map, question_id_map)
     _seed_alex_history(alex_id, concept_id_map, question_id_map)
