@@ -33,17 +33,22 @@ ICONS = {
 
 CUSTOM_CSS = """
 <style>
-/* Modern Typography - Roboto */
+/* Modern Typography - Roboto & Material Symbols */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6 {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #172943;
     background-color: #F5F6F8;
 }
 
-* {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+*:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not([class*="material-symbols"]) {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+[data-testid="stIconMaterial"], .material-symbols-rounded, [class*="material-symbols"] {
+    font-family: 'Material Symbols Rounded' !important;
 }
 
 /* Completely eliminate Streamlit default header, decoration, and rerun toolbar overlay */
@@ -541,6 +546,17 @@ button[kind="secondary"]:hover {
     border-radius: 8px !important;
     font-size: 0.825rem !important;
     font-weight: 600 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+[data-testid="stPopover"] button [data-testid="stIconMaterial"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1rem !important;
+    line-height: 1 !important;
 }
 </style>
 """

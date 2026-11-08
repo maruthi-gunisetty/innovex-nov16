@@ -18,11 +18,46 @@ from components.styles import get_icon
 
 def render_navigation():
     user = st.session_state.get("user")
+    current_page = st.session_state.get("current_page", "landing")
 
     # ==========================================================
-    # TOP HORIZONTAL NAVIGATION BAR (Matching Reference)
+    # 1. PUBLIC / LOGIN / LANDING PAGES
+    # Zero search input, zero popovers, zero text merging.
     # ==========================================================
-    col_search, col_user_portal = st.columns([1.6, 1.4])
+    if not user or current_page in ["auth", "landing"]:
+        col_logo, col_action = st.columns([2.0, 1.0])
+        with col_logo:
+            render_topbar_brand()
+        with col_action:
+            if current_page != "auth":
+                col_sp, col_b = st.columns([1.2, 1.0])
+                with col_b:
+                    if st.button("Sign In Portal", key="top_signin_portal_nav", use_container_width=True, type="primary"):
+                        st.session_state["current_page"] = "auth"
+                        st.rerun()
+
+        st.markdown("<hr style='border-color: #E4E8ED; margin: 0.5rem 0 1rem 0;'>", unsafe_allow_html=True)
+
+        with st.sidebar:
+            render_sidebar_brand()
+            if current_page != "auth":
+                st.markdown("""
+                <div style="background-color: #FFFFFF; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.85rem; margin-bottom: 0.75rem;">
+                    <div style="font-weight: 700; font-size: 0.8rem; color: #172943; margin-bottom: 0.25rem;">Sarva Vidya Portal</div>
+                    <div style="font-size: 0.725rem; color: #718096; line-height: 1.5;">
+                        Access student & faculty learning intelligence across all subjects.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("Open Login Portal", key="side_open_auth_btn", use_container_width=True, type="primary"):
+                    st.session_state["current_page"] = "auth"
+                    st.rerun()
+        return
+
+    # ==========================================================
+    # 2. AUTHENTICATED PLATFORM PAGES (Dashboard, Assessments, etc.)
+    # ==========================================================
+    col_search, col_user_portal = st.columns([1.5, 1.5])
 
     with col_search:
         col_logo_mini, col_search_box = st.columns([0.65, 1.35])
@@ -32,108 +67,41 @@ def render_navigation():
             render_search_input()
 
     with col_user_portal:
-        if user:
-            col_notif, col_track, col_u_profile, col_signout = st.columns([0.25, 0.95, 1.35, 0.7])
-            with col_notif:
-                st.markdown("""
-                <div style="display: flex; align-items: center; justify-content: center; padding-top: 0.45rem;">
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background-color: #F5F6F8; display: flex; align-items: center; justify-content: center; color: #718096; border: 1px solid #E4E8ED;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-                    </div>
+        col_notif, col_track, col_u_profile, col_signout = st.columns([0.25, 0.95, 1.35, 0.7])
+        with col_notif:
+            st.markdown("""
+            <div style="display: flex; align-items: center; justify-content: center; padding-top: 0.45rem;">
+                <div style="width: 30px; height: 30px; border-radius: 50%; background-color: #F5F6F8; display: flex; align-items: center; justify-content: center; color: #718096; border: 1px solid #E4E8ED;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                 </div>
-                """, unsafe_allow_html=True)
-            with col_track:
-                active_c = get_active_course()
-                st.markdown(f"""
-                <div style="display: flex; align-items: center; height: 100%; padding-top: 0.35rem;">
-                    <span class="lm-pill pill-ahead" style="font-size: 0.7rem; padding: 3px 8px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{active_c['name']} ({active_c.get('subject_name', '')})">
-                        {active_c['subject_name']}: {active_c['name']}
-                    </span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_track:
+            active_c = get_active_course()
+            st.markdown(f"""
+            <div style="display: flex; align-items: center; height: 100%; padding-top: 0.35rem;">
+                <span class="lm-pill pill-ahead" style="font-size: 0.7rem; padding: 3px 8px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{active_c['name']} ({active_c.get('subject_name', '')})">
+                    {active_c['subject_name']}: {active_c['name']}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_u_profile:
+            role_title = "K-12 Faculty" if user.get("role") == "teacher" else "Student &bull; Level 3"
+            initials = "".join([part[0].upper() for part in user["full_name"].split()[:2]])
+            st.markdown(f"""
+            <div class="lm-user-pill" style="justify-content: flex-end; padding-top: 0.2rem;">
+                <div class="lm-avatar">{initials}</div>
+                <div style="text-align: left; line-height: 1.2;">
+                    <div style="font-weight: 600; font-size: 0.825rem; color: #243B64;">{user['full_name']}</div>
+                    <div style="font-size: 0.7rem; color: #718096;">{role_title}</div>
                 </div>
-                """, unsafe_allow_html=True)
-            with col_u_profile:
-                # User Avatar and Role Label
-                role_title = "K-12 Faculty" if user.get("role") == "teacher" else "Student &bull; Level 3"
-                initials = "".join([part[0].upper() for part in user["full_name"].split()[:2]])
-                st.markdown(f"""
-                <div class="lm-user-pill" style="justify-content: flex-end; padding-top: 0.2rem;">
-                    <div class="lm-avatar">{initials}</div>
-                    <div style="text-align: left; line-height: 1.2;">
-                        <div style="font-weight: 600; font-size: 0.825rem; color: #243B64;">{user['full_name']}</div>
-                        <div style="font-size: 0.7rem; color: #718096;">{role_title}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            with col_signout:
-                if st.button("Sign Out", key="top_signout_action", use_container_width=True, type="secondary"):
-                    st.session_state.clear()
-                    st.session_state["current_page"] = "landing"
-                    st.rerun()
-
-        else:
-            # Unauthenticated: Login Portal in Right-Side Top Corner
-            col_port_drop, col_port_btn = st.columns([1.5, 1])
-            with col_port_drop:
-                with st.popover("Sarva Vidya Evaluation Portal", use_container_width=True):
-                    st.markdown("""
-                    <div style="margin-bottom: 0.5rem;">
-                        <div style="font-weight: 700; font-size: 0.925rem; color: #172943;">Sarva Vidya Evaluation Credentials</div>
-                        <div style="font-size: 0.75rem; color: #718096;">Pre-seeded accounts for academic evaluation:</div>
-                    </div>
-                    <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.65rem; margin-bottom: 0.75rem; font-size: 0.8rem; line-height: 1.5;">
-                        <div style="margin-bottom: 0.4rem; padding-bottom: 0.35rem; border-bottom: 1px solid #E4E8ED;">
-                            <strong>Student Credentials:</strong><br>
-                            Email / User: <code>student@123</code><br>
-                            Password: <code>student123</code>
-                        </div>
-                        <div style="margin-bottom: 0.35rem;">
-                            <strong>Advanced Student:</strong> <code>sophia_chen</code> &bull; Password: <code>student123</code>
-                        </div>
-                        <div>
-                            <strong>Faculty:</strong> <code>dr_bennett</code> &bull; Password: <code>learnsphere123</code>
-                        </div>
-                    </div>
-                    <div style="font-weight: 600; font-size: 0.775rem; margin-bottom: 0.35rem; color: #243B64;">Instant One-Click Sign In:</div>
-                    """, unsafe_allow_html=True)
-
-                    if st.button("Quick Login as Student (student@123)", key="pop_btn_alex", use_container_width=True, type="primary"):
-                        u = get_user_by_email("student@123") or get_user_by_username("student@123")
-                        if u:
-                            st.session_state["user"] = u
-                            st.session_state["current_page"] = "student_dashboard"
-                            st.rerun()
-
-                    if st.button("Quick Login as Sophia Chen", key="pop_btn_sophia", use_container_width=True):
-                        u = get_user_by_username("sophia_chen")
-                        if u:
-                            st.session_state["user"] = u
-                            st.session_state["current_page"] = "student_dashboard"
-                            st.rerun()
-
-                    if st.button("Quick Login as Dr. Sarah Bennett", key="pop_btn_teacher", use_container_width=True):
-                        u = get_user_by_username("dr_bennett")
-                        if u:
-                            st.session_state["user"] = u
-                            st.session_state["current_page"] = "teacher_dashboard"
-                            st.rerun()
-
-                    st.markdown("<hr style='margin: 0.65rem 0; border-color: #E4E8ED;'>", unsafe_allow_html=True)
-                    st.markdown("<div style='font-weight: 600; font-size: 0.775rem; margin-bottom: 0.25rem;'>Standard Credentials Sign In:</div>", unsafe_allow_html=True)
-                    quick_u = st.text_input("Username or Email", key="top_quick_u")
-                    quick_p = st.text_input("Password", type="password", key="top_quick_p")
-                    if st.button("Sign In to Portal", key="top_quick_submit", type="primary", use_container_width=True):
-                        u = get_user_by_username(quick_u) or get_user_by_email(quick_u)
-                        if u and AuthService.verify_password(quick_p, u["salt"], u["password_hash"]):
-                            st.session_state["user"] = u
-                            st.session_state["current_page"] = "student_dashboard" if u["role"] == "student" else "teacher_dashboard"
-                            st.rerun()
-                        else:
-                            st.error("Invalid credentials.")
-
-            with col_port_btn:
-                if st.button("Sign In Portal", key="top_signin_portal_nav", use_container_width=True, type="primary"):
-                    st.session_state["current_page"] = "auth"
-                    st.rerun()
+            </div>
+            """, unsafe_allow_html=True)
+        with col_signout:
+            if st.button("Sign Out", key="top_signout_action", use_container_width=True, type="secondary"):
+                st.session_state.clear()
+                st.session_state["current_page"] = "landing"
+                st.rerun()
 
     st.markdown("<hr style='border-color: #E4E8ED; margin: 0.5rem 0 1rem 0;'>", unsafe_allow_html=True)
 
