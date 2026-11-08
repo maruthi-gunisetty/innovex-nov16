@@ -35,6 +35,24 @@ def render_assessment_page(user: dict):
     """, unsafe_allow_html=True)
 
     # 1. Subject and Filter Controls
+    curr_course_id = active_course["id"]
+    if st.session_state.get("assess_last_course_id") != curr_course_id:
+        st.session_state["assess_last_course_id"] = curr_course_id
+        st.session_state["assess_active_concept_id"] = None
+        st.session_state["q_index"] = 0
+        for k in list(st.session_state.keys()):
+            if k.startswith("eval_") or k.startswith("radio_") or k.startswith("q_start_time_"):
+                st.session_state.pop(k, None)
+
+    # Check for incoming target concept from external views (Search, Learning Path, Dashboard, Library)
+    incoming_concept_id = st.session_state.pop("assessment_concept_id", None) or st.session_state.pop("active_concept_id", None)
+    if incoming_concept_id is not None:
+        st.session_state["assess_active_concept_id"] = incoming_concept_id
+        st.session_state["q_index"] = 0
+        for k in list(st.session_state.keys()):
+            if k.startswith("eval_") or k.startswith("radio_") or k.startswith("q_start_time_"):
+                st.session_state.pop(k, None)
+
     col_t, col_c, col_d = st.columns([1.2, 1.4, 1.0])
     with col_t:
         render_course_selector(key="assess_track_selector", label="Select Track", on_change_rerun=True)
@@ -43,27 +61,54 @@ def render_assessment_page(user: dict):
     for c in concepts:
         concept_options[f"{c['code']} - {c['name']}"] = c["id"]
 
-    preselected_id = st.session_state.pop("assessment_concept_id", None)
-    default_c_idx = 0
-    if preselected_id:
-        for idx, (label, cid) in enumerate(concept_options.items()):
-            if cid == preselected_id:
-                default_c_idx = idx
-                break
+    curr_stored_cid = st.session_state.get("assess_active_concept_id")
+    target_c_idx = 0
+    for idx, (label, cid) in enumerate(concept_options.items()):
+        if cid == curr_stored_cid:
+            target_c_idx = idx
+            break
 
     with col_c:
-        selected_label = st.selectbox("Curriculum Concept Target", list(concept_options.keys()), index=default_c_idx, label_visibility="collapsed")
-        selected_concept_id = concept_options[selected_label]
-
-    with col_d:
-        difficulty_mode = st.selectbox(
-            "Difficulty Selection",
-            ["Adaptive (AI Selected)", "Beginner", "Intermediate", "Advanced"],
-            index=0,
+        selected_label = st.selectbox(
+            "Curriculum Concept Target",
+            list(concept_options.keys()),
+            index=target_c_idx,
+            key=f"assess_concept_dropdown_{curr_course_id}",
             label_visibility="collapsed"
         )
+        new_chosen_id = concept_options[selected_label]
+        if new_chosen_id != st.session_state.get("assess_active_concept_id"):
+            st.session_state["assess_active_concept_id"] = new_chosen_id
+            st.session_state["q_index"] = 0
+            for k in list(st.session_state.keys()):
+                if k.startswith("eval_") or k.startswith("radio_") or k.startswith("q_start_time_"):
+                    st.session_state.pop(k, None)
+            st.rerun()
 
-    # 2. Determine questions pool based on difficulty mode
+    selected_concept_id = st.session_state.get("assess_active_concept_id")
+
+    with col_d:
+        diff_modes = ["Adaptive (AI Selected)", "Beginner", "Intermediate", "Advanced"]
+        curr_diff = st.session_state.get("assess_diff_mode", "Adaptive (AI Selected)")
+        diff_idx = diff_modes.index(curr_diff) if curr_diff in diff_modes else 0
+        selected_diff = st.selectbox(
+            "Difficulty Selection",
+            diff_modes,
+            index=diff_idx,
+            key="assess_diff_mode_select",
+            label_visibility="collapsed"
+        )
+        if selected_diff != curr_diff:
+            st.session_state["assess_diff_mode"] = selected_diff
+            st.session_state["q_index"] = 0
+            for k in list(st.session_state.keys()):
+                if k.startswith("eval_") or k.startswith("radio_") or k.startswith("q_start_time_"):
+                    st.session_state.pop(k, None)
+            st.rerun()
+
+    difficulty_mode = st.session_state.get("assess_diff_mode", "Adaptive (AI Selected)")
+
+    # 2. Determine questions pool based on target concept and difficulty mode
     if difficulty_mode == "Adaptive (AI Selected)":
         if selected_concept_id:
             m_rec = get_student_concept_mastery(user_id, selected_concept_id)
@@ -71,12 +116,22 @@ def render_assessment_page(user: dict):
         else:
             current_mastery = 0.50
         actual_diff = RecommenderEngine.get_adaptive_difficulty(current_mastery)
+
+        all_concept_qs = get_questions_by_concept_and_difficulty(selected_concept_id, "all", course_id=active_course["id"])
+        if selected_concept_id:
+            # Order questions so student's current adaptive level appears first, followed by other questions in the concept
+            matching_qs = [q for q in all_concept_qs if q.get("difficulty") == actual_diff]
+            other_qs = [q for q in all_concept_qs if q.get("difficulty") != actual_diff]
+            questions = matching_qs + other_qs if matching_qs else all_concept_qs
+        else:
+            # For "All Concepts", prioritize adaptive difficulty questions across track
+            matching_qs = [q for q in all_concept_qs if q.get("difficulty") == actual_diff]
+            questions = matching_qs if matching_qs else all_concept_qs
     else:
         actual_diff = difficulty_mode.lower()
-
-    questions = get_questions_by_concept_and_difficulty(selected_concept_id, actual_diff, course_id=active_course["id"])
-    if not questions:
-        questions = get_questions_by_concept_and_difficulty(selected_concept_id, "all", course_id=active_course["id"])
+        questions = get_questions_by_concept_and_difficulty(selected_concept_id, actual_diff, course_id=active_course["id"])
+        if not questions:
+            questions = get_questions_by_concept_and_difficulty(selected_concept_id, "all", course_id=active_course["id"])
 
     if not questions:
         st.warning("No questions found matching the selected filters. Please adjust your criteria.")
@@ -171,7 +226,7 @@ def render_assessment_page(user: dict):
         for i in range(len(questions)):
             with q_cols[i % 4]:
                 btn_type = "primary" if i == q_idx else "secondary"
-                if st.button(f"{i+1}", key=f"q_nav_btn_{i}", use_container_width=True, type=btn_type):
+                if st.button(f"{i+1}", key=f"q_nav_btn_{current_q['concept_id']}_{i}", use_container_width=True, type=btn_type):
                     st.session_state["q_index"] = i
                     st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)

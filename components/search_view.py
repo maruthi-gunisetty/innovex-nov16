@@ -206,6 +206,7 @@ def render_search_results_view(query: str):
                 if st.button("Practice Drill", key=f"btn_c_drill_{concept['id']}", use_container_width=True, type="primary"):
                     if concept["course_id"]:
                         set_active_course_by_id(concept["course_id"])
+                    st.session_state["assessment_concept_id"] = concept["id"]
                     st.session_state["current_page"] = "assessment"
                     st.session_state["global_search_query"] = ""
                     st.session_state["global_search_input"] = ""
@@ -271,6 +272,7 @@ def render_search_results_view(query: str):
                 if st.button("Practice Drill", key=f"btn_q_drill_{q['id']}", use_container_width=True, type="primary"):
                     if q["course_id"]:
                         set_active_course_by_id(q["course_id"])
+                    st.session_state["assessment_concept_id"] = q["concept_id"]
                     st.session_state["current_page"] = "assessment"
                     st.session_state["global_search_query"] = ""
                     st.session_state["global_search_input"] = ""
