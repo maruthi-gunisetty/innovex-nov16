@@ -12,7 +12,7 @@ import time
 from database.db import (
     get_all_concepts, get_questions_by_concept_and_difficulty,
     get_student_concept_mastery, update_student_mastery_record,
-    record_assessment_attempt
+    record_assessment_attempt, get_user_attempts
 )
 from core.bkt import BayesianKnowledgeTracing
 from core.misconception import MisconceptionEngine
@@ -135,7 +135,16 @@ def render_assessment_page(user: dict):
     if q_key not in st.session_state:
         st.session_state[q_key] = time.time()
 
-    # 3. Two-Column Layout: Question Interface (Left) + Question Navigation & Stats (Right)
+    # 3. Completion Tracking for Navigation Grid
+    user_attempts = get_user_attempts(user_id, limit=300, course_id=active_course["id"])
+    completed_q_ids = {a["question_id"] for a in user_attempts}
+    if "completed_assessment_q_ids" in st.session_state:
+        completed_q_ids.update(st.session_state["completed_assessment_q_ids"])
+    for q in questions:
+        if f"eval_{q['id']}" in st.session_state:
+            completed_q_ids.add(q["id"])
+
+    # 4. Two-Column Layout: Question Interface (Left) + Question Navigation & Stats (Right)
     col_q_main, col_q_nav = st.columns([2.5, 1])
 
     with col_q_main:
@@ -199,6 +208,112 @@ def render_assessment_page(user: dict):
                 st.session_state["q_index"] = min(len(questions) - 1, q_idx + 1)
                 st.rerun()
 
+        # Handle Submission
+        eval_key = f"eval_{current_q['id']}"
+        if submit_answer:
+            if selected_text is None:
+                st.error("Please select an answer option before submitting.")
+            else:
+                elapsed_time = round(time.time() - st.session_state.get(q_key, time.time()), 2)
+                chosen_opt = next(opt for opt in options if opt["text"] == selected_text)
+                is_correct = bool(chosen_opt.get("is_correct", False))
+                misconception_code = chosen_opt.get("misconception_code")
+
+                concept_id = current_q["concept_id"]
+                m_rec = get_student_concept_mastery(user_id, concept_id)
+                prior_mastery = m_rec["mastery_prob"] if m_rec else 0.20
+
+                bkt = BayesianKnowledgeTracing(
+                    p_init=m_rec.get("p_init", 0.20) if m_rec else 0.20,
+                    p_transit=m_rec.get("p_transit", 0.15) if m_rec else 0.15,
+                    p_guess=m_rec.get("p_guess", 0.20) if m_rec else 0.20,
+                    p_slip=m_rec.get("p_slip", 0.10) if m_rec else 0.10
+                )
+                posterior_obs, next_prior = bkt.update(prior_mastery, is_correct)
+                update_student_mastery_record(user_id, concept_id, next_prior, is_correct)
+
+                record_assessment_attempt(
+                    user_id=user_id,
+                    question_id=current_q["id"],
+                    concept_id=concept_id,
+                    selected_option_index=chosen_opt["index"],
+                    is_correct=is_correct,
+                    difficulty=current_q["difficulty"],
+                    response_time_sec=elapsed_time,
+                    misconception_code=misconception_code,
+                    prior_mastery=prior_mastery,
+                    posterior_mastery=next_prior
+                )
+
+                st.session_state[eval_key] = {
+                    "is_correct": is_correct,
+                    "chosen_opt": chosen_opt,
+                    "prior_mastery": prior_mastery,
+                    "posterior_mastery": next_prior,
+                    "elapsed_time": elapsed_time,
+                    "explanation": current_q["explanation"]
+                }
+
+                # Add to completed questions and trigger immediate refresh to color the button green
+                completed_q_ids.add(current_q["id"])
+                if "completed_assessment_q_ids" not in st.session_state:
+                    st.session_state["completed_assessment_q_ids"] = set()
+                st.session_state["completed_assessment_q_ids"].add(current_q["id"])
+                st.rerun()
+
+        # Display Evaluation Feedback Directly Beneath Question Form
+        if eval_key in st.session_state:
+            res = st.session_state[eval_key]
+            if res["is_correct"]:
+                st.markdown(f"""
+                <div class="lm-card" style="border-left: 4px solid #36A879; background-color: #EDF8F3; padding: 0.9rem 1.1rem; margin-top: 0.75rem;">
+                    <div style="font-weight: 700; color: #166534; font-size: 0.95rem; margin-bottom: 0.25rem;">
+                        Correct Answer Verified
+                    </div>
+                    <div style="color: #14532D; font-size: 0.825rem; line-height: 1.5; margin-bottom: 0.4rem;">
+                        {res['chosen_opt']['explanation']}
+                    </div>
+                    <div style="font-size: 0.75rem; color: #166534;">
+                        Latency: {res['elapsed_time']}s &bull; BKT Mastery increased from <strong>{res['prior_mastery']:.0%}</strong> to <strong>{res['posterior_mastery']:.0%}</strong>.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                m_code = res["chosen_opt"].get("misconception_code")
+                m_info = MisconceptionEngine.get_info(m_code)
+                m_name = m_info["name"] if m_info else "Incorrect Mental Model"
+                m_rem = m_info["remediation"] if m_info else "Review core curriculum principles."
+
+                st.markdown(f"""
+                <div class="lm-card" style="border-left: 4px solid #D96B6B; background-color: #FDF2F2; padding: 0.9rem 1.1rem; margin-top: 0.75rem;">
+                    <div style="font-weight: 700; color: #991B1B; font-size: 0.95rem; margin-bottom: 0.25rem;">
+                        Misconception Identified: {m_name}
+                    </div>
+                    <div style="color: #881337; font-size: 0.825rem; line-height: 1.5; margin-bottom: 0.4rem;">
+                        <strong>Why this error occurs:</strong> {res['chosen_opt']['explanation']}
+                    </div>
+                    <div style="background-color: #FFFFFF; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #FECDD3; color: #991B1B; font-size: 0.775rem; margin-bottom: 0.4rem;">
+                        <strong>Pedagogical Remediation:</strong> {m_rem}
+                    </div>
+                    <div style="font-size: 0.75rem; color: #991B1B;">
+                        BKT Mastery adjusted from <strong>{res['prior_mastery']:.0%}</strong> to <strong>{res['posterior_mastery']:.0%}</strong>.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            col_next_q, col_review = st.columns(2)
+            with col_next_q:
+                if st.button("Proceed to Next Question", key="btn_next_q_after_eval", type="primary", use_container_width=True):
+                    st.session_state.pop(eval_key, None)
+                    st.session_state[f"q_start_time_{current_q['id']}"] = time.time()
+                    st.session_state["q_index"] = (st.session_state["q_index"] + 1) % len(questions)
+                    st.rerun()
+            with col_review:
+                if st.button("Review Concept in Library", key="btn_rev_q_lib", use_container_width=True):
+                    st.session_state["current_page"] = "learning_library"
+                    st.session_state["selected_lesson_code"] = current_q["concept_code"]
+                    st.rerun()
+
     with col_q_nav:
         # Question Navigation Panel
         st.markdown("""
@@ -206,15 +321,96 @@ def render_assessment_page(user: dict):
             <div style="font-weight: 700; font-size: 0.8rem; color: #243B64; margin-bottom: 0.5rem;">Question Navigation</div>
         """, unsafe_allow_html=True)
 
+        # Dynamic CSS for question buttons: Completed buttons appear in emerald green!
+        nav_css = []
+        for i, q in enumerate(questions):
+            q_comp = q["id"] in completed_q_ids
+            q_curr = (i == q_idx)
+
+            if q_comp and q_curr:
+                nav_css.append(f"""
+                .st-key-assess_qnav_btn_{i} button,
+                div[class*="st-key-assess_qnav_btn_{i}"] button {{
+                    background-color: #2F9168 !important;
+                    border: 2px solid #D6B56D !important;
+                    box-shadow: 0 0 0 2px rgba(214, 181, 109, 0.45) !important;
+                }}
+                .st-key-assess_qnav_btn_{i} button p,
+                div[class*="st-key-assess_qnav_btn_{i}"] button p {{
+                    color: #FFFFFF !important;
+                    font-weight: 800 !important;
+                }}
+                """)
+            elif q_comp:
+                nav_css.append(f"""
+                .st-key-assess_qnav_btn_{i} button,
+                div[class*="st-key-assess_qnav_btn_{i}"] button {{
+                    background-color: #36A879 !important;
+                    border: 1.5px solid #28875E !important;
+                    box-shadow: 0 1px 3px rgba(54, 168, 121, 0.25) !important;
+                }}
+                .st-key-assess_qnav_btn_{i} button p,
+                div[class*="st-key-assess_qnav_btn_{i}"] button p {{
+                    color: #FFFFFF !important;
+                    font-weight: 700 !important;
+                }}
+                .st-key-assess_qnav_btn_{i} button:hover,
+                div[class*="st-key-assess_qnav_btn_{i}"] button:hover {{
+                    background-color: #2F9168 !important;
+                    border-color: #206E4C !important;
+                }}
+                """)
+            elif q_curr:
+                nav_css.append(f"""
+                .st-key-assess_qnav_btn_{i} button,
+                div[class*="st-key-assess_qnav_btn_{i}"] button {{
+                    background-color: #172943 !important;
+                    border: 1.5px solid #D6B56D !important;
+                    box-shadow: 0 2px 5px rgba(23, 41, 67, 0.25) !important;
+                }}
+                .st-key-assess_qnav_btn_{i} button p,
+                div[class*="st-key-assess_qnav_btn_{i}"] button p {{
+                    color: #FFFFFF !important;
+                    font-weight: 700 !important;
+                }}
+                """)
+            else:
+                nav_css.append(f"""
+                .st-key-assess_qnav_btn_{i} button,
+                div[class*="st-key-assess_qnav_btn_{i}"] button {{
+                    background-color: #FFFFFF !important;
+                    border: 1px solid #E4E8ED !important;
+                }}
+                .st-key-assess_qnav_btn_{i} button p,
+                div[class*="st-key-assess_qnav_btn_{i}"] button p {{
+                    color: #172943 !important;
+                    font-weight: 600 !important;
+                }}
+                .st-key-assess_qnav_btn_{i} button:hover,
+                div[class*="st-key-assess_qnav_btn_{i}"] button:hover {{
+                    background-color: #FAF5EA !important;
+                    border-color: #D6B56D !important;
+                }}
+                """)
+
+        st.markdown(f"<style>{''.join(nav_css)}</style>", unsafe_allow_html=True)
+
         # Mini grid of question buttons
         q_cols = st.columns(4)
         for i in range(len(questions)):
             with q_cols[i % 4]:
-                btn_type = "primary" if i == q_idx else "secondary"
-                if st.button(f"{i+1}", key=f"assess_qnav_btn_{i}", use_container_width=True, type=btn_type):
+                if st.button(f"{i+1}", key=f"assess_qnav_btn_{i}", use_container_width=True):
                     st.session_state["q_index"] = i
                     st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="display: flex; gap: 8px; margin-top: 0.65rem; font-size: 0.68rem; color: #718096; align-items: center; justify-content: space-between; padding-top: 0.4rem; border-top: 1px solid #E4E8ED;">
+            <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #36A879; display: inline-block;"></span> Answered</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #172943; border: 1px solid #D6B56D; display: inline-block;"></span> Active</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #FFFFFF; border: 1px solid #E4E8ED; display: inline-block;"></span> Pending</span>
+        </div>
+        </div>
+        """, unsafe_allow_html=True)
 
         # Assessment Live Statistics
         m_curr = get_student_concept_mastery(user_id, current_q["concept_id"])
@@ -233,102 +429,3 @@ def render_assessment_page(user: dict):
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-    # 4. Handle Submission and Cognitive Feedback
-    eval_key = f"eval_{current_q['id']}"
-    if submit_answer:
-        if selected_text is None:
-            st.error("Please select an answer option before submitting.")
-        else:
-            elapsed_time = round(time.time() - st.session_state.get(q_key, time.time()), 2)
-            chosen_opt = next(opt for opt in options if opt["text"] == selected_text)
-            is_correct = bool(chosen_opt.get("is_correct", False))
-            misconception_code = chosen_opt.get("misconception_code")
-
-            concept_id = current_q["concept_id"]
-            m_rec = get_student_concept_mastery(user_id, concept_id)
-            prior_mastery = m_rec["mastery_prob"] if m_rec else 0.20
-
-            bkt = BayesianKnowledgeTracing(
-                p_init=m_rec.get("p_init", 0.20) if m_rec else 0.20,
-                p_transit=m_rec.get("p_transit", 0.15) if m_rec else 0.15,
-                p_guess=m_rec.get("p_guess", 0.20) if m_rec else 0.20,
-                p_slip=m_rec.get("p_slip", 0.10) if m_rec else 0.10
-            )
-            posterior_obs, next_prior = bkt.update(prior_mastery, is_correct)
-            update_student_mastery_record(user_id, concept_id, next_prior, is_correct)
-
-            record_assessment_attempt(
-                user_id=user_id,
-                question_id=current_q["id"],
-                concept_id=concept_id,
-                selected_option_index=chosen_opt["index"],
-                is_correct=is_correct,
-                difficulty=current_q["difficulty"],
-                response_time_sec=elapsed_time,
-                misconception_code=misconception_code,
-                prior_mastery=prior_mastery,
-                posterior_mastery=next_prior
-            )
-
-            st.session_state[eval_key] = {
-                "is_correct": is_correct,
-                "chosen_opt": chosen_opt,
-                "prior_mastery": prior_mastery,
-                "posterior_mastery": next_prior,
-                "elapsed_time": elapsed_time,
-                "explanation": current_q["explanation"]
-            }
-
-    # 5. Display Evaluation Results
-    if eval_key in st.session_state:
-        res = st.session_state[eval_key]
-        if res["is_correct"]:
-            st.markdown(f"""
-            <div class="lm-card" style="border-left: 4px solid #36A879; background-color: #EDF8F3; padding: 0.9rem 1.1rem; margin-top: 0.75rem;">
-                <div style="font-weight: 700; color: #166534; font-size: 0.95rem; margin-bottom: 0.25rem;">
-                    Correct Answer Verified
-                </div>
-                <div style="color: #14532D; font-size: 0.825rem; line-height: 1.5; margin-bottom: 0.4rem;">
-                    {res['chosen_opt']['explanation']}
-                </div>
-                <div style="font-size: 0.75rem; color: #166534;">
-                    Latency: {res['elapsed_time']}s &bull; BKT Mastery increased from <strong>{res['prior_mastery']:.0%}</strong> to <strong>{res['posterior_mastery']:.0%}</strong>.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            m_code = res["chosen_opt"].get("misconception_code")
-            m_info = MisconceptionEngine.get_info(m_code)
-            m_name = m_info["name"] if m_info else "Incorrect Mental Model"
-            m_rem = m_info["remediation"] if m_info else "Review core curriculum principles."
-
-            st.markdown(f"""
-            <div class="lm-card" style="border-left: 4px solid #D96B6B; background-color: #FDF2F2; padding: 0.9rem 1.1rem; margin-top: 0.75rem;">
-                <div style="font-weight: 700; color: #991B1B; font-size: 0.95rem; margin-bottom: 0.25rem;">
-                    Misconception Identified: {m_name}
-                </div>
-                <div style="color: #881337; font-size: 0.825rem; line-height: 1.5; margin-bottom: 0.4rem;">
-                    <strong>Why this error occurs:</strong> {res['chosen_opt']['explanation']}
-                </div>
-                <div style="background-color: #FFFFFF; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #FECDD3; color: #991B1B; font-size: 0.775rem; margin-bottom: 0.4rem;">
-                    <strong>Pedagogical Remediation:</strong> {m_rem}
-                </div>
-                <div style="font-size: 0.75rem; color: #991B1B;">
-                    BKT Mastery adjusted from <strong>{res['prior_mastery']:.0%}</strong> to <strong>{res['posterior_mastery']:.0%}</strong>.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        col_next_q, col_review = st.columns(2)
-        with col_next_q:
-            if st.button("Proceed to Next Question", key="btn_next_q_after_eval", type="primary", use_container_width=True):
-                st.session_state.pop(eval_key, None)
-                st.session_state[f"q_start_time_{current_q['id']}"] = time.time()
-                st.session_state["q_index"] = (st.session_state["q_index"] + 1) % len(questions)
-                st.rerun()
-        with col_review:
-            if st.button("Review Concept in Library", key="btn_rev_q_lib", use_container_width=True):
-                st.session_state["current_page"] = "learning_library"
-                st.session_state["selected_lesson_code"] = current_q["concept_code"]
-                st.rerun()
