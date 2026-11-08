@@ -306,3 +306,4 @@ def render_search_results_view(query: str):
                     st.session_state["global_search_query"] = ""
                     st.session_state["global_search_input"] = ""
                     st.rerun()
+

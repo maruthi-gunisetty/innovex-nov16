@@ -256,3 +256,4 @@ class SearchService:
             "modules": results["modules"],
             "courses": results["courses"]
         }
+

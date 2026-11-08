@@ -34,6 +34,15 @@ def set_active_course(code: str) -> None:
     st.session_state["active_course_code"] = code
 
 
+def set_active_course_by_id(course_id: int) -> Optional[Dict[str, Any]]:
+    """Updates the active course in session state using course ID."""
+    course = get_course_by_id(course_id)
+    if course:
+        st.session_state["active_course_code"] = course["code"]
+        return course
+    return None
+
+
 def get_available_tracks() -> List[Dict[str, Any]]:
     """Returns list of active courses."""
     return get_all_courses(active_only=True)
