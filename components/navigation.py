@@ -24,9 +24,6 @@ def render_navigation():
             <div style="font-size: 1.35rem; font-weight: 700; color: #172554; letter-spacing: -0.025em;">
                 LearnSphere <span style="color: #635BDB;">AI</span>
             </div>
-            <span class="ls-badge badge-violet" style="margin-left: 0.75rem;">
-                PS 03 Intelligent Education
-            </span>
         </div>
         """, unsafe_allow_html=True)
 

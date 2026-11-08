@@ -1,6 +1,5 @@
 """
 LearnSphere AI: Main Application Entry Point
-Problem Statement 03: Intelligent Education
 Adaptive Intelligence for Personalized Learning and Misconception Detection
 """
 

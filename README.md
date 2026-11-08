@@ -1,6 +1,5 @@
 # LearnSphere AI: Adaptive Intelligence for Personalized Learning and Misconception Detection
 
-**Problem Statement:** PS 03: Intelligent Education  
 **Domain:** Artificial Intelligence in Education, Educational Data Mining, Intelligent Tutoring Systems (ITS)
 
 ---

@@ -13,9 +13,6 @@ def render_landing_page():
     # Hero Section
     st.markdown("""
     <div style="text-align: center; padding: 2.75rem 1rem 2rem 1rem; max-width: 880px; margin: 0 auto;">
-        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background-color: #EEF2FF; color: #635BDB; border: 1px solid #C7D2FE; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.775rem; font-weight: 600; margin-bottom: 1.25rem;">
-            Problem Statement 03: Intelligent Education
-        </div>
         <h1 style="font-size: 2.85rem; font-weight: 800; color: #172554; line-height: 1.15; letter-spacing: -0.035em; margin-bottom: 1.25rem;">
             Learning That Understands Every Student.
         </h1>
@@ -201,6 +198,6 @@ def render_landing_page():
     # Footer
     st.markdown("""
     <div class="ls-footer">
-        LearnSphere AI &copy; 2026. Built for PS 03 Intelligent Education. All rights reserved.
+        LearnSphere AI &copy; 2026. Adaptive Intelligence for Personalized Learning. All rights reserved.
     </div>
     """, unsafe_allow_html=True)
