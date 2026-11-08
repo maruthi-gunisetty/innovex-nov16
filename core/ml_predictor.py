@@ -53,14 +53,13 @@ class PredictiveLearningEngine:
             """)
             rows = [dict(r) for r in cur.fetchall()]
 
+        X_syn, y_syn = self._generate_synthetic_interactions()
         if len(rows) < 8:
-            # Generate calibrated synthetic training interactions to bootstrap model
-            return self._generate_synthetic_interactions()
+            return X_syn, y_syn
 
-        X = []
-        y = []
+        X_db = []
+        y_db = []
         for r in rows:
-            # Features: prior_mastery, difficulty_level, response_time_sec, concept_order, historical_accuracy proxy
             hist_acc = max(0.1, min(0.95, r["prior_mastery"] * 0.9 + 0.1))
             feat = [
                 float(r["prior_mastery"]),
@@ -69,10 +68,12 @@ class PredictiveLearningEngine:
                 float(r["concept_order"]),
                 float(hist_acc)
             ]
-            X.append(feat)
-            y.append(int(r["is_correct"]))
+            X_db.append(feat)
+            y_db.append(int(r["is_correct"]))
 
-        return np.array(X), np.array(y)
+        X_combined = np.vstack([X_syn, np.array(X_db)])
+        y_combined = np.concatenate([y_syn, np.array(y_db)])
+        return X_combined, y_combined
 
     def _generate_synthetic_interactions(self) -> Tuple[np.ndarray, np.ndarray]:
         """Calibrated bootstrap training data based on cognitive psychometrics."""

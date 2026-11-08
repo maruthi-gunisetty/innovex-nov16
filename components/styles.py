@@ -30,10 +30,14 @@ CUSTOM_CSS = """
 /* Modern Typography - Inter */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-html, body, [class*="css"], [class*="st-"] {
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #263445;
     background-color: #F5F6F8;
+}
+
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Page Container Density */
@@ -78,10 +82,105 @@ html, body, [class*="css"], [class*="st-"] {
 }
 
 [data-testid="stSidebar"] .stRadio label[data-checked="true"],
+[data-testid="stSidebar"] .stRadio label[data-selected="true"],
 [data-testid="stSidebar"] .stRadio label:has(input:checked) {
     background-color: #EAF2FA !important;
     color: #243B64 !important;
     font-weight: 600 !important;
+}
+
+/* ==========================================================
+   GLOBAL RADIO BUTTON STYLING (Sidebar & Assessment Pages)
+   Ensures the radio circle fills with blue (#3976B9) when selected.
+   ========================================================== */
+
+/* 1. Unselected Radio Circle: Neutral border with clean white interior */
+.stRadio [data-testid="stRadioOption"] div[class*="ex50key4"],
+.stRadio [data-testid="stRadioOption"] > div > div:first-child,
+.stRadio label > div > div:first-child,
+div[role="radiogroup"] label > div > div:first-child,
+[data-testid="stRadioGroup"] label > div > div:first-child {
+    background-color: #FFFFFF !important;
+    border: 1.5px solid #CBD5E1 !important;
+    border-radius: 50% !important;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.15s ease !important;
+    box-sizing: border-box !important;
+}
+
+/* 2. Unselected Inner Dot (Hidden) */
+.stRadio [data-testid="stRadioOption"] div[class*="ex50key5"],
+.stRadio [data-testid="stRadioOption"] > div > div:first-child > div,
+.stRadio label > div > div:first-child > div,
+div[role="radiogroup"] label > div > div:first-child > div,
+[data-testid="stRadioGroup"] label > div > div:first-child > div {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+}
+
+/* 3. Hover state for unselected radio circle */
+.stRadio [data-testid="stRadioOption"]:hover div[class*="ex50key4"],
+.stRadio [data-testid="stRadioOption"]:hover > div > div:first-child,
+.stRadio label:hover > div > div:first-child,
+div[role="radiogroup"] label:hover > div > div:first-child {
+    border-color: #3976B9 !important;
+    background-color: #F8FAFC !important;
+}
+
+/* 4. SELECTED Radio Circle: Fills with Blue (#3976B9) */
+.stRadio [data-testid="stRadioOption"]:has(input:checked) div[class*="ex50key4"],
+.stRadio [data-testid="stRadioOption"][data-selected="true"] div[class*="ex50key4"],
+.stRadio [data-testid="stRadioOption"]:has(input:checked) > div > div:first-child,
+.stRadio [data-testid="stRadioOption"][data-selected="true"] > div > div:first-child,
+.stRadio label:has(input:checked) div[class*="ex50key4"],
+.stRadio label[data-selected="true"] div[class*="ex50key4"],
+.stRadio label:has(input:checked) > div > div:first-child,
+.stRadio label[data-selected="true"] > div > div:first-child,
+.stRadio label[data-checked="true"] > div > div:first-child,
+.stRadio label[aria-checked="true"] > div > div:first-child,
+div[role="radiogroup"] label:has(input:checked) > div > div:first-child,
+div[role="radiogroup"] label[data-selected="true"] > div > div:first-child,
+div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child,
+[data-testid="stRadioGroup"] label:has(input:checked) > div > div:first-child,
+[data-testid="stRadioGroup"] label[data-selected="true"] > div > div:first-child {
+    background-color: #3976B9 !important;
+    border: 2px solid #3976B9 !important;
+    box-shadow: 0 0 0 2px rgba(57, 118, 185, 0.25) !important;
+}
+
+/* 5. SELECTED Radio Inner Dot: Crisp 5px white center dot */
+.stRadio [data-testid="stRadioOption"]:has(input:checked) div[class*="ex50key5"],
+.stRadio [data-testid="stRadioOption"][data-selected="true"] div[class*="ex50key5"],
+.stRadio [data-testid="stRadioOption"]:has(input:checked) > div > div:first-child > div,
+.stRadio [data-testid="stRadioOption"][data-selected="true"] > div > div:first-child > div,
+.stRadio label:has(input:checked) div[class*="ex50key5"],
+.stRadio label[data-selected="true"] div[class*="ex50key5"],
+.stRadio label:has(input:checked) > div > div:first-child > div,
+.stRadio label[data-selected="true"] > div > div:first-child > div,
+.stRadio label[data-checked="true"] > div > div:first-child > div,
+.stRadio label[aria-checked="true"] > div > div:first-child > div,
+div[role="radiogroup"] label:has(input:checked) > div > div:first-child > div,
+div[role="radiogroup"] label[data-selected="true"] > div > div:first-child > div,
+div[role="radiogroup"] label[aria-checked="true"] > div > div:first-child > div,
+[data-testid="stRadioGroup"] label:has(input:checked) > div > div:first-child > div,
+[data-testid="stRadioGroup"] label[data-selected="true"] > div > div:first-child > div {
+    display: block !important;
+    background-color: #FFFFFF !important;
+    width: 6px !important;
+    height: 6px !important;
+    min-width: 6px !important;
+    min-height: 6px !important;
+    border-radius: 50% !important;
+    margin: auto !important;
+    opacity: 1 !important;
 }
 
 /* Top Navigation Bar */

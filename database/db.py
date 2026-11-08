@@ -29,7 +29,7 @@ def get_db_connection():
 
 
 def init_db(force: bool = False) -> None:
-    """Initializes tables from schema.sql."""
+    """Initializes tables from schema.sql and ensures schema migrations."""
     if force and os.path.exists(DB_PATH):
         try:
             os.remove(DB_PATH)
@@ -39,6 +39,15 @@ def init_db(force: bool = False) -> None:
     with get_db_connection() as conn:
         with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
             conn.executescript(f.read())
+
+        # Ensure new columns on concepts if table existed previously
+        cur = conn.cursor()
+        cur.execute("PRAGMA table_info(concepts)")
+        cols = {row["name"] for row in cur.fetchall()}
+        if "subject_id" not in cols:
+            conn.execute("ALTER TABLE concepts ADD COLUMN subject_id INTEGER REFERENCES subjects(id)")
+        if "course_id" not in cols:
+            conn.execute("ALTER TABLE concepts ADD COLUMN course_id INTEGER REFERENCES courses(id)")
         conn.commit()
 
 
@@ -126,13 +135,99 @@ def get_all_students() -> List[Dict[str, Any]]:
 
 
 # ==========================================
+# SUBJECTS & COURSES
+# ==========================================
+
+def get_all_subjects(active_only: bool = True) -> List[Dict[str, Any]]:
+    """Retrieves all registered learning subjects."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        query = "SELECT * FROM subjects WHERE 1=1"
+        if active_only:
+            query += " AND is_active = 1"
+        query += " ORDER BY order_index ASC"
+        cur.execute(query)
+        return [dict(r) for r in cur.fetchall()]
+
+
+def get_subject_by_code(code: str) -> Optional[Dict[str, Any]]:
+    """Retrieves subject metadata by unique code."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM subjects WHERE code = ?", (code,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_all_courses(subject_id: Optional[int] = None, active_only: bool = True) -> List[Dict[str, Any]]:
+    """Retrieves courses, optionally filtered by subject."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        query = """
+            SELECT c.*, s.name as subject_name, s.code as subject_code, s.category as subject_category
+            FROM courses c
+            JOIN subjects s ON c.subject_id = s.id
+            WHERE 1=1
+        """
+        params = []
+        if active_only:
+            query += " AND c.is_active = 1"
+        if subject_id:
+            query += " AND c.subject_id = ?"
+            params.append(subject_id)
+        query += " ORDER BY c.order_index ASC"
+        cur.execute(query, tuple(params))
+        return [dict(r) for r in cur.fetchall()]
+
+
+def get_course_by_code(code: str) -> Optional[Dict[str, Any]]:
+    """Retrieves course by unique slug/code."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT c.*, s.name as subject_name, s.code as subject_code, s.category as subject_category
+            FROM courses c
+            JOIN subjects s ON c.subject_id = s.id
+            WHERE c.code = ?
+        """, (code,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+def get_course_by_id(course_id: int) -> Optional[Dict[str, Any]]:
+    """Retrieves course by numeric primary key."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT c.*, s.name as subject_name, s.code as subject_code, s.category as subject_category
+            FROM courses c
+            JOIN subjects s ON c.subject_id = s.id
+            WHERE c.id = ?
+        """, (course_id,))
+        row = cur.fetchone()
+        return dict(row) if row else None
+
+
+# ==========================================
 # CONCEPTS & LEARNING CONTENT
 # ==========================================
 
-def get_all_concepts() -> List[Dict[str, Any]]:
+def get_all_concepts(
+    course_id: Optional[int] = None,
+    subject_id: Optional[int] = None
+) -> List[Dict[str, Any]]:
     with get_db_connection() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT * FROM concepts ORDER BY order_index ASC")
+        query = "SELECT * FROM concepts WHERE 1=1"
+        params = []
+        if course_id:
+            query += " AND course_id = ?"
+            params.append(course_id)
+        elif subject_id:
+            query += " AND subject_id = ?"
+            params.append(subject_id)
+        query += " ORDER BY order_index ASC"
+        cur.execute(query, tuple(params))
         rows = cur.fetchall()
         result = []
         for r in rows:
@@ -140,6 +235,10 @@ def get_all_concepts() -> List[Dict[str, Any]]:
             d["prerequisites"] = json.loads(d["prerequisites"]) if d["prerequisites"] else []
             result.append(d)
         return result
+
+
+def get_concepts_by_course(course_id: int) -> List[Dict[str, Any]]:
+    return get_all_concepts(course_id=course_id)
 
 
 def get_concept_by_id(concept_id: int) -> Optional[Dict[str, Any]]:
@@ -154,15 +253,27 @@ def get_concept_by_id(concept_id: int) -> Optional[Dict[str, Any]]:
         return d
 
 
-def get_all_learning_content() -> List[Dict[str, Any]]:
+def get_all_learning_content(
+    course_id: Optional[int] = None,
+    subject_id: Optional[int] = None
+) -> List[Dict[str, Any]]:
     with get_db_connection() as conn:
         cur = conn.cursor()
-        cur.execute("""
-            SELECT lc.*, c.name as concept_name, c.code as concept_code
+        query = """
+            SELECT lc.*, c.name as concept_name, c.code as concept_code, c.course_id, c.subject_id
             FROM learning_content lc
             JOIN concepts c ON lc.concept_id = c.id
-            ORDER BY lc.order_index ASC
-        """)
+            WHERE 1=1
+        """
+        params = []
+        if course_id:
+            query += " AND c.course_id = ?"
+            params.append(course_id)
+        elif subject_id:
+            query += " AND c.subject_id = ?"
+            params.append(subject_id)
+        query += " ORDER BY lc.order_index ASC"
+        cur.execute(query, tuple(params))
         rows = cur.fetchall()
         result = []
         for r in rows:
@@ -222,10 +333,12 @@ def toggle_lesson_progress(user_id: int, content_id: int, is_completed: bool) ->
 
 def get_questions_by_concept_and_difficulty(
     concept_id: Optional[int] = None,
-    difficulty: Optional[str] = None
+    difficulty: Optional[str] = None,
+    course_id: Optional[int] = None,
+    subject_id: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     query = """
-        SELECT q.*, c.name as concept_name, c.code as concept_code
+        SELECT q.*, c.name as concept_name, c.code as concept_code, c.course_id, c.subject_id
         FROM questions q
         JOIN concepts c ON q.concept_id = c.id
         WHERE 1=1
@@ -237,6 +350,12 @@ def get_questions_by_concept_and_difficulty(
     if difficulty and difficulty != "all":
         query += " AND q.difficulty = ?"
         params.append(difficulty)
+    if course_id:
+        query += " AND c.course_id = ?"
+        params.append(course_id)
+    elif subject_id:
+        query += " AND c.subject_id = ?"
+        params.append(subject_id)
 
     query += " ORDER BY q.id ASC"
 
@@ -287,17 +406,30 @@ def init_student_mastery(user_id: int) -> None:
         conn.commit()
 
 
-def get_student_mastery(user_id: int) -> List[Dict[str, Any]]:
+def get_student_mastery(
+    user_id: int,
+    course_id: Optional[int] = None,
+    subject_id: Optional[int] = None
+) -> List[Dict[str, Any]]:
+    query = """
+        SELECT sm.*, c.name as concept_name, c.code as concept_code, c.description,
+               c.p_transit, c.p_guess, c.p_slip, c.course_id, c.subject_id
+        FROM student_mastery sm
+        JOIN concepts c ON sm.concept_id = c.id
+        WHERE sm.user_id = ?
+    """
+    params = [user_id]
+    if course_id:
+        query += " AND c.course_id = ?"
+        params.append(course_id)
+    elif subject_id:
+        query += " AND c.subject_id = ?"
+        params.append(subject_id)
+    query += " ORDER BY c.order_index ASC"
+
     with get_db_connection() as conn:
         cur = conn.cursor()
-        cur.execute("""
-            SELECT sm.*, c.name as concept_name, c.code as concept_code, c.description,
-                   c.p_transit, c.p_guess, c.p_slip
-            FROM student_mastery sm
-            JOIN concepts c ON sm.concept_id = c.id
-            WHERE sm.user_id = ?
-            ORDER BY c.order_index ASC
-        """, (user_id,))
+        cur.execute(query, tuple(params))
         return [dict(r) for r in cur.fetchall()]
 
 
@@ -365,53 +497,104 @@ def record_assessment_attempt(
         return attempt_id
 
 
-def get_user_attempts(user_id: int, limit: int = 50) -> List[Dict[str, Any]]:
+def get_user_attempts(
+    user_id: int,
+    limit: int = 50,
+    course_id: Optional[int] = None,
+    subject_id: Optional[int] = None
+) -> List[Dict[str, Any]]:
+    query = """
+        SELECT aa.*, q.title as question_title, q.prompt as question_prompt,
+               c.name as concept_name, c.code as concept_code, c.course_id, c.subject_id
+        FROM assessment_attempts aa
+        JOIN questions q ON aa.question_id = q.id
+        JOIN concepts c ON aa.concept_id = c.id
+        WHERE aa.user_id = ?
+    """
+    params = [user_id]
+    if course_id:
+        query += " AND c.course_id = ?"
+        params.append(course_id)
+    elif subject_id:
+        query += " AND c.subject_id = ?"
+        params.append(subject_id)
+    query += " ORDER BY aa.attempted_at DESC LIMIT ?"
+    params.append(limit)
+
     with get_db_connection() as conn:
         cur = conn.cursor()
-        cur.execute("""
-            SELECT aa.*, q.title as question_title, q.prompt as question_prompt,
-                   c.name as concept_name, c.code as concept_code
-            FROM assessment_attempts aa
-            JOIN questions q ON aa.question_id = q.id
-            JOIN concepts c ON aa.concept_id = c.id
-            WHERE aa.user_id = ?
-            ORDER BY aa.attempted_at DESC
-            LIMIT ?
-        """, (user_id, limit))
+        cur.execute(query, tuple(params))
         return [dict(r) for r in cur.fetchall()]
 
 
-def get_class_overview() -> Dict[str, Any]:
-    """Computes aggregate analytics across all registered students."""
+def get_class_overview(
+    course_id: Optional[int] = None,
+    subject_id: Optional[int] = None
+) -> Dict[str, Any]:
+    """Computes aggregate analytics across all registered students, optionally filtered by course/subject."""
     with get_db_connection() as conn:
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) as total_students FROM users WHERE role = 'student'")
         total_students = cur.fetchone()["total_students"]
 
-        cur.execute("SELECT COUNT(*) as total_attempts, AVG(is_correct) as avg_accuracy FROM assessment_attempts")
+        # Attempts & Accuracy filter
+        att_query = """
+            SELECT COUNT(*) as total_attempts, AVG(aa.is_correct) as avg_accuracy
+            FROM assessment_attempts aa
+            JOIN concepts c ON aa.concept_id = c.id
+            WHERE 1=1
+        """
+        att_params = []
+        if course_id:
+            att_query += " AND c.course_id = ?"
+            att_params.append(course_id)
+        elif subject_id:
+            att_query += " AND c.subject_id = ?"
+            att_params.append(subject_id)
+
+        cur.execute(att_query, tuple(att_params))
         att_row = cur.fetchone()
         total_attempts = att_row["total_attempts"] or 0
         avg_accuracy = float(att_row["avg_accuracy"] or 0.0)
 
-        cur.execute("""
-            SELECT c.name as concept_name, c.code as concept_code,
+        # Concept Masteries
+        cm_query = """
+            SELECT c.name as concept_name, c.code as concept_code, c.course_id, c.subject_id,
                    AVG(sm.mastery_prob) as avg_mastery,
                    SUM(sm.total_attempts) as total_concept_attempts
             FROM student_mastery sm
             JOIN concepts c ON sm.concept_id = c.id
-            GROUP BY c.id
-            ORDER BY c.order_index ASC
-        """)
+            WHERE 1=1
+        """
+        cm_params = []
+        if course_id:
+            cm_query += " AND c.course_id = ?"
+            cm_params.append(course_id)
+        elif subject_id:
+            cm_query += " AND c.subject_id = ?"
+            cm_params.append(subject_id)
+        cm_query += " GROUP BY c.id ORDER BY c.order_index ASC"
+
+        cur.execute(cm_query, tuple(cm_params))
         concept_masteries = [dict(r) for r in cur.fetchall()]
 
-        cur.execute("""
-            SELECT misconception_code, COUNT(*) as count
-            FROM assessment_attempts
-            WHERE is_correct = 0 AND misconception_code IS NOT NULL AND misconception_code != 'NONE'
-            GROUP BY misconception_code
-            ORDER BY count DESC
-            LIMIT 6
-        """)
+        # Top Misconceptions
+        misc_query = """
+            SELECT aa.misconception_code, COUNT(*) as count
+            FROM assessment_attempts aa
+            JOIN concepts c ON aa.concept_id = c.id
+            WHERE aa.is_correct = 0 AND aa.misconception_code IS NOT NULL AND aa.misconception_code != 'NONE'
+        """
+        misc_params = []
+        if course_id:
+            misc_query += " AND c.course_id = ?"
+            misc_params.append(course_id)
+        elif subject_id:
+            misc_query += " AND c.subject_id = ?"
+            misc_params.append(subject_id)
+        misc_query += " GROUP BY aa.misconception_code ORDER BY count DESC LIMIT 6"
+
+        cur.execute(misc_query, tuple(misc_params))
         misconceptions = [dict(r) for r in cur.fetchall()]
 
         return {

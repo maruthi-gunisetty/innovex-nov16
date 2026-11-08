@@ -21,25 +21,32 @@ from database.db import (
 from core.bkt import BayesianKnowledgeTracing
 from core.misconception import MisconceptionEngine
 from core.recommender import RecommenderEngine
+from core.course_manager import get_active_course, render_course_selector
 
 
 def render_misconception_page(user: dict):
     user_id = user["id"]
-    mastery_data = get_student_mastery(user_id)
-    attempts = get_user_attempts(user_id, limit=50)
+    active_course = get_active_course()
+    course_id = active_course["id"]
+
+    mastery_data = get_student_mastery(user_id, course_id=course_id)
+    attempts = get_user_attempts(user_id, limit=50, course_id=course_id)
     lesson_progress = get_user_lesson_progress(user_id)
     summary = MisconceptionEngine.summarize_patterns(attempts)
     patterns = summary["patterns"]
 
-    st.markdown("""
-    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
-        <div>
-            <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">AI Learning Intelligence Dashboard</h2>
-            <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Corbett & Anderson (1995) Bayesian Knowledge Tracing & Cognitive Distractor Diagnostics.</div>
+    col_h_title, col_h_track = st.columns([2.0, 1.0])
+    with col_h_title:
+        st.markdown(f"""
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
+            <div>
+                <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">{active_course['name']} Intelligence</h2>
+                <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Corbett & Anderson (1995) Bayesian Knowledge Tracing & Cognitive Distractor Diagnostics.</div>
+            </div>
         </div>
-        <span class="lm-pill pill-ahead">BKT Engine Active</span>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+    with col_h_track:
+        render_course_selector(key="ai_track_selector", label="Select Track", on_change_rerun=True)
 
     # ==========================================================
     # 1. BKT CORE HYPERPARAMETERS ROW (P(L0), P(T), P(G), P(S))
@@ -164,7 +171,7 @@ def render_misconception_page(user: dict):
                 orientation="h",
                 color="category",
                 labels={"count": "Times Triggered", "name": "Misconception"},
-                color_discrete_map={"Boundary Condition": "#D96B6B", "Control Flow": "#E9AA45", "Data Structure": "#3976B9", "Recursion": "#243B64"}
+                color_discrete_sequence=["#3976B9", "#D96B6B", "#E9AA45", "#36A879", "#243B64", "#718096"]
             )
             fig_mf.update_layout(
                 height=180,

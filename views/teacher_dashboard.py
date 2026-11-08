@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from database.db import (
     get_class_overview, get_all_students, get_student_mastery,
-    get_user_attempts
+    get_user_attempts, get_all_courses
 )
 from core.bkt import BayesianKnowledgeTracing
 from core.misconception import MisconceptionEngine
@@ -26,7 +26,20 @@ def render_teacher_dashboard(user: dict):
         st.error("Access restricted: This portal is reserved for verified faculty accounts.")
         return
 
-    overview = get_class_overview()
+    courses = get_all_courses(active_only=True)
+    course_options = ["All Subjects & Tracks"] + [f"{c['name']} ({c['subject_name']})" for c in courses]
+    
+    # Selected filter from session or selectbox
+    selected_filter_label = st.session_state.get("teacher_track_filter", course_options[0])
+    default_filter_idx = course_options.index(selected_filter_label) if selected_filter_label in course_options else 0
+
+    selected_course_obj = None
+    if default_filter_idx > 0:
+        selected_course_obj = courses[default_filter_idx - 1]
+    
+    selected_course_id = selected_course_obj["id"] if selected_course_obj else None
+
+    overview = get_class_overview(course_id=selected_course_id)
     students = get_all_students()
     cm_list = overview.get("concept_masteries", [])
     cohort_avg = (sum(c["avg_mastery"] for c in cm_list) / len(cm_list)) if cm_list else 0.20
@@ -34,8 +47,8 @@ def render_teacher_dashboard(user: dict):
     # Categorize students into struggling vs excelling
     student_stats = []
     for s in students:
-        s_mastery = get_student_mastery(s["id"])
-        s_attempts = get_user_attempts(s["id"], limit=50)
+        s_mastery = get_student_mastery(s["id"], course_id=selected_course_id)
+        s_attempts = get_user_attempts(s["id"], limit=50, course_id=selected_course_id)
         s_avg = (sum(m["mastery_prob"] for m in s_mastery) / len(s_mastery)) if s_mastery else 0.20
         s_correct = sum(1 for a in s_attempts if a["is_correct"])
         s_acc = (s_correct / len(s_attempts) * 100) if s_attempts else 0.0
@@ -54,21 +67,26 @@ def render_teacher_dashboard(user: dict):
     # ==========================================================
     # 1. PAGE TITLE & CLASS SELECTION (Matching Reference)
     # ==========================================================
-    col_title, col_class = st.columns([2.2, 0.8])
+    col_title, col_class = st.columns([2.0, 1.0])
     with col_title:
+        sub_label = f"Cohort: {selected_filter_label}" if selected_course_id else "All Active Tracks"
         st.markdown(f"""
         <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.75rem;">
             <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">Dashboard</h2>
-            <span style="font-size: 0.775rem; color: #718096; font-weight: 500;">Instructor: {user['full_name']} &bull; Cohort Performance Overview</span>
+            <span style="font-size: 0.775rem; color: #718096; font-weight: 500;">Instructor: {user['full_name']} &bull; {sub_label}</span>
         </div>
         """, unsafe_allow_html=True)
     with col_class:
-        st.selectbox(
-            "Assigned Class",
-            ["Class A - Python Core", "Class B - Data Structures", "Class C - Algorithms"],
-            index=0,
+        new_sel = st.selectbox(
+            "Assigned Class / Track",
+            course_options,
+            index=default_filter_idx,
+            key="teacher_track_filter_select",
             label_visibility="collapsed"
         )
+        if new_sel != selected_filter_label:
+            st.session_state["teacher_track_filter"] = new_sel
+            st.rerun()
 
     # ==========================================================
     # 2. TOP SECTION: 4 COMPACT SUMMARY CARDS
@@ -462,17 +480,42 @@ def render_teacher_dashboard(user: dict):
                 <span class="lm-card-title">Class Instructional Recommendations</span>
                 <span style="font-size: 0.725rem; color: #36A879; font-weight: 600;">Automated AI Insights</span>
             </div>
-            <div style="padding: 0.4rem 0; border-bottom: 1px solid #F5F6F8;">
-                <div style="font-weight: 600; font-size: 0.8rem; color: #243B64;">Review Recursion Termination Base Cases</div>
+        """, unsafe_allow_html=True)
+
+        rec_items = []
+        if top_m:
+            top_code = top_m[0]["misconception_code"]
+            rem = MisconceptionEngine.get_remediation(top_code)
+            rec_items.append({
+                "title": f"Target Cohort Cognitive Misconception: {top_code}",
+                "desc": f"Observed {top_m[0]['count']} occurrences across the cohort. Recommended instructional action: {rem.get('remedial_strategy', 'Provide conceptual counterexamples and guided code walkthroughs.')}"
+            })
+        
+        # Concept with lowest average mastery
+        if cm_list:
+            lowest_c = min(cm_list, key=lambda x: x["avg_mastery"])
+            rec_items.append({
+                "title": f"Reinforce {lowest_c['concept_name']} ({lowest_c['concept_code']})",
+                "desc": f"Mean cohort mastery is currently {lowest_c['avg_mastery']:.0%}. Introduce targeted practice drills before advancing dependent modules."
+            })
+
+        if excelling_students:
+            top_s_names = ", ".join([s["name"] for s in excelling_students[:2]])
+            rec_items.append({
+                "title": "Advance High-Mastery Learners",
+                "desc": f"{top_s_names} and other top performers have exceeded 70% mastery and are prepared for advanced problem sets."
+            })
+
+        for r_idx, r in enumerate(rec_items[:2]):
+            border_bottom = "border-bottom: 1px solid #F5F6F8;" if r_idx == 0 else ""
+            st.markdown(f"""
+            <div style="padding: 0.4rem 0; {border_bottom}">
+                <div style="font-weight: 600; font-size: 0.8rem; color: #243B64;">{r['title']}</div>
                 <div style="font-size: 0.725rem; color: #718096; margin-top: 0.15rem; line-height: 1.4;">
-                    Recursion shows an average BKT latency of 32s with 40% errors attributed to missing base conditions.
+                    {r['desc']}
                 </div>
             </div>
-            <div style="padding: 0.4rem 0;">
-                <div style="font-weight: 600; font-size: 0.8rem; color: #243B64;">Advance Top Students to Functional Paradigms</div>
-                <div style="font-size: 0.725rem; color: #718096; margin-top: 0.15rem; line-height: 1.4;">
-                    Sophia Chen and top performers have completed core prerequisites and are ready for recursion problem sets.
-                </div>
-            </div>
-        </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
         """, unsafe_allow_html=True)

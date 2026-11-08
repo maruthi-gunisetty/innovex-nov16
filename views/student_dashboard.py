@@ -19,12 +19,16 @@ from database.db import (
 from core.bkt import BayesianKnowledgeTracing
 from core.recommender import RecommenderEngine
 from core.misconception import MisconceptionEngine
+from core.course_manager import get_active_course, render_course_selector
 
 
 def render_student_dashboard(user: dict):
     user_id = user["id"]
-    mastery_data = get_student_mastery(user_id)
-    attempts = get_user_attempts(user_id, limit=30)
+    active_course = get_active_course()
+    course_id = active_course["id"]
+
+    mastery_data = get_student_mastery(user_id, course_id=course_id)
+    attempts = get_user_attempts(user_id, limit=30, course_id=course_id)
     lesson_progress = get_user_lesson_progress(user_id)
 
     # Calculate Summary Statistics from Actual Database Records
@@ -52,21 +56,16 @@ def render_student_dashboard(user: dict):
     # ==========================================================
     # 1. PAGE TITLE & SUBJECT SELECTION (Matching Reference)
     # ==========================================================
-    col_title, col_subject = st.columns([2.2, 0.8])
+    col_title, col_subject = st.columns([2.0, 1.0])
     with col_title:
-        st.markdown("""
+        st.markdown(f"""
         <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.75rem;">
             <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">Dashboard</h2>
-            <span style="font-size: 0.775rem; color: #718096; font-weight: 500;">Learner Telemetry & Intelligent Recommendations</span>
+            <span style="font-size: 0.775rem; color: #718096; font-weight: 500;">{active_course['name']} &bull; Learner Telemetry & Intelligent Recommendations</span>
         </div>
         """, unsafe_allow_html=True)
     with col_subject:
-        st.selectbox(
-            "Curriculum Track",
-            ["Python Core Track", "Object-Oriented Programming", "Algorithms"],
-            index=0,
-            label_visibility="collapsed"
-        )
+        render_course_selector(key="dash_course_selector", label="Select Track", on_change_rerun=True)
 
     # ==========================================================
     # 2. TOP SECTION: 4 COMPACT SUMMARY CARDS
@@ -424,22 +423,19 @@ def render_student_dashboard(user: dict):
     # ==========================================================
     # 4. BOTTOM SECTION: COMPACT LEARNING ROADMAP
     # ==========================================================
-    st.markdown("""
+    st.markdown(f"""
     <div class="lm-card" style="margin-top: 0.5rem;">
         <div class="lm-card-header">
-            <span class="lm-card-title">Python Concept Progression Roadmap</span>
-            <span style="font-size: 0.725rem; color: #718096;">Prerequisite dependency flow based on 60% BKT proficiency gating</span>
+            <span class="lm-card-title">{active_course['name']} Progression Roadmap</span>
+            <span style="font-size: 0.725rem; color: #718096;">Sequential dependency flow based on 60% BKT proficiency gating</span>
         </div>
     """, unsafe_allow_html=True)
 
-    cols_rm = st.columns(len(RecommenderEngine.CONCEPT_ORDER))
+    cols_rm = st.columns(max(len(mastery_data), 1))
     mastery_map = {m["concept_code"]: m["mastery_prob"] for m in mastery_data}
 
-    for idx, c_code in enumerate(RecommenderEngine.CONCEPT_ORDER):
-        m_row = next((m for m in mastery_data if m["concept_code"] == c_code), None)
-        if not m_row:
-            continue
-
+    for idx, m_row in enumerate(mastery_data):
+        c_code = m_row["concept_code"]
         c_prob = m_row["mastery_prob"]
         prereq_eval = RecommenderEngine.evaluate_prerequisites(c_code, mastery_map)
 
@@ -464,7 +460,7 @@ def render_student_dashboard(user: dict):
             st.markdown(f"""
             <div style="background-color: {bg_c}; border: 1px solid {border_c}; border-radius: 8px; padding: 0.65rem 0.5rem; text-align: center; margin-bottom: 0.5rem;">
                 <div style="font-size: 0.65rem; color: #718096; font-weight: 600;">STEP {idx + 1}</div>
-                <div style="font-size: 0.8rem; font-weight: 700; color: #243B64; margin: 0.15rem 0;">{m_row['concept_name']}</div>
+                <div style="font-size: 0.8rem; font-weight: 700; color: #243B64; margin: 0.15rem 0; height: 36px; overflow: hidden;">{m_row['concept_name']}</div>
                 <div style="font-size: 0.725rem; color: #3976B9; font-weight: 600; margin-bottom: 0.35rem;">{c_prob:.0%} BKT</div>
                 {pill_status}
             </div>

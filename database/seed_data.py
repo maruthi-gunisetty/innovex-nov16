@@ -20,6 +20,10 @@ from database.db import (
     get_db_connection, init_db, create_user,
     record_assessment_attempt, update_student_mastery_record
 )
+from database.multi_subject_seed import (
+    SUBJECTS, COURSES, C_CONCEPTS, C_LESSONS, C_QUESTIONS,
+    MATH_CONCEPTS, MATH_LESSONS, MATH_QUESTIONS
+)
 
 CONCEPTS = [
     {
@@ -1469,60 +1473,125 @@ QUESTIONS = [
 
 
 def seed_database(force: bool = False) -> None:
-    """Initializes the database and seeds concepts, lessons, questions, and demo profiles."""
+    """Initializes the database and seeds subjects, courses, concepts, lessons, questions, and demo profiles."""
     init_db(force=force)
 
     with get_db_connection() as conn:
         cur = conn.cursor()
 
-        # Check if already seeded
-        cur.execute("SELECT COUNT(*) as cnt FROM concepts")
+        # Check if already seeded with courses
+        cur.execute("SELECT COUNT(*) as cnt FROM courses")
         if cur.fetchone()["cnt"] > 0 and not force:
             return
 
-        # 1. Seed Concepts
+        # Clear existing data if forced or upgrading
+        if force:
+            conn.execute("DELETE FROM lesson_progress")
+            conn.execute("DELETE FROM learning_recommendations")
+            conn.execute("DELETE FROM student_mastery")
+            conn.execute("DELETE FROM assessment_attempts")
+            conn.execute("DELETE FROM learning_content")
+            conn.execute("DELETE FROM questions")
+            conn.execute("DELETE FROM concepts")
+            conn.execute("DELETE FROM courses")
+            conn.execute("DELETE FROM subjects")
+            conn.execute("DELETE FROM users")
+            conn.commit()
+
+        # 1. Seed Subjects
+        subject_map = {}
+        for s in SUBJECTS:
+            cur.execute("""
+                INSERT OR IGNORE INTO subjects (code, name, category, description, icon, is_active, order_index)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (s["code"], s["name"], s["category"], s["description"], s["icon"], 1, s["order_index"]))
+            cur.execute("SELECT id FROM subjects WHERE code = ?", (s["code"],))
+            subject_map[s["code"]] = cur.fetchone()["id"]
+
+        # 2. Seed Courses
+        course_map = {}
+        for c in COURSES:
+            s_id = subject_map[c["subject_code"]]
+            cur.execute("""
+                INSERT OR IGNORE INTO courses (subject_id, code, name, description, difficulty_level, is_active, order_index)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (s_id, c["code"], c["name"], c["description"], c["difficulty_level"], 1, c["order_index"]))
+            cur.execute("SELECT id FROM courses WHERE code = ?", (c["code"],))
+            course_map[c["code"]] = cur.fetchone()["id"]
+
+        # 3. Seed Concepts (Python, C Programming, Mathematics)
         concept_id_map = {}
+
+        # 3A. Python Concepts
+        py_subj_id = subject_map["programming"]
+        py_course_id = course_map["python"]
         for c in CONCEPTS:
             cur.execute("""
-                INSERT INTO concepts (code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
-            concept_id_map[c["code"]] = cur.lastrowid
+                INSERT OR REPLACE INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (py_subj_id, py_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
+            cur.execute("SELECT id FROM concepts WHERE code = ?", (c["code"],))
+            concept_id_map[c["code"]] = cur.fetchone()["id"]
 
-        # 2. Seed Learning Content
-        for l in LESSONS:
-            cid = concept_id_map[l["concept_code"]]
+        # 3B. C Programming Concepts
+        c_subj_id = subject_map["programming"]
+        c_course_id = course_map["c_programming"]
+        for c in C_CONCEPTS:
             cur.execute("""
-                INSERT INTO learning_content (
-                    concept_id, title, summary, reading_time_min, introduction,
-                    learning_objectives_json, detailed_explanation,
-                    code_examples_json, common_mistakes_json, practice_exercises_json, order_index
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                cid, l["title"], l["summary"], l["reading_time_min"], l["introduction"],
-                json.dumps(l["learning_objectives"]), l["detailed_explanation"],
-                json.dumps(l["code_examples"]), json.dumps(l["common_mistakes"]),
-                json.dumps(l["practice_exercises"]), l["order_index"]
-            ))
+                INSERT OR REPLACE INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (c_subj_id, c_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
+            cur.execute("SELECT id FROM concepts WHERE code = ?", (c["code"],))
+            concept_id_map[c["code"]] = cur.fetchone()["id"]
 
-        # 3. Seed Questions
+        # 3C. Mathematics Concepts
+        math_subj_id = subject_map["mathematics"]
+        math_course_id = course_map["calculus_linear_algebra"]
+        for c in MATH_CONCEPTS:
+            cur.execute("""
+                INSERT OR REPLACE INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (math_subj_id, math_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
+            cur.execute("SELECT id FROM concepts WHERE code = ?", (c["code"],))
+            concept_id_map[c["code"]] = cur.fetchone()["id"]
+
+        # 4. Seed Learning Content (Python, C, Mathematics)
+        all_lessons = LESSONS + C_LESSONS + MATH_LESSONS
+        for l in all_lessons:
+            if l["concept_code"] in concept_id_map:
+                cid = concept_id_map[l["concept_code"]]
+                cur.execute("""
+                    INSERT OR REPLACE INTO learning_content (
+                        concept_id, title, summary, reading_time_min, introduction,
+                        learning_objectives_json, detailed_explanation,
+                        code_examples_json, common_mistakes_json, practice_exercises_json, order_index
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    cid, l["title"], l["summary"], l["reading_time_min"], l["introduction"],
+                    json.dumps(l["learning_objectives"]), l["detailed_explanation"],
+                    json.dumps(l["code_examples"]), json.dumps(l["common_mistakes"]),
+                    json.dumps(l["practice_exercises"]), l["order_index"]
+                ))
+
+        # 5. Seed Assessment Questions (Python, C, Mathematics)
+        all_questions = QUESTIONS + C_QUESTIONS + MATH_QUESTIONS
         question_id_map = {}
-        for q in QUESTIONS:
-            cid = concept_id_map[q["concept_code"]]
-            cur.execute("""
-                INSERT INTO questions (
-                    concept_id, difficulty, title, prompt, code_snippet, options_json, explanation
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (
-                cid, q["difficulty"], q["title"], q["prompt"], q["code_snippet"],
-                json.dumps(q["options"]), q["explanation"]
-            ))
-            question_id_map[q["title"]] = cur.lastrowid
+        for q in all_questions:
+            if q["concept_code"] in concept_id_map:
+                cid = concept_id_map[q["concept_code"]]
+                cur.execute("""
+                    INSERT INTO questions (
+                        concept_id, difficulty, title, prompt, code_snippet, options_json, explanation
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    cid, q["difficulty"], q["title"], q["prompt"], q.get("code_snippet"),
+                    json.dumps(q["options"]), q["explanation"]
+                ))
+                question_id_map[q["title"]] = cur.lastrowid
 
         conn.commit()
 
-    # 4. Seed Demo Users
-    # Student 1: Requested credentials (email: student@123, password: student123)
+    # 6. Seed Demo Users
     pwd_hash, salt = AuthService.hash_password("student123")
     student_id = create_user(
         username="student@123",
@@ -1536,7 +1605,6 @@ def seed_database(force: bool = False) -> None:
         daily_goal=5
     )
 
-    # Student alias: alex_rivera (also accepts student123)
     alex_id = create_user(
         username="alex_rivera",
         email="alex.rivera@example.edu",
@@ -1549,7 +1617,6 @@ def seed_database(force: bool = False) -> None:
         daily_goal=5
     )
 
-    # Student 2: Sophia Chen (advanced proficient student profile)
     sophia_id = create_user(
         username="sophia_chen",
         email="sophia.chen@example.edu",
@@ -1562,7 +1629,6 @@ def seed_database(force: bool = False) -> None:
         daily_goal=10
     )
 
-    # Teacher: Dr. Sarah Bennett
     teacher_pwd_hash, teacher_salt = AuthService.hash_password("learnsphere123")
     create_user(
         username="dr_bennett",
@@ -1574,46 +1640,77 @@ def seed_database(force: bool = False) -> None:
         is_demo=1
     )
 
-    # 5. Populate Simulated Learning Histories for Demo Accounts
+    # 7. Populate Simulated Learning Histories for Demo Accounts across Multi-Subject Tracks
     _seed_alex_history(student_id, concept_id_map, question_id_map)
     _seed_alex_history(alex_id, concept_id_map, question_id_map)
     _seed_sophia_history(sophia_id, concept_id_map, question_id_map)
 
 
 def _seed_alex_history(alex_id: int, concept_map: dict, q_map: dict) -> None:
-    """Alex Rivera: Good at Variables and Conditionals, struggles with Loops and Recursion."""
-    # VAR: Mastered
-    update_student_mastery_record(alex_id, concept_map["VAR"], 0.88, True)
-    # COND: Proficient
-    update_student_mastery_record(alex_id, concept_map["COND"], 0.72, True)
-    # LOOP: Developing (repeats OFF_BY_ONE_INDEX)
-    update_student_mastery_record(alex_id, concept_map["LOOP"], 0.38, False)
-    # LIST: Developing (repeats LIST_ALIASING_SHADOWING)
-    update_student_mastery_record(alex_id, concept_map["LIST"], 0.42, False)
-    # FUNC: Novice
-    update_student_mastery_record(alex_id, concept_map["FUNC"], 0.28, False)
-    # REC: Novice (repeats BASE_CASE_OMISSION)
-    update_student_mastery_record(alex_id, concept_map["REC"], 0.15, False)
+    """Alex Rivera: Multi-subject telemetry with realistic mastery profiles."""
+    # Python Track
+    if "VAR" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["VAR"], 0.88, True)
+    if "COND" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["COND"], 0.72, True)
+    if "LOOP" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["LOOP"], 0.38, False)
+    if "LIST" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["LIST"], 0.42, False)
+    if "FUNC" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["FUNC"], 0.28, False)
+    if "REC" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["REC"], 0.15, False)
 
-    # Historical attempts to visualize in analytics and misconception diagnostics
+    # C Programming Track
+    if "C_DATA_TYPES" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["C_DATA_TYPES"], 0.85, True)
+    if "C_CONTROL_FLOW" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["C_CONTROL_FLOW"], 0.75, True)
+    if "C_POINTERS" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["C_POINTERS"], 0.32, False)
+    if "C_ARRAYS_STRINGS" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["C_ARRAYS_STRINGS"], 0.40, False)
+    if "C_MEMORY_MGMT" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["C_MEMORY_MGMT"], 0.25, False)
+    if "C_STRUCTS" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["C_STRUCTS"], 0.20, False)
+
+    # Mathematics Track
+    if "MATH_LIMITS" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["MATH_LIMITS"], 0.82, True)
+    if "MATH_DERIVATIVES" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["MATH_DERIVATIVES"], 0.45, False)
+    if "MATH_INTEGRALS" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["MATH_INTEGRALS"], 0.25, False)
+    if "MATH_MATRICES" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["MATH_MATRICES"], 0.70, True)
+    if "MATH_VECTORS" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["MATH_VECTORS"], 0.40, False)
+    if "MATH_EIGEN" in concept_map:
+        update_student_mastery_record(alex_id, concept_map["MATH_EIGEN"], 0.18, False)
+
     now = datetime.now()
     attempts = [
-        # Concept VAR attempts (Successes)
-        (alex_id, q_map.get("Type Casting and String Concatenation", 1), concept_map["VAR"], 0, True, "beginner", 14.2, "NONE", 0.30, 0.65, now - timedelta(days=4)),
-        (alex_id, q_map.get("String Method In-Place Immutability", 2), concept_map["VAR"], 0, True, "intermediate", 22.1, "NONE", 0.65, 0.88, now - timedelta(days=4, hours=1)),
-        # Concept COND attempts
-        (alex_id, q_map.get("Compound Logical Condition with 'or'", 4), concept_map["COND"], 0, True, "beginner", 18.0, "NONE", 0.20, 0.55, now - timedelta(days=3)),
-        (alex_id, q_map.get("Truthiness of Empty Collections", 5), concept_map["COND"], 0, True, "intermediate", 31.5, "NONE", 0.55, 0.72, now - timedelta(days=3, hours=2)),
-        # Concept LOOP attempts (Fails with OFF_BY_ONE_INDEX)
-        (alex_id, q_map.get("Range Bounds and Iteration Count", 7), concept_map["LOOP"], 1, False, "beginner", 12.3, "OFF_BY_ONE_INDEX", 0.20, 0.12, now - timedelta(days=2)),
-        (alex_id, q_map.get("While Loop State Mutation and Bounds", 8), concept_map["LOOP"], 2, False, "intermediate", 26.4, "OFF_BY_ONE_INDEX", 0.12, 0.08, now - timedelta(days=2, hours=1)),
-        (alex_id, q_map.get("Loop else Clause Execution Invariant", 9), concept_map["LOOP"], 0, True, "advanced", 45.0, "NONE", 0.08, 0.38, now - timedelta(days=1)),
-        # Concept LIST attempts (Fails with LIST_ALIASING_SHADOWING)
-        (alex_id, q_map.get("List Slicing and Negative Indices", 10), concept_map["LIST"], 1, False, "beginner", 15.0, "OFF_BY_ONE_INDEX", 0.15, 0.09, now - timedelta(days=1, hours=3)),
-        (alex_id, q_map.get("List Assignment and Memory Aliasing", 11), concept_map["LIST"], 1, False, "intermediate", 19.5, "LIST_ALIASING_SHADOWING", 0.09, 0.06, now - timedelta(hours=14)),
-        (alex_id, q_map.get("List Multiplication and Shallow References", 12), concept_map["LIST"], 1, False, "advanced", 28.1, "LIST_ALIASING_SHADOWING", 0.06, 0.42, now - timedelta(hours=8)),
-        # Concept REC attempt (Fails with BASE_CASE_OMISSION)
-        (alex_id, q_map.get("Base Case Termination Condition", 16), concept_map["REC"], 1, False, "beginner", 11.2, "BASE_CASE_OMISSION", 0.10, 0.05, now - timedelta(hours=2))
+        # Python attempts
+        (alex_id, q_map.get("Type Casting and String Concatenation", 1), concept_map.get("VAR", 1), 0, True, "beginner", 14.2, "NONE", 0.30, 0.65, now - timedelta(days=4)),
+        (alex_id, q_map.get("String Method In-Place Immutability", 2), concept_map.get("VAR", 1), 0, True, "intermediate", 22.1, "NONE", 0.65, 0.88, now - timedelta(days=4, hours=1)),
+        (alex_id, q_map.get("Range Bounds and Iteration Count", 7), concept_map.get("LOOP", 3), 1, False, "beginner", 12.3, "OFF_BY_ONE_INDEX", 0.20, 0.12, now - timedelta(days=2)),
+        (alex_id, q_map.get("List Assignment and Memory Aliasing", 11), concept_map.get("LIST", 4), 1, False, "intermediate", 19.5, "LIST_ALIASING_SHADOWING", 0.09, 0.06, now - timedelta(hours=14)),
+        (alex_id, q_map.get("Base Case Termination Condition", 16), concept_map.get("REC", 6), 1, False, "beginner", 11.2, "BASE_CASE_OMISSION", 0.10, 0.05, now - timedelta(hours=2)),
+
+        # C Programming attempts
+        (alex_id, q_map.get("Integer Division Truncation in C", 1), concept_map.get("C_DATA_TYPES", 7), 0, True, "beginner", 16.0, "NONE", 0.40, 0.72, now - timedelta(days=3)),
+        (alex_id, q_map.get("Address-Of (&) and Dereference (*) Semantics", 1), concept_map.get("C_POINTERS", 9), 0, True, "beginner", 20.0, "NONE", 0.25, 0.55, now - timedelta(days=2)),
+        (alex_id, q_map.get("Uninitialized / Wild Pointer Dereference", 1), concept_map.get("C_POINTERS", 9), 1, False, "intermediate", 28.5, "C_WILD_POINTER_DEREF", 0.55, 0.32, now - timedelta(days=1)),
+        (alex_id, q_map.get("Missing Null-Terminator in C String Literals", 1), concept_map.get("C_ARRAYS_STRINGS", 10), 1, False, "beginner", 14.0, "C_STRING_NULL_TERMINATOR", 0.30, 0.18, now - timedelta(hours=18)),
+        (alex_id, q_map.get("Memory Leak Identification", 1), concept_map.get("C_MEMORY_MGMT", 11), 1, False, "intermediate", 35.0, "C_MEMORY_LEAK_NO_FREE", 0.20, 0.10, now - timedelta(hours=6)),
+
+        # Mathematics attempts
+        (alex_id, q_map.get("Evaluating Limits of Rational Functions (0/0)", 1), concept_map.get("MATH_LIMITS", 13), 0, True, "beginner", 24.0, "NONE", 0.45, 0.82, now - timedelta(days=3, hours=5)),
+        (alex_id, q_map.get("Power Rule vs Exponential Derivative", 1), concept_map.get("MATH_DERIVATIVES", 14), 1, False, "beginner", 18.5, "MATH_POWER_RULE_EXPONENT", 0.40, 0.22, now - timedelta(days=2, hours=3)),
+        (alex_id, q_map.get("Composite Function Chain Rule", 1), concept_map.get("MATH_DERIVATIVES", 14), 1, False, "intermediate", 31.0, "MATH_CHAIN_RULE_OMISSION", 0.22, 0.14, now - timedelta(days=1, hours=4)),
+        (alex_id, q_map.get("Matrix Multiplication Commutativity", 1), concept_map.get("MATH_MATRICES", 16), 0, True, "beginner", 15.0, "NONE", 0.35, 0.70, now - timedelta(hours=10))
     ]
 
     with get_db_connection() as conn:
@@ -1632,26 +1729,18 @@ def _seed_alex_history(alex_id: int, concept_map: dict, q_map: dict) -> None:
 
 
 def _seed_sophia_history(sophia_id: int, concept_map: dict, q_map: dict) -> None:
-    """Sophia Chen: High mastery across foundations, practicing recursion."""
-    update_student_mastery_record(sophia_id, concept_map["VAR"], 0.94, True)
-    update_student_mastery_record(sophia_id, concept_map["COND"], 0.91, True)
-    update_student_mastery_record(sophia_id, concept_map["LOOP"], 0.86, True)
-    update_student_mastery_record(sophia_id, concept_map["LIST"], 0.82, True)
-    update_student_mastery_record(sophia_id, concept_map["FUNC"], 0.78, True)
-    update_student_mastery_record(sophia_id, concept_map["REC"], 0.52, True)
+    """Sophia Chen: Advanced proficient learner across all curriculum tracks."""
+    for c_code, cid in concept_map.items():
+        update_student_mastery_record(sophia_id, cid, 0.88, True)
 
     now = datetime.now()
     attempts = [
-        (sophia_id, q_map.get("Type Casting and String Concatenation", 1), concept_map["VAR"], 0, True, "beginner", 8.4, "NONE", 0.40, 0.75, now - timedelta(days=5)),
-        (alex_id_placeholder := sophia_id, q_map.get("String Method In-Place Immutability", 2), concept_map["VAR"], 0, True, "intermediate", 12.1, "NONE", 0.75, 0.94, now - timedelta(days=5, hours=1)),
-        (sophia_id, q_map.get("Compound Logical Condition with 'or'", 4), concept_map["COND"], 0, True, "beginner", 10.0, "NONE", 0.35, 0.70, now - timedelta(days=4)),
-        (sophia_id, q_map.get("Short-Circuit Logical Operator Evaluation", 6), concept_map["COND"], 0, True, "advanced", 19.2, "NONE", 0.70, 0.91, now - timedelta(days=4, hours=2)),
-        (sophia_id, q_map.get("Range Bounds and Iteration Count", 7), concept_map["LOOP"], 0, True, "beginner", 9.1, "NONE", 0.30, 0.65, now - timedelta(days=3)),
-        (sophia_id, q_map.get("Loop else Clause Execution Invariant", 9), concept_map["LOOP"], 0, True, "advanced", 16.0, "NONE", 0.65, 0.86, now - timedelta(days=3, hours=1)),
-        (sophia_id, q_map.get("List Assignment and Memory Aliasing", 11), concept_map["LIST"], 0, True, "intermediate", 14.5, "NONE", 0.45, 0.82, now - timedelta(days=2)),
-        (sophia_id, q_map.get("Return Value vs Standard Output Printing", 13), concept_map["FUNC"], 0, True, "beginner", 11.0, "NONE", 0.30, 0.68, now - timedelta(days=1)),
-        (sophia_id, q_map.get("Default Parameter Evaluation Time", 15), concept_map["FUNC"], 0, True, "advanced", 24.3, "NONE", 0.68, 0.78, now - timedelta(days=1, hours=2)),
-        (sophia_id, q_map.get("Base Case Termination Condition", 16), concept_map["REC"], 0, True, "beginner", 13.5, "NONE", 0.20, 0.52, now - timedelta(hours=4))
+        (sophia_id, q_map.get("Type Casting and String Concatenation", 1), concept_map.get("VAR", 1), 0, True, "beginner", 8.4, "NONE", 0.40, 0.85, now - timedelta(days=5)),
+        (sophia_id, q_map.get("String Method In-Place Immutability", 2), concept_map.get("VAR", 1), 0, True, "intermediate", 12.1, "NONE", 0.85, 0.96, now - timedelta(days=5, hours=1)),
+        (sophia_id, q_map.get("Integer Division Truncation in C", 1), concept_map.get("C_DATA_TYPES", 7), 0, True, "beginner", 9.5, "NONE", 0.50, 0.88, now - timedelta(days=4)),
+        (sophia_id, q_map.get("Address-Of (&) and Dereference (*) Semantics", 1), concept_map.get("C_POINTERS", 9), 0, True, "beginner", 11.2, "NONE", 0.55, 0.90, now - timedelta(days=3)),
+        (sophia_id, q_map.get("Evaluating Limits of Rational Functions (0/0)", 1), concept_map.get("MATH_LIMITS", 13), 0, True, "beginner", 14.0, "NONE", 0.50, 0.92, now - timedelta(days=2)),
+        (sophia_id, q_map.get("Matrix Multiplication Commutativity", 1), concept_map.get("MATH_MATRICES", 16), 0, True, "beginner", 12.0, "NONE", 0.60, 0.94, now - timedelta(days=1))
     ]
 
     with get_db_connection() as conn:
@@ -1671,4 +1760,4 @@ def _seed_sophia_history(sophia_id: int, concept_map: dict, q_map: dict) -> None
 
 if __name__ == "__main__":
     seed_database(force=True)
-    print("Database successfully initialized and seeded.")
+    print("Database successfully initialized and seeded with multi-subject curriculum.")

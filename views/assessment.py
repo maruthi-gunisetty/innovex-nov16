@@ -17,11 +17,13 @@ from database.db import (
 from core.bkt import BayesianKnowledgeTracing
 from core.misconception import MisconceptionEngine
 from core.recommender import RecommenderEngine
+from core.course_manager import get_active_course, render_course_selector
 
 
 def render_assessment_page(user: dict):
     user_id = user["id"]
-    concepts = get_all_concepts()
+    active_course = get_active_course()
+    concepts = get_all_concepts(course_id=active_course["id"])
 
     st.markdown("""
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
@@ -33,8 +35,11 @@ def render_assessment_page(user: dict):
     """, unsafe_allow_html=True)
 
     # 1. Subject and Filter Controls
-    col_c, col_d = st.columns([2, 1])
-    concept_options = {"All Concepts": None}
+    col_t, col_c, col_d = st.columns([1.2, 1.4, 1.0])
+    with col_t:
+        render_course_selector(key="assess_track_selector", label="Select Track", on_change_rerun=True)
+
+    concept_options = {"All Concepts in Track": None}
     for c in concepts:
         concept_options[f"{c['code']} - {c['name']}"] = c["id"]
 
@@ -69,9 +74,9 @@ def render_assessment_page(user: dict):
     else:
         actual_diff = difficulty_mode.lower()
 
-    questions = get_questions_by_concept_and_difficulty(selected_concept_id, actual_diff)
+    questions = get_questions_by_concept_and_difficulty(selected_concept_id, actual_diff, course_id=active_course["id"])
     if not questions:
-        questions = get_questions_by_concept_and_difficulty(selected_concept_id, "all")
+        questions = get_questions_by_concept_and_difficulty(selected_concept_id, "all", course_id=active_course["id"])
 
     if not questions:
         st.warning("No questions found matching the selected filters. Please adjust your criteria.")
@@ -121,7 +126,9 @@ def render_assessment_page(user: dict):
         """, unsafe_allow_html=True)
 
         if current_q.get("code_snippet"):
-            st.code(current_q["code_snippet"], language="python")
+            c_code_tag = str(current_q.get("concept_code", "")).upper()
+            code_lang = "c" if c_code_tag.startswith("C_") else ("python" if c_code_tag.startswith("PY_") else "text")
+            st.code(current_q["code_snippet"], language=code_lang)
 
         # Answer Options Form
         options = current_q["options"]

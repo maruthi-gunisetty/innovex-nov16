@@ -21,10 +21,16 @@ class TestDatabaseOperations(unittest.TestCase):
 
     def test_concepts_loaded(self):
         concepts = get_all_concepts()
-        self.assertEqual(len(concepts), 6)
+        self.assertGreaterEqual(len(concepts), 18)
         codes = [c["code"] for c in concepts]
         self.assertIn("VAR", codes)
         self.assertIn("REC", codes)
+        self.assertIn("C_POINTERS", codes)
+        self.assertIn("MATH_LIMITS", codes)
+
+        # Verify course-specific filtering
+        python_concepts = get_all_concepts(course_id=1)
+        self.assertEqual(len(python_concepts), 6)
 
     def test_questions_loaded(self):
         questions = get_questions_by_concept_and_difficulty()

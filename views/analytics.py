@@ -14,25 +14,40 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from database.db import get_student_mastery, get_user_attempts
+from core.course_manager import get_active_course, render_course_selector
 
 
 def render_analytics_page(user: dict):
     user_id = user["id"]
-    mastery_data = get_student_mastery(user_id)
-    attempts = get_user_attempts(user_id, limit=100)
+    active_course = get_active_course()
+    course_id = active_course["id"]
 
-    st.markdown("""
-    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
-        <div>
-            <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">Learning Analytics & Performance Intelligence</h2>
-            <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Empirical telemetry tracing BKT scores, accuracy distribution, and psychometric latency.</div>
+    mastery_data = get_student_mastery(user_id, course_id=course_id)
+    attempts = get_user_attempts(user_id, limit=100, course_id=course_id)
+
+    col_h_title, col_h_track = st.columns([2.0, 1.0])
+    with col_h_title:
+        st.markdown(f"""
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
+            <div>
+                <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">{active_course['name']} Analytics</h2>
+                <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Empirical telemetry tracing BKT scores, accuracy distribution, and psychometric latency.</div>
+            </div>
         </div>
-        <span class="lm-pill pill-completed">Telemetry Sync</span>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+    with col_h_track:
+        render_course_selector(key="analytics_track_selector", label="Select Track", on_change_rerun=True)
 
     if not attempts:
-        st.info("Complete assessment exercises to populate detailed analytical visualizations.")
+        st.markdown(f"""
+        <div class="lm-card" style="padding: 1.5rem; text-align: center; margin: 1rem 0;">
+            <div style="font-weight: 700; font-size: 1rem; color: #243B64; margin-bottom: 0.5rem;">No Assessment Telemetry Yet for {active_course['name']}</div>
+            <div style="font-size: 0.8rem; color: #718096; margin-bottom: 1rem;">Complete assessment questions in this track to generate radar charts, knowledge tracing trends, and ML cognitive risk scores.</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button(f"Launch {active_course['name']} Assessment", type="primary", key="btn_start_analytics_assess"):
+            st.session_state["current_page"] = "assessment"
+            st.rerun()
         return
 
     df_att = pd.DataFrame(attempts)

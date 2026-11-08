@@ -15,12 +15,29 @@ class RecommenderEngine:
     """
 
     PREREQUISITE_GRAPH: Dict[str, List[str]] = {
+        # Python Fundamentals
         "VAR": [],
         "COND": ["VAR"],
         "LOOP": ["VAR", "COND"],
         "LIST": ["VAR", "LOOP"],
         "FUNC": ["VAR", "COND", "LOOP"],
-        "REC": ["FUNC", "COND"]
+        "REC": ["FUNC", "COND"],
+
+        # C Systems Programming
+        "C_DATA_TYPES": [],
+        "C_CONTROL_FLOW": ["C_DATA_TYPES"],
+        "C_POINTERS": ["C_DATA_TYPES"],
+        "C_ARRAYS_STRINGS": ["C_DATA_TYPES", "C_POINTERS"],
+        "C_MEMORY_MGMT": ["C_POINTERS"],
+        "C_STRUCTS": ["C_DATA_TYPES", "C_POINTERS"],
+
+        # Mathematics (Calculus & Linear Algebra)
+        "MATH_LIMITS": [],
+        "MATH_DERIVATIVES": ["MATH_LIMITS"],
+        "MATH_INTEGRALS": ["MATH_DERIVATIVES"],
+        "MATH_MATRICES": [],
+        "MATH_VECTORS": [],
+        "MATH_EIGEN": ["MATH_MATRICES", "MATH_VECTORS"]
     }
 
     CONCEPT_ORDER: List[str] = ["VAR", "COND", "LOOP", "LIST", "FUNC", "REC"]
@@ -42,13 +59,14 @@ class RecommenderEngine:
         cls,
         concept_code: str,
         student_mastery_map: Dict[str, float],
-        mastery_threshold: float = 0.60
+        mastery_threshold: float = 0.60,
+        custom_prereqs: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Determines whether the student has met the prerequisite mastery threshold
         for a target concept.
         """
-        prereqs = cls.PREREQUISITE_GRAPH.get(concept_code, [])
+        prereqs = custom_prereqs if custom_prereqs is not None else cls.PREREQUISITE_GRAPH.get(concept_code, [])
         unmet = []
 
         for p_code in prereqs:
@@ -75,16 +93,14 @@ class RecommenderEngine:
         lesson_progress: Dict[int, bool]
     ) -> List[Dict[str, Any]]:
         """
-        Generates actionable, prioritized learning recommendations.
-        Categories:
-        1. PREREQUISITE_GAP: Weak foundation blocking downstream topics.
-        2. MISCONCEPTION_REVISION: Specific cognitive bugs requiring targeted lesson review.
-        3. PRACTICE_DRILL: Moderate mastery requiring consolidation.
-        4. NEXT_ADVANCEMENT: High mastery ready to unlock the next topic.
+        Generates actionable, prioritized learning recommendations dynamically
+        across any supported subject and concept sequence.
         """
         mastery_map = {row["concept_code"]: row["mastery_prob"] for row in mastery_data}
         concept_id_map = {row["concept_code"]: row["concept_id"] for row in mastery_data}
         concept_name_map = {row["concept_code"]: row["concept_name"] for row in mastery_data}
+        prereqs_map = {row["concept_code"]: row.get("prerequisites", cls.PREREQUISITE_GRAPH.get(row["concept_code"], [])) for row in mastery_data}
+        active_concept_order = [row["concept_code"] for row in mastery_data] or cls.CONCEPT_ORDER
 
         recommendations: List[Dict[str, Any]] = []
 
@@ -93,13 +109,13 @@ class RecommenderEngine:
         misconception_concepts: Dict[str, str] = {}
         for att in recent_attempts[:15]:
             code = att.get("misconception_code")
-            if code and not att.get("is_correct"):
+            if code and not att.get("is_correct") and code != "NONE":
                 misconception_counts[code] = misconception_counts.get(code, 0) + 1
-                misconception_concepts[code] = att.get("concept_code", "VAR")
+                misconception_concepts[code] = att.get("concept_code", active_concept_order[0] if active_concept_order else "VAR")
 
         for m_code, count in misconception_counts.items():
             if count >= 2:
-                c_code = misconception_concepts.get(m_code, "VAR")
+                c_code = misconception_concepts.get(m_code, active_concept_order[0] if active_concept_order else "VAR")
                 c_name = concept_name_map.get(c_code, c_code)
                 recommendations.append({
                     "concept_id": concept_id_map.get(c_code, 1),
@@ -114,11 +130,11 @@ class RecommenderEngine:
 
         # 2. Check learning roadmap progression
         first_unlocked_next = None
-        for c_code in cls.CONCEPT_ORDER:
+        for c_code in active_concept_order:
             c_mastery = mastery_map.get(c_code, 0.20)
             c_name = concept_name_map.get(c_code, c_code)
             c_id = concept_id_map.get(c_code, 1)
-            prereq_eval = cls.evaluate_prerequisites(c_code, mastery_map)
+            prereq_eval = cls.evaluate_prerequisites(c_code, mastery_map, custom_prereqs=prereqs_map.get(c_code))
 
             if not prereq_eval["eligible"]:
                 # Blocked by prerequisites
@@ -149,12 +165,9 @@ class RecommenderEngine:
                         "recommended_action": "assessment"
                     })
                     break
-                elif c_mastery >= 0.80 and not first_unlocked_next:
-                    # Look ahead to see if next concept is ready
-                    pass
 
         # 3. If student has completed foundational steps, recommend next topic
-        for c_code in cls.CONCEPT_ORDER:
+        for c_code in active_concept_order:
             c_mastery = mastery_map.get(c_code, 0.20)
             if c_mastery < 0.80:
                 c_name = concept_name_map.get(c_code, c_code)

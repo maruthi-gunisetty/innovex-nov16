@@ -1,5 +1,6 @@
 -- LearnSphere AI Database Schema
--- Robust schema for student performance, BKT mastery, and misconception tracking
+-- Scalable multi-subject schema for student performance, BKT mastery, and misconception tracking
+-- Supports Programming, Mathematics, Engineering, Science, and Computer Science
 
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,8 +16,33 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS subjects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('Programming', 'Mathematics', 'Engineering', 'Science', 'Computer Science')),
+    description TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    order_index INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS courses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject_id INTEGER NOT NULL,
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    difficulty_level TEXT DEFAULT 'All Levels',
+    is_active INTEGER DEFAULT 1,
+    order_index INTEGER NOT NULL,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS concepts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject_id INTEGER,
+    course_id INTEGER,
     code TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -25,7 +51,9 @@ CREATE TABLE IF NOT EXISTS concepts (
     p_transit REAL DEFAULT 0.15,
     p_guess REAL DEFAULT 0.20,
     p_slip REAL DEFAULT 0.10,
-    prerequisites TEXT DEFAULT '[]' -- JSON array of concept codes
+    prerequisites TEXT DEFAULT '[]', -- JSON array of concept codes
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS questions (
@@ -113,4 +141,3 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (content_id) REFERENCES learning_content(id) ON DELETE CASCADE
 );
-

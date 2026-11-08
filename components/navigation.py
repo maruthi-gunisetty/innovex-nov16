@@ -10,6 +10,7 @@ Zero emojis, strict professional typography, and seamless session management.
 import streamlit as st
 from database.db import get_user_by_username, get_user_by_email
 from core.auth_service import AuthService
+from core.course_manager import get_active_course, render_course_selector
 from components.styles import get_icon
 
 
@@ -40,13 +41,22 @@ def render_navigation():
 
     with col_user_portal:
         if user:
-            col_notif, col_u_profile, col_signout = st.columns([0.3, 1.7, 0.8])
+            col_notif, col_track, col_u_profile, col_signout = st.columns([0.25, 0.95, 1.35, 0.7])
             with col_notif:
                 st.markdown("""
                 <div style="display: flex; align-items: center; justify-content: center; padding-top: 0.45rem;">
                     <div style="width: 30px; height: 30px; border-radius: 50%; background-color: #F5F6F8; display: flex; align-items: center; justify-content: center; color: #718096; border: 1px solid #E4E8ED;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                     </div>
+                </div>
+                """, unsafe_allow_html=True)
+            with col_track:
+                active_c = get_active_course()
+                st.markdown(f"""
+                <div style="display: flex; align-items: center; height: 100%; padding-top: 0.35rem;">
+                    <span class="lm-pill pill-ahead" style="font-size: 0.7rem; padding: 3px 8px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{active_c['name']} ({active_c.get('subject_name', '')})">
+                        {active_c['subject_name']}: {active_c['name']}
+                    </span>
                 </div>
                 """, unsafe_allow_html=True)
             with col_u_profile:
@@ -151,6 +161,21 @@ def render_navigation():
         """, unsafe_allow_html=True)
 
         if user:
+            active_c = get_active_course()
+            st.markdown(f"""
+            <div style="background-color: #F8FAFC; border: 1px solid #E4E8ED; border-radius: 8px; padding: 0.55rem 0.65rem; margin-bottom: 0.65rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+                    <span style="font-size: 0.65rem; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.04em;">Current Track</span>
+                    <span class="lm-pill pill-ahead" style="font-size: 0.625rem; padding: 1px 6px;">{active_c.get('subject_name', 'Programming')}</span>
+                </div>
+                <div style="font-size: 0.775rem; font-weight: 700; color: #243B64; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {active_c.get('name', 'Python Fundamentals')}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            with st.expander("Switch Track", expanded=False):
+                render_course_selector(key="sidebar_track_selector", label="Select Track", on_change_rerun=True)
+
             # Navigation Items requested:
             # 1. Dashboard, 2. Assessments, 3. AI Intelligence, 4. Learning Path, 5. Learning Library,
             # 6. Student Progress, 7. Manage Students, 8. Analytics, 9. My Profile, 10. Settings
