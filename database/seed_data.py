@@ -1522,8 +1522,21 @@ def seed_database(force: bool = False) -> None:
         conn.commit()
 
     # 4. Seed Demo Users
-    # Student 1: Alex Rivera (struggling student profile)
-    pwd_hash, salt = AuthService.hash_password("learnsphere123")
+    # Student 1: Requested credentials (email: student@123, password: student123)
+    pwd_hash, salt = AuthService.hash_password("student123")
+    student_id = create_user(
+        username="student@123",
+        email="student@123",
+        password_hash=pwd_hash,
+        salt=salt,
+        full_name="Alex Rivera",
+        role="student",
+        is_demo=1,
+        target_difficulty="adaptive",
+        daily_goal=5
+    )
+
+    # Student alias: alex_rivera (also accepts student123)
     alex_id = create_user(
         username="alex_rivera",
         email="alex.rivera@example.edu",
@@ -1550,17 +1563,19 @@ def seed_database(force: bool = False) -> None:
     )
 
     # Teacher: Dr. Sarah Bennett
+    teacher_pwd_hash, teacher_salt = AuthService.hash_password("learnsphere123")
     create_user(
         username="dr_bennett",
         email="s.bennett@university.edu",
-        password_hash=pwd_hash,
-        salt=salt,
+        password_hash=teacher_pwd_hash,
+        salt=teacher_salt,
         full_name="Dr. Sarah Bennett",
         role="teacher",
         is_demo=1
     )
 
     # 5. Populate Simulated Learning Histories for Demo Accounts
+    _seed_alex_history(student_id, concept_id_map, question_id_map)
     _seed_alex_history(alex_id, concept_id_map, question_id_map)
     _seed_sophia_history(sophia_id, concept_id_map, question_id_map)
 

@@ -61,24 +61,23 @@ def render_navigation():
                         <div style="font-size: 0.75rem; color: #64748b;">Use these fake accounts to evaluate the platform:</div>
                     </div>
                     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.65rem; margin-bottom: 0.75rem; font-size: 0.8rem; line-height: 1.5;">
-                        <div style="margin-bottom: 0.35rem;">
-                            <strong>Student 1:</strong> <code>alex_rivera</code> &bull; Password: <code>learnsphere123</code><br>
-                            <span style="color: #64748b; font-size: 0.75rem;">Active cognitive bugs in Loops & Recursion</span>
+                        <div style="margin-bottom: 0.4rem; padding-bottom: 0.35rem; border-bottom: 1px solid #f1f5f9;">
+                            <strong>Student Credentials:</strong><br>
+                            Email / User: <code>student@123</code><br>
+                            Password: <code>student123</code>
                         </div>
                         <div style="margin-bottom: 0.35rem;">
-                            <strong>Student 2:</strong> <code>sophia_chen</code> &bull; Password: <code>learnsphere123</code><br>
-                            <span style="color: #64748b; font-size: 0.75rem;">Advanced mastery profile</span>
+                            <strong>Advanced Student:</strong> <code>sophia_chen</code> &bull; Password: <code>student123</code>
                         </div>
                         <div>
-                            <strong>Faculty:</strong> <code>dr_bennett</code> &bull; Password: <code>learnsphere123</code><br>
-                            <span style="color: #64748b; font-size: 0.75rem;">Teacher cohort analytics portal</span>
+                            <strong>Faculty:</strong> <code>dr_bennett</code> &bull; Password: <code>learnsphere123</code>
                         </div>
                     </div>
                     <div style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.35rem; color: #0f172a;">Instant One-Click Access:</div>
                     """, unsafe_allow_html=True)
 
-                    if st.button("Quick Login as Alex Rivera", key="pop_btn_alex", use_container_width=True):
-                        u = get_user_by_username("alex_rivera")
+                    if st.button("Quick Login as Student (student@123)", key="pop_btn_alex", use_container_width=True, type="primary"):
+                        u = get_user_by_email("student@123") or get_user_by_username("student@123")
                         if u:
                             st.session_state["user"] = u
                             st.session_state["current_page"] = "student_dashboard"
@@ -180,14 +179,14 @@ def render_navigation():
             # Unauthenticated Sidebar: Clean Info and Fake Credentials (NO 'Platform Overview')
             st.markdown("""
             <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
-                <div style="font-weight: 600; font-size: 0.85rem; color: #0f172a; margin-bottom: 0.35rem;">Login Portal Credentials</div>
+                <div style="font-weight: 600; font-size: 0.85rem; color: #0f172a; margin-bottom: 0.35rem;">Student Login Credentials</div>
                 <div style="font-size: 0.75rem; color: #64748b; line-height: 1.5; margin-bottom: 0.75rem;">
-                    Sign in using the portal in the top right corner or with these fake demo accounts:
+                    Sign in using the portal in the right side top corner:
                 </div>
                 <div style="font-size: 0.75rem; color: #334155; line-height: 1.6;">
-                    &bull; <strong>Student:</strong> <code>alex_rivera</code><br>
-                    &bull; <strong>Teacher:</strong> <code>dr_bennett</code><br>
-                    &bull; <strong>Password:</strong> <code>learnsphere123</code>
+                    &bull; <strong>Email:</strong> <code>student@123</code><br>
+                    &bull; <strong>Password:</strong> <code>student123</code><br>
+                    &bull; <strong>Teacher:</strong> <code>dr_bennett</code> (<code>learnsphere123</code>)
                 </div>
             </div>
             """, unsafe_allow_html=True)

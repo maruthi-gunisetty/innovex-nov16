@@ -77,6 +77,17 @@ def render_analytics_page(user: dict):
         st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
+    # 5. Export Telemetry Dataset
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+    csv_bytes = df_att.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="Export Learning Telemetry to CSV",
+        data=csv_bytes,
+        file_name=f"learnsphere_telemetry_{user.get('username', 'student')}.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
+
     with col_chart2:
         st.markdown("""
         <div class="ls-card">
@@ -103,6 +114,17 @@ def render_analytics_page(user: dict):
         )
         st.plotly_chart(fig_pie, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
+    # 5. Export Telemetry Dataset
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+    csv_bytes = df_att.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="Export Learning Telemetry to CSV",
+        data=csv_bytes,
+        file_name=f"learnsphere_telemetry_{user.get('username', 'student')}.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
 
     # 2. Mastery Evolution Over Time
     st.markdown("""
@@ -137,6 +159,17 @@ def render_analytics_page(user: dict):
     )
     st.plotly_chart(fig_trend, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
+
+    # 5. Export Telemetry Dataset
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+    csv_bytes = df_att.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="Export Learning Telemetry to CSV",
+        data=csv_bytes,
+        file_name=f"learnsphere_telemetry_{user.get('username', 'student')}.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
 
     # 3. Difficulty Tier and Response Latency Breakdown
     col_d1, col_d2 = st.columns(2)
@@ -173,6 +206,17 @@ def render_analytics_page(user: dict):
         )
         st.plotly_chart(fig_diff, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
+    # 5. Export Telemetry Dataset
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+    csv_bytes = df_att.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="Export Learning Telemetry to CSV",
+        data=csv_bytes,
+        file_name=f"learnsphere_telemetry_{user.get('username', 'student')}.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
 
     with col_d2:
         st.markdown("""
@@ -277,4 +321,15 @@ def render_analytics_page(user: dict):
         """, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
+
+    # 5. Export Telemetry Dataset
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+    csv_bytes = df_att.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="Export Learning Telemetry to CSV",
+        data=csv_bytes,
+        file_name=f"learnsphere_telemetry_{user.get('username', 'student')}.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
 

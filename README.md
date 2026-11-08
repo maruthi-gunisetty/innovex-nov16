@@ -87,15 +87,15 @@ The persistence layer uses SQLite with write-ahead logging (WAL), foreign key co
 
 LearnSphere AI includes built-in demonstration accounts pre-seeded with distinct cognitive histories:
 
-### Student Persona 1: Alex Rivera
-- **Username:** `alex_rivera`
-- **Password:** `learnsphere123`
+### Student Persona 1: Primary Requested Account
+- **Email / Username:** `student@123`
+- **Password:** `student123`
 - **Profile:** Demonstrates mastered foundational topics (Variables: 88%, Conditionals: 72%), but exhibits repeating cognitive misconceptions in Loops (Off-by-One indexing errors) and Recursion (Base case omission).
 - **Use Case:** Showcases how the Misconception Diagnostics and Recommendation engines flag specific mental errors and recommend prerequisite remediation.
 
 ### Student Persona 2: Sophia Chen
 - **Username:** `sophia_chen`
-- **Password:** `learnsphere123`
+- **Password:** `student123`
 - **Profile:** Advanced proficient student with high mastery across core modules (Variables: 94%, Conditionals: 91%, Loops: 86%, Lists: 82%, Functions: 78%), currently practicing advanced Recursion.
 - **Use Case:** Showcases adaptive question difficulty routing to advanced questions and curriculum milestone completion.
 

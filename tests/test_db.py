@@ -46,6 +46,11 @@ class TestDatabaseOperations(unittest.TestCase):
         self.assertFalse(AuthService.verify_password("WrongPassword", salt, p_hash))
 
     def test_demo_users_exist(self):
+        stu = get_user_by_username("student@123")
+        self.assertIsNotNone(stu)
+        self.assertEqual(stu["role"], "student")
+        self.assertTrue(AuthService.verify_password("student123", stu["salt"], stu["password_hash"]))
+
         alex = get_user_by_username("alex_rivera")
         self.assertIsNotNone(alex)
         self.assertEqual(alex["role"], "student")

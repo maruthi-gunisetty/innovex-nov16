@@ -53,14 +53,15 @@ def render_landing_page():
             </div>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
-            <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem;">
-                <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a;">Student Profile (Alex Rivera)</div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Username: <code>alex_rivera</code> &bull; Pass: <code>learnsphere123</code></div>
+            <div style="background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 1rem;">
+                <div style="font-weight: 600; font-size: 0.95rem; color: #1e40af;">Student Account (Requested)</div>
+                <div style="font-size: 0.85rem; color: #0f172a; margin: 0.25rem 0;">Email / User: <code>student@123</code></div>
+                <div style="font-size: 0.85rem; color: #0f172a; margin-bottom: 0.5rem;">Password: <code>student123</code></div>
                 <div style="font-size: 0.75rem; color: #475569;">Active cognitive misconceptions in Loops and Recursion.</div>
             </div>
             <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem;">
                 <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a;">Advanced Student (Sophia Chen)</div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Username: <code>sophia_chen</code> &bull; Pass: <code>learnsphere123</code></div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Username: <code>sophia_chen</code> &bull; Pass: <code>student123</code></div>
                 <div style="font-size: 0.75rem; color: #475569;">High curriculum mastery, advancing into algorithmic synthesis.</div>
             </div>
             <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem;">

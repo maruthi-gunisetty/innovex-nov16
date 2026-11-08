@@ -62,8 +62,9 @@ def _render_student_login():
     """, unsafe_allow_html=True)
 
     with st.form("student_login_form"):
-        username = st.text_input("Username or Email", placeholder="e.g. alex_rivera", key="stu_login_user")
+        username = st.text_input("Username or Email", placeholder="e.g. student@123", key="stu_login_user")
         password = st.text_input("Password", type="password", key="stu_login_pass")
+        st.caption("Demonstration Student Credentials: Email: `student@123` &bull; Password: `student123`")
         submitted = st.form_submit_button("Sign In as Student", type="primary", use_container_width=True)
 
         if submitted:
@@ -190,9 +191,9 @@ def _render_demo_switcher():
 
     with col1:
         st.markdown("""
-        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; height: 100%;">
-            <div style="font-weight: 600; color: #0f172a; margin-bottom: 0.25rem;">Alex Rivera</div>
-            <div style="color: #64748b; font-size: 0.75rem; margin-bottom: 0.75rem;">Student Profile 1</div>
+        <div style="background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 1.25rem; height: 100%;">
+            <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem;">Student Demo (student@123)</div>
+            <div style="color: #64748b; font-size: 0.75rem; margin-bottom: 0.5rem;">User/Email: <code>student@123</code> &bull; Pass: <code>student123</code></div>
             <div style="font-size: 0.825rem; color: #475569; line-height: 1.5; margin-bottom: 1rem;">
                 Shows mastered Variables and Conditionals, but possesses repeating cognitive misconceptions in Loops (Off-by-One) and Recursion.
             </div>
@@ -201,8 +202,8 @@ def _render_demo_switcher():
             </div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Launch Alex Rivera Profile", key="launch_alex", use_container_width=True, type="primary"):
-            user = get_user_by_username("alex_rivera")
+        if st.button("Launch Student Profile (student@123)", key="launch_alex", use_container_width=True, type="primary"):
+            user = get_user_by_email("student@123") or get_user_by_username("student@123")
             if user:
                 st.session_state["user"] = user
                 st.session_state["current_page"] = "student_dashboard"

@@ -189,3 +189,16 @@ def render_teacher_dashboard(user: dict):
 
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # 5. Cohort Telemetry Export
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+    if cm_list:
+        df_cohort = pd.DataFrame(cm_list)
+        csv_cohort_bytes = df_cohort.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="Export Cohort Concept Mastery Dataset to CSV",
+            data=csv_cohort_bytes,
+            file_name="learnsphere_cohort_mastery.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+
