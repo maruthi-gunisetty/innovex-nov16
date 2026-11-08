@@ -135,7 +135,7 @@ LIGHT_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 84"
   <g transform="translate(94, 0)">
     <!-- Brand Name SARVAVIDYA -->
     <text x="0" y="47" 
-          font-family="'Inter', 'Cinzel', -apple-system, sans-serif" 
+          font-family="'Roboto', -apple-system, sans-serif" 
           font-size="34" 
           font-weight="800" 
           letter-spacing="0.08em" 
@@ -145,7 +145,7 @@ LIGHT_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 84"
 
     <!-- Tagline -->
     <text x="1" y="68" 
-          font-family="'Inter', -apple-system, sans-serif" 
+          font-family="'Roboto', -apple-system, sans-serif" 
           font-size="11.5" 
           font-weight="600" 
           letter-spacing="0.04em" 
@@ -195,7 +195,7 @@ DARK_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 84" 
   <g transform="translate(94, 0)">
     <!-- Brand Name SARVAVIDYA -->
     <text x="0" y="47" 
-          font-family="'Inter', 'Cinzel', -apple-system, sans-serif" 
+          font-family="'Roboto', -apple-system, sans-serif" 
           font-size="34" 
           font-weight="800" 
           letter-spacing="0.08em" 
@@ -205,7 +205,7 @@ DARK_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 84" 
 
     <!-- Tagline -->
     <text x="1" y="68" 
-          font-family="'Inter', -apple-system, sans-serif" 
+          font-family="'Roboto', -apple-system, sans-serif" 
           font-size="11.5" 
           font-weight="600" 
           letter-spacing="0.04em" 

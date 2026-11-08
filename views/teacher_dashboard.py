@@ -378,7 +378,7 @@ def render_teacher_dashboard(user: dict):
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=cohort_pct,
-                number={'suffix': "%", 'font': {'size': 26, 'color': '#243B64', 'family': 'Inter'}},
+                number={'suffix': "%", 'font': {'size': 26, 'color': '#243B64', 'family': 'Roboto, sans-serif'}},
                 gauge={
                     'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': '#E4E8ED', 'nticks': 5},
                     'bar': {'color': '#3976B9', 'thickness': 0.28},

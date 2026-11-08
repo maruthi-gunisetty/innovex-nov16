@@ -86,7 +86,7 @@ def render_sidebar_brand():
             {SYMBOL_SVG}
         </div>
         <div style="line-height: 1.18; overflow: hidden;">
-            <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 800; font-size: 1.15rem; color: #172943; letter-spacing: -0.02em;">
+            <div style="font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 800; font-size: 1.15rem; color: #172943; letter-spacing: -0.02em;">
                 Sarva <span style="color: #D6B56D;">Vidya</span>
             </div>
             <div style="font-size: 0.625rem; color: #718096; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.02em; margin-top: 1px;">
@@ -105,7 +105,7 @@ def render_topbar_brand():
             {SYMBOL_SVG}
         </div>
         <div style="line-height: 1.1;">
-            <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 800; font-size: 1.05rem; color: #172943; letter-spacing: -0.01em;">
+            <div style="font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 800; font-size: 1.05rem; color: #172943; letter-spacing: -0.01em;">
                 Sarva <span style="color: #D6B56D;">Vidya</span>
             </div>
         </div>
@@ -123,7 +123,7 @@ def render_full_hero_brand(center: bool = True):
                 {SYMBOL_SVG}
             </div>
             <div style="text-align: left; line-height: 1.05;">
-                <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 2.2rem; font-weight: 800; color: #172943; letter-spacing: -0.02em;">
+                <div style="font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 2.2rem; font-weight: 800; color: #172943; letter-spacing: -0.02em;">
                     Sarva <span style="color: #D6B56D;">Vidya</span>
                 </div>
             </div>

@@ -95,7 +95,7 @@ def render_analytics_page(user: dict):
             margin=dict(l=25, r=25, t=15, b=25),
             height=250,
             paper_bgcolor="#FFFFFF",
-            font=dict(family="Inter, sans-serif", size=11, color="#263445")
+            font=dict(family="Roboto, sans-serif", size=11, color="#263445")
         )
         st.plotly_chart(fig_radar, use_container_width=True, config={"displayModeBar": False})
         st.markdown("</div>", unsafe_allow_html=True)
@@ -124,7 +124,7 @@ def render_analytics_page(user: dict):
             paper_bgcolor="#FFFFFF",
             showlegend=True,
             legend=dict(orientation="h", y=-0.15, x=0.1, font=dict(size=10)),
-            font=dict(family="Inter, sans-serif", size=11, color="#263445")
+            font=dict(family="Roboto, sans-serif", size=11, color="#263445")
         )
         st.plotly_chart(fig_pie, use_container_width=True, config={"displayModeBar": False})
         st.markdown("</div>", unsafe_allow_html=True)
@@ -155,7 +155,7 @@ def render_analytics_page(user: dict):
         xaxis=dict(showgrid=True, gridcolor="#F5F6F8"),
         yaxis=dict(showgrid=True, gridcolor="#F5F6F8", range=[0.0, 1.0]),
         legend=dict(orientation="h", y=-0.25, font=dict(size=10)),
-        font=dict(family="Inter, sans-serif", size=11, color="#263445")
+        font=dict(family="Roboto, sans-serif", size=11, color="#263445")
     )
     st.plotly_chart(fig_trend, use_container_width=True, config={"displayModeBar": False})
     st.markdown("</div>", unsafe_allow_html=True)
@@ -200,7 +200,7 @@ def render_analytics_page(user: dict):
             paper_bgcolor="#FFFFFF",
             plot_bgcolor="#FFFFFF",
             coloraxis_showscale=False,
-            font=dict(family="Inter, sans-serif", size=10, color="#263445")
+            font=dict(family="Roboto, sans-serif", size=10, color="#263445")
         )
         st.plotly_chart(fig_coef, use_container_width=True, config={"displayModeBar": False})
 

@@ -36,7 +36,7 @@
   <g transform="translate(94, 0)">
     <!-- Brand Name SARVAVIDYA -->
     <text x="0" y="47" 
-          font-family="'Inter', 'Cinzel', -apple-system, sans-serif" 
+          font-family="'Roboto', -apple-system, sans-serif" 
           font-size="34" 
           font-weight="800" 
           letter-spacing="0.08em" 
@@ -46,7 +46,7 @@
 
     <!-- Tagline -->
     <text x="1" y="68" 
-          font-family="'Inter', -apple-system, sans-serif" 
+          font-family="'Roboto', -apple-system, sans-serif" 
           font-size="11.5" 
           font-weight="600" 
           letter-spacing="0.04em" 

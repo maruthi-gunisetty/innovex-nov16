@@ -33,17 +33,17 @@ ICONS = {
 
 CUSTOM_CSS = """
 <style>
-/* Modern Typography - Inter */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Modern Typography - Roboto */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400;1,700&display=swap');
 
-html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
     color: #172943;
     background-color: #F5F6F8;
 }
 
 * {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
 /* Completely eliminate Streamlit default header, decoration, and rerun toolbar overlay */

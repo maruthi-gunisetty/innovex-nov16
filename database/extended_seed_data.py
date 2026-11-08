@@ -1640,3 +1640,4 @@ def seed_extended_curriculum(force: bool = False):
 if __name__ == "__main__":
     seed_extended_curriculum(force=True)
     print("Extended subject curriculum seeding completed.")
+
