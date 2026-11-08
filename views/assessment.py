@@ -36,77 +36,62 @@ def render_assessment_page(user: dict):
 
     # 1. Subject and Filter Controls
     curr_course_id = active_course["id"]
-    if st.session_state.get("assess_last_course_id") != curr_course_id:
-        st.session_state["assess_last_course_id"] = curr_course_id
-        st.session_state["assess_active_concept_id"] = None
-        st.session_state["q_index"] = 0
-        for k in list(st.session_state.keys()):
-            if k.startswith("eval_") or k.startswith("radio_") or k.startswith("q_start_time_"):
-                st.session_state.pop(k, None)
 
-    # Check for incoming target concept from external views (Search, Learning Path, Dashboard, Library)
+    # Build concept map
+    concept_options = {"All Concepts in Track": None}
+    for c in concepts:
+        concept_options[f"{c['code']} - {c['name']}"] = c["id"]
+
+    select_key = f"assess_concept_choice_{curr_course_id}"
+    all_concept_labels = list(concept_options.keys())
+
+    # Handle incoming concept navigation from search / dashboard
     incoming_concept_id = st.session_state.pop("assessment_concept_id", None) or st.session_state.pop("active_concept_id", None)
     if incoming_concept_id is not None:
-        st.session_state["assess_active_concept_id"] = incoming_concept_id
-        st.session_state["q_index"] = 0
-        for k in list(st.session_state.keys()):
-            if k.startswith("eval_") or k.startswith("radio_") or k.startswith("q_start_time_"):
-                st.session_state.pop(k, None)
+        for label, cid in concept_options.items():
+            if cid == incoming_concept_id:
+                st.session_state[select_key] = label
+                st.session_state["q_index"] = 0
+                break
+
+    # Initialize key in session state if not set or invalid for current course
+    if select_key not in st.session_state or st.session_state[select_key] not in all_concept_labels:
+        st.session_state[select_key] = all_concept_labels[0]
 
     col_t, col_c, col_d = st.columns([1.2, 1.4, 1.0])
     with col_t:
         render_course_selector(key="assess_track_selector", label="Select Track", on_change_rerun=True)
 
-    concept_options = {"All Concepts in Track": None}
-    for c in concepts:
-        concept_options[f"{c['code']} - {c['name']}"] = c["id"]
-
-    curr_stored_cid = st.session_state.get("assess_active_concept_id")
-    target_c_idx = 0
-    for idx, (label, cid) in enumerate(concept_options.items()):
-        if cid == curr_stored_cid:
-            target_c_idx = idx
-            break
-
     with col_c:
         selected_label = st.selectbox(
             "Curriculum Concept Target",
-            list(concept_options.keys()),
-            index=target_c_idx,
-            key=f"assess_concept_dropdown_{curr_course_id}",
+            all_concept_labels,
+            key=select_key,
             label_visibility="collapsed"
         )
-        new_chosen_id = concept_options[selected_label]
-        if new_chosen_id != st.session_state.get("assess_active_concept_id"):
-            st.session_state["assess_active_concept_id"] = new_chosen_id
-            st.session_state["q_index"] = 0
-            for k in list(st.session_state.keys()):
-                if k.startswith("eval_") or k.startswith("radio_") or k.startswith("q_start_time_"):
-                    st.session_state.pop(k, None)
-            st.rerun()
+        selected_concept_id = concept_options.get(selected_label)
 
-    selected_concept_id = st.session_state.get("assess_active_concept_id")
+    # Detect concept change to reset q_index cleanly without rerun conflicts
+    if st.session_state.get(f"assess_prev_label_{curr_course_id}") != selected_label:
+        st.session_state[f"assess_prev_label_{curr_course_id}"] = selected_label
+        st.session_state["q_index"] = 0
+
+    diff_key = "assess_difficulty_choice"
+    diff_options = ["Adaptive (AI Selected)", "Beginner", "Intermediate", "Advanced"]
+    if diff_key not in st.session_state or st.session_state[diff_key] not in diff_options:
+        st.session_state[diff_key] = "Adaptive (AI Selected)"
 
     with col_d:
-        diff_modes = ["Adaptive (AI Selected)", "Beginner", "Intermediate", "Advanced"]
-        curr_diff = st.session_state.get("assess_diff_mode", "Adaptive (AI Selected)")
-        diff_idx = diff_modes.index(curr_diff) if curr_diff in diff_modes else 0
-        selected_diff = st.selectbox(
+        difficulty_mode = st.selectbox(
             "Difficulty Selection",
-            diff_modes,
-            index=diff_idx,
-            key="assess_diff_mode_select",
+            diff_options,
+            key=diff_key,
             label_visibility="collapsed"
         )
-        if selected_diff != curr_diff:
-            st.session_state["assess_diff_mode"] = selected_diff
-            st.session_state["q_index"] = 0
-            for k in list(st.session_state.keys()):
-                if k.startswith("eval_") or k.startswith("radio_") or k.startswith("q_start_time_"):
-                    st.session_state.pop(k, None)
-            st.rerun()
 
-    difficulty_mode = st.session_state.get("assess_diff_mode", "Adaptive (AI Selected)")
+    if st.session_state.get("assess_prev_diff_choice") != difficulty_mode:
+        st.session_state["assess_prev_diff_choice"] = difficulty_mode
+        st.session_state["q_index"] = 0
 
     # 2. Determine questions pool based on target concept and difficulty mode
     if difficulty_mode == "Adaptive (AI Selected)":
@@ -226,7 +211,7 @@ def render_assessment_page(user: dict):
         for i in range(len(questions)):
             with q_cols[i % 4]:
                 btn_type = "primary" if i == q_idx else "secondary"
-                if st.button(f"{i+1}", key=f"q_nav_btn_{current_q['concept_id']}_{i}", use_container_width=True, type=btn_type):
+                if st.button(f"{i+1}", key=f"assess_qnav_btn_{i}", use_container_width=True, type=btn_type):
                     st.session_state["q_index"] = i
                     st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
