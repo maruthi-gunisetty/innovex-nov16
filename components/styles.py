@@ -1,332 +1,361 @@
 """
-LearnSphere AI: Premium Modern SaaS Design System
-Inspired by Linear, Stripe, and Notion.
-Clean minimalist layout, strict color tokens, Inter typography, and zero emojis.
+LearnSphere AI: Enterprise Educational Management Design System
+Closely reproducing the visual design language, layout structure, proportions,
+typography, navigation, and dashboard organization of the reference dashboard.
+Colors: Primary Navy #243B64, Secondary Blue #3976B9, Light Blue #EAF2FA,
+Canvas #F5F6F8, Cards #FFFFFF, Borders #E4E8ED, Success #36A879, Warning #E9AA45, Danger #D96B6B.
+Zero emojis, strict professional typography, and compact information density.
 """
 
 ICONS = {
-    "brain": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M12 5v14"/></svg>""",
-    "target": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>""",
-    "book": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>""",
-    "chart": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>""",
-    "compass": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>""",
-    "shield": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>""",
-    "check": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>""",
-    "alert": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>""",
-    "cpu": """<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>"""
+    "dashboard": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>""",
+    "assessment": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>""",
+    "ai": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M12 5v14"/></svg>""",
+    "path": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>""",
+    "library": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>""",
+    "progress": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>""",
+    "users": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>""",
+    "analytics": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>""",
+    "profile": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>""",
+    "settings": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>""",
+    "search": """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>""",
+    "bell": """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>""",
+    "trophy": """<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E9AA45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>""",
+    "check": """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>""",
+    "alert": """<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>"""
 }
-
 
 CUSTOM_CSS = """
 <style>
-/* Modern Typography System - Inter */
+/* Modern Typography - Inter */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"], [class*="st-"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #0F172A;
-    background-color: #F8FAFC;
+    color: #263445;
+    background-color: #F5F6F8;
 }
 
-/* Container Structure */
+/* Page Container Density */
 .block-container {
-    padding-top: 1.25rem;
-    padding-bottom: 2.5rem;
-    max-width: 1200px;
+    padding-top: 0.75rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    max-width: 1280px !important;
 }
 
-/* Header Brand Navigation Bar */
-.ls-navbar {
+/* Sidebar Customization - Compact White 210px matching reference */
+[data-testid="stSidebar"] {
+    background-color: #FFFFFF !important;
+    border-right: 1px solid #E4E8ED !important;
+    width: 220px !important;
+    min-width: 200px !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    gap: 0.35rem !important;
+}
+
+/* Sidebar Radio Navigation Override */
+[data-testid="stSidebar"] .stRadio > div {
+    gap: 0.25rem !important;
+}
+
+[data-testid="stSidebar"] .stRadio label {
+    padding: 0.45rem 0.65rem !important;
+    border-radius: 8px !important;
+    font-size: 0.825rem !important;
+    font-weight: 500 !important;
+    color: #718096 !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+}
+
+[data-testid="stSidebar"] .stRadio label:hover {
+    background-color: #F5F6F8 !important;
+    color: #263445 !important;
+}
+
+[data-testid="stSidebar"] .stRadio label[data-checked="true"],
+[data-testid="stSidebar"] .stRadio label:has(input:checked) {
+    background-color: #EAF2FA !important;
+    color: #243B64 !important;
+    font-weight: 600 !important;
+}
+
+/* Top Navigation Bar */
+.lm-topbar {
+    background-color: #FFFFFF;
+    border: 1px solid #E4E8ED;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.85rem 1.25rem;
-    background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    margin-bottom: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
+    box-shadow: 0 1px 3px rgba(36, 59, 100, 0.03);
 }
 
-.ls-brand {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #172554;
-    letter-spacing: -0.025em;
+.lm-search-box {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    background-color: #F5F6F8;
+    border: 1px solid #E4E8ED;
+    border-radius: 8px;
+    padding: 0.35rem 0.75rem;
+    color: #718096;
+    font-size: 0.8rem;
+    width: 320px;
 }
 
-.ls-brand span {
-    color: #635BDB;
+.lm-user-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
 }
 
-/* Modern Card Containers */
-.ls-card {
+.lm-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #EAF2FA;
+    color: #3976B9;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #D2E4F6;
+}
+
+/* Reference Card Component */
+.lm-card {
     background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 10px;
-    padding: 1.5rem;
-    margin-bottom: 1.25rem;
-    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
-    transition: border-color 0.15s ease;
+    border: 1px solid #E4E8ED;
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 0.9rem;
+    box-shadow: 0 1px 3px rgba(36, 59, 100, 0.03);
 }
 
-.ls-card:hover {
-    border-color: #CBD5E1;
-}
-
-.ls-card-header {
+.lm-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #F1F5F9;
-    padding-bottom: 0.75rem;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.4rem;
 }
 
-.ls-card-title {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #0F172A;
+.lm-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #243B64;
     margin: 0;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
 }
 
-.ls-card-desc {
-    color: #64748B;
-    font-size: 0.825rem;
-    margin-top: 0.2rem;
-    line-height: 1.5;
-}
-
-/* Linear-Style Minimal Metric Boxes */
-.ls-metric-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.ls-metric-box {
-    background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 10px;
-    padding: 1.25rem;
-    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03);
-    transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.ls-metric-box:hover {
-    border-color: #CBD5E1;
-    transform: translateY(-1px);
-}
-
-.ls-metric-label {
-    font-size: 0.725rem;
+.lm-card-link {
+    font-size: 0.75rem;
+    color: #3976B9;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #64748B;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 3-Column Top Stat Cards */
+.lm-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    text-align: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+}
+
+.lm-stat-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.lm-stat-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 0.4rem;
 }
 
-.ls-metric-val {
-    font-size: 1.85rem;
+.lm-stat-val {
+    font-size: 1.45rem;
     font-weight: 700;
-    color: #172554;
-    line-height: 1.2;
-    letter-spacing: -0.03em;
+    color: #243B64;
+    line-height: 1.15;
 }
 
-.ls-metric-sub {
-    font-size: 0.775rem;
-    color: #64748B;
-    margin-top: 0.35rem;
+.lm-stat-label {
+    font-size: 0.75rem;
+    color: #718096;
+    margin-top: 0.2rem;
+    font-weight: 500;
 }
 
-/* Crisp Badges and Status Indicators */
-.ls-badge {
+/* Progress bar inside card */
+.lm-progress-wrap {
+    background-color: #F5F6F8;
+    border-radius: 9999px;
+    height: 8px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.lm-progress-bar {
+    background-color: #36A879;
+    height: 100%;
+    border-radius: 9999px;
+}
+
+/* Reference Status Pills */
+.lm-pill {
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 6px;
-    font-size: 0.725rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
+    gap: 4px;
+    text-transform: capitalize;
 }
 
-.badge-mastered {
-    background-color: #F0FDF4;
-    color: #16A34A;
-    border: 1px solid #BBF7D0;
+.pill-lagging {
+    background-color: #FDF2F2;
+    color: #D96B6B;
+    border: 1px solid #F8D7DA;
 }
 
-.badge-proficient {
-    background-color: #EFF6FF;
-    color: #2563EB;
-    border: 1px solid #BFDBFE;
+.pill-ontrack {
+    background-color: #FEF9EE;
+    color: #E9AA45;
+    border: 1px solid #FDE8C7;
 }
 
-.badge-developing {
-    background-color: #FFFBEB;
-    color: #D97706;
-    border: 1px solid #FDE68A;
+.pill-ahead {
+    background-color: #EAF2FA;
+    color: #3976B9;
+    border: 1px solid #D2E4F6;
 }
 
-.badge-novice {
-    background-color: #FEF2F2;
-    color: #DC2626;
-    border: 1px solid #FECACA;
+.pill-completed {
+    background-color: #EDF8F3;
+    color: #36A879;
+    border: 1px solid #C6ECD9;
 }
 
-.badge-violet {
-    background-color: #EEF2FF;
-    color: #635BDB;
-    border: 1px solid #C7D2FE;
+/* Outline Pill Button (View button in reference) */
+.lm-btn-outline {
+    border: 1px solid #3976B9 !important;
+    color: #3976B9 !important;
+    background-color: #FFFFFF !important;
+    border-radius: 9999px !important;
+    padding: 2px 12px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    min-height: unset !important;
+    height: auto !important;
 }
 
-.badge-demo {
-    background-color: #F8FAFC;
-    color: #475569;
-    border: 1px solid #E2E8F0;
+.lm-btn-outline:hover {
+    background-color: #EAF2FA !important;
 }
 
-/* Callout Diagnostics */
-.ls-diagnostic-box {
-    background-color: #FFF1F2;
-    border-left: 4px solid #DC2626;
-    border-radius: 0 8px 8px 0;
-    padding: 1.25rem;
-    margin: 1rem 0;
+/* Bottom Sidebar Action Card */
+.lm-sidebar-cta {
+    background-color: #EAF2FA;
+    border: 1px solid #D2E4F6;
+    border-radius: 12px;
+    padding: 0.9rem;
+    margin-top: 1rem;
+    text-align: center;
 }
 
-.ls-success-box {
-    background-color: #F0FDF4;
-    border-left: 4px solid #16A34A;
-    border-radius: 0 8px 8px 0;
-    padding: 1.25rem;
-    margin: 1rem 0;
+.lm-sidebar-cta-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #3976B9;
+    color: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.4rem;
 }
 
-.ls-info-box {
-    background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-left: 4px solid #635BDB;
-    border-radius: 0 8px 8px 0;
-    padding: 1.25rem;
-    margin: 1rem 0;
-}
-
-/* Clean Stripe-Style Data Table */
-.ls-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-}
-
-.ls-table th {
-    background-color: #F8FAFC;
-    color: #475569;
-    font-weight: 600;
-    text-align: left;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #E2E8F0;
-    font-size: 0.775rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.ls-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #F1F5F9;
-    color: #0F172A;
-}
-
-.ls-table tr:hover td {
-    background-color: #F8FAFC;
-}
-
-/* Form Controls and Streamlit Polish */
+/* Primary Button Styling */
 button[kind="primary"] {
-    background-color: #172554 !important;
-    border: 1px solid #172554 !important;
-    border-radius: 6px !important;
-    font-weight: 500 !important;
-    letter-spacing: -0.01em !important;
-    transition: all 0.15s ease !important;
+    background-color: #3976B9 !important;
+    border: 1px solid #3976B9 !important;
+    border-radius: 8px !important;
+    font-size: 0.825rem !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1rem !important;
 }
 
 button[kind="primary"]:hover {
-    background-color: #1E3A8A !important;
-    border-color: #1E3A8A !important;
+    background-color: #243B64 !important;
+    border-color: #243B64 !important;
 }
 
 button[kind="secondary"] {
     background-color: #FFFFFF !important;
-    color: #0F172A !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 6px !important;
+    color: #263445 !important;
+    border: 1px solid #E4E8ED !important;
+    border-radius: 8px !important;
+    font-size: 0.825rem !important;
     font-weight: 500 !important;
-    transition: all 0.15s ease !important;
+    padding: 0.45rem 1rem !important;
 }
 
 button[kind="secondary"]:hover {
+    background-color: #F5F6F8 !important;
     border-color: #CBD5E1 !important;
-    background-color: #F8FAFC !important;
 }
 
-/* Progress Bar Customization */
-.stProgress > div > div > div > div {
-    background-color: #635BDB !important;
+/* Tables */
+.lm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.825rem;
 }
 
-/* Footer Minimalist */
-.ls-footer {
-    text-align: center;
-    padding: 2.5rem 0 1rem 0;
-    margin-top: 3rem;
-    border-top: 1px solid #E2E8F0;
-    color: #64748B;
-    font-size: 0.8rem;
+.lm-table th {
+    background-color: #F5F6F8;
+    color: #718096;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid #E4E8ED;
+    font-size: 0.725rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.lm-table td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid #F5F6F8;
+    color: #263445;
+}
+
+.lm-table tr:hover td {
+    background-color: #F8FAFC;
 }
 </style>
 """
 
 
 def get_icon(name: str) -> str:
-    """Returns SVG icon string by name or empty string if not found."""
+    """Returns SVG icon string by name."""
     return ICONS.get(name, "")
-
-
-def render_card(title: str, content_html: str, subtitle: str = "") -> str:
-    """Renders a standard SaaS card HTML snippet."""
-    sub_html = f"<div class='ls-card-desc'>{subtitle}</div>" if subtitle else ""
-    return f"""
-    <div class="ls-card">
-        <div class="ls-card-header">
-            <div>
-                <h3 class="ls-card-title">{title}</h3>
-                {sub_html}
-            </div>
-        </div>
-        <div>
-            {content_html}
-        </div>
-    </div>
-    """
-
-
-def render_metric(label: str, value: str, subtext: str = "") -> str:
-    """Renders a metric container HTML snippet."""
-    sub_html = f"<div class='ls-metric-sub'>{subtext}</div>" if subtext else ""
-    return f"""
-    <div class="ls-metric-box">
-        <div class="ls-metric-label">{label}</div>
-        <div class="ls-metric-val">{value}</div>
-        {sub_html}
-    </div>
-    """

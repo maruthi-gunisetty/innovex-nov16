@@ -1,162 +1,236 @@
 """
-LearnSphere AI: Misconception Diagnostics and Cognitive Bug Tracking
-Visualizes detected misconception categories, frequency distributions,
-and links directly to targeted corrective lessons.
-Modern minimalist SaaS design inspired by Linear and Stripe.
+LearnSphere AI: AI Intelligence & Cognitive Misconception Dashboard
+Follows the compact enterprise design language of the reference dashboard.
+Panels:
+1. Bayesian Knowledge Tracing mastery chart
+2. Concept mastery comparison
+3. Learning probability P(T), Guess P(G), Slip P(S)
+4. Misconception frequency distribution
+5. Weak concept analysis
+6. Adaptive difficulty distribution
+7. Personalized AI recommendations
 """
 
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-from database.db import get_user_attempts, get_all_concepts
+from database.db import (
+    get_student_mastery, get_user_attempts, get_user_lesson_progress
+)
+from core.bkt import BayesianKnowledgeTracing
 from core.misconception import MisconceptionEngine
+from core.recommender import RecommenderEngine
 
 
 def render_misconception_page(user: dict):
     user_id = user["id"]
+    mastery_data = get_student_mastery(user_id)
     attempts = get_user_attempts(user_id, limit=50)
-
-    st.markdown("""
-    <div style="margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.75rem; font-weight: 700; color: #172554; margin: 0; letter-spacing: -0.025em;">
-            Cognitive Misconception Analysis
-        </h2>
-        <p style="color: #64748B; font-size: 0.875rem; margin-top: 0.25rem;">
-            Detailed diagnosis of recurring cognitive bugs, mental model misalignments, and corrective actions.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
+    lesson_progress = get_user_lesson_progress(user_id)
     summary = MisconceptionEngine.summarize_patterns(attempts)
     patterns = summary["patterns"]
 
-    # 1. High-Level Summary Metrics
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f"""
-        <div class="ls-metric-box">
-            <div class="ls-metric-label">Total Misconceptions Detected</div>
-            <div class="ls-metric-val">{summary['total_misconceptions_detected']}</div>
-            <div class="ls-metric-sub">Distractor pattern occurrences</div>
+    st.markdown("""
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
+        <div>
+            <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">AI Learning Intelligence Dashboard</h2>
+            <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Corbett & Anderson (1995) Bayesian Knowledge Tracing & Cognitive Distractor Diagnostics.</div>
         </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-        <div class="ls-metric-box">
-            <div class="ls-metric-label">Distinct Cognitive Fallacies</div>
-            <div class="ls-metric-val">{summary['unique_patterns_count']}</div>
-            <div class="ls-metric-sub">Cataloged error categories</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""
-        <div class="ls-metric-box">
-            <div class="ls-metric-label">Dominant Difficulty Domain</div>
-            <div class="ls-metric-val" style="font-size: 1.35rem;">{summary['dominant_category']}</div>
-            <div class="ls-metric-sub">Most frequent mistake domain</div>
-        </div>
-        """, unsafe_allow_html=True)
+        <span class="lm-pill pill-ahead">BKT Engine Active</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
-
-    # 2. Plotly Frequency Distribution
-    if patterns:
-        df_p = pd.DataFrame(patterns)
-        fig = px.bar(
-            df_p,
-            x="count",
-            y="name",
-            orientation="h",
-            labels={"count": "Detected Occurrences", "name": "Misconception"},
-            color="severity",
-            color_discrete_map={"High": "#DC2626", "Moderate": "#F59E0B", "Low": "#2563EB"}
-        )
-        fig.update_layout(
-            margin=dict(l=10, r=10, t=10, b=10),
-            height=280,
-            paper_bgcolor="#FFFFFF",
-            plot_bgcolor="#FFFFFF",
-            font=dict(family="Inter, sans-serif", size=12, color="#0F172A"),
-            xaxis=dict(showgrid=True, gridcolor="#F1F5F9"),
-            yaxis=dict(showgrid=False)
-        )
-
+    # ==========================================================
+    # 1. BKT CORE HYPERPARAMETERS ROW (P(L0), P(T), P(G), P(S))
+    # ==========================================================
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
         st.markdown("""
-        <div class="ls-card">
-            <div class="ls-card-header">
-                <h3 class="ls-card-title">Cognitive Fallacy Frequency Distribution</h3>
-                <span class="ls-card-desc">Frequency of specific distractor selections across your assessment attempts.</span>
+        <div class="lm-card" style="padding: 0.85rem 1rem; margin-bottom: 0.9rem;">
+            <div style="font-size: 0.7rem; color: #718096; font-weight: 600; text-transform: uppercase;">Prior Probability P(L0)</div>
+            <div style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin-top: 0.15rem;">0.20</div>
+            <div style="font-size: 0.7rem; color: #718096;">Baseline initial concept mastery</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown("""
+        <div class="lm-card" style="padding: 0.85rem 1rem; margin-bottom: 0.9rem;">
+            <div style="font-size: 0.7rem; color: #718096; font-weight: 600; text-transform: uppercase;">Learning Probability P(T)</div>
+            <div style="font-size: 1.45rem; font-weight: 700; color: #36A879; margin-top: 0.15rem;">0.15</div>
+            <div style="font-size: 0.7rem; color: #718096;">Transition probability per attempt</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c3:
+        st.markdown("""
+        <div class="lm-card" style="padding: 0.85rem 1rem; margin-bottom: 0.9rem;">
+            <div style="font-size: 0.7rem; color: #718096; font-weight: 600; text-transform: uppercase;">Guess Probability P(G)</div>
+            <div style="font-size: 1.45rem; font-weight: 700; color: #E9AA45; margin-top: 0.15rem;">0.20</div>
+            <div style="font-size: 0.7rem; color: #718096;">Correct answer chance without mastery</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c4:
+        st.markdown("""
+        <div class="lm-card" style="padding: 0.85rem 1rem; margin-bottom: 0.9rem;">
+            <div style="font-size: 0.7rem; color: #718096; font-weight: 600; text-transform: uppercase;">Slip Probability P(S)</div>
+            <div style="font-size: 1.45rem; font-weight: 700; color: #D96B6B; margin-top: 0.15rem;">0.10</div>
+            <div style="font-size: 0.7rem; color: #718096;">Accidental error despite mastery</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ==========================================================
+    # 2. MAIN 2-COLUMN INTELLIGENCE PANELS
+    # ==========================================================
+    col_left, col_right = st.columns([1.1, 1.2])
+
+    with col_left:
+        # Panel 1: Concept Mastery Comparison Bar Chart
+        st.markdown("""
+        <div class="lm-card">
+            <div class="lm-card-header">
+                <span class="lm-card-title">Concept Mastery Comparison (BKT Latent P(L))</span>
+                <span style="font-size: 0.7rem; color: #718096;">Benchmark: 60%</span>
             </div>
         """, unsafe_allow_html=True)
-        st.plotly_chart(fig, use_container_width=True)
+
+        if mastery_data:
+            df_m = pd.DataFrame(mastery_data)
+            df_m["mastery_pct"] = df_m["mastery_prob"] * 100
+
+            fig_bar = px.bar(
+                df_m,
+                x="concept_code",
+                y="mastery_pct",
+                color="mastery_pct",
+                labels={"concept_code": "Concept", "mastery_pct": "Mastery (%)"},
+                color_continuous_scale=["#D96B6B", "#E9AA45", "#3976B9", "#36A879"]
+            )
+            fig_bar.add_hline(y=60, line_dash="dash", line_color="#718096")
+            fig_bar.update_layout(
+                height=180,
+                margin=dict(l=10, r=10, t=10, b=10),
+                paper_bgcolor="#FFFFFF",
+                plot_bgcolor="#FFFFFF",
+                coloraxis_showscale=False,
+                yaxis=dict(range=[0, 100], gridcolor="#F5F6F8"),
+                xaxis=dict(gridcolor="#F5F6F8")
+            )
+            st.plotly_chart(fig_bar, use_container_width=True, config={"displayModeBar": False})
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # 3. Detailed Misconception Cards with Pedagogical Remediation
+        # Panel 2: Weak Concept Analysis
+        weak_concepts = [m for m in mastery_data if m["mastery_prob"] < 0.60]
         st.markdown("""
-        <div class="ls-card">
-            <div class="ls-card-header">
-                <h3 class="ls-card-title">Identified Cognitive Bugs and Remedial Actions</h3>
+        <div class="lm-card">
+            <div class="lm-card-header">
+                <span class="lm-card-title">Weak Concept Vulnerability Analysis</span>
+                <span class="lm-pill pill-lagging">Attention Required</span>
             </div>
         """, unsafe_allow_html=True)
 
-        for p in patterns:
-            meta = MisconceptionEngine.get_info(p["code"])
-            sev_badge = "badge-novice" if p["severity"] == "High" else ("badge-developing" if p["severity"] == "Moderate" else "badge-proficient")
-            col_info, col_action = st.columns([4, 1])
-            with col_info:
+        if weak_concepts:
+            for wc in weak_concepts:
                 st.markdown(f"""
-                <div style="padding: 1rem 0; border-bottom: 1px solid #F1F5F9;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-                        <span class="ls-badge {sev_badge}">{p['severity']} Severity</span>
-                        <strong style="color: #0F172A; font-size: 0.95rem;">{p['name']}</strong>
-                        <span style="color: #64748B; font-size: 0.775rem;">({p['category']}) &bull; {p['count']} occurrences</span>
+                <div style="padding: 0.4rem 0; border-bottom: 1px solid #F5F6F8;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; font-size: 0.825rem; color: #243B64;">{wc['concept_name']} [{wc['concept_code']}]</span>
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #D96B6B;">{wc['mastery_prob']:.0%} P(L)</span>
                     </div>
-                    <p style="color: #475569; font-size: 0.85rem; margin-bottom: 0.5rem; line-height: 1.55;">
-                        <strong>Root Cause:</strong> {meta['description'] if meta else ''}
-                    </p>
-                    <div style="background-color: #F8FAFC; border-left: 3px solid #635BDB; padding: 0.5rem 0.75rem; font-size: 0.825rem; color: #172554; border-radius: 0 4px 4px 0;">
-                        <strong>Remediation Strategy:</strong> {p['remediation']}
+                    <div style="font-size: 0.725rem; color: #718096; margin-top: 0.15rem;">
+                        Vulnerability: Latent mastery is below 60% gating threshold. Prerequisite bottlenecks will stall recursion progression.
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-            with col_action:
-                st.markdown("<div style='margin-top: 1.25rem;'></div>", unsafe_allow_html=True)
-                if st.button("Review Module", key=f"fix_btn_{p['code']}", use_container_width=True):
-                    cat_map = {
-                        "Data Structures": "LIST",
-                        "Data Types": "VAR",
-                        "Variables": "VAR",
-                        "Conditional Logic": "COND",
-                        "Control Flow": "LOOP",
-                        "Functions": "FUNC",
-                        "Recursion": "REC"
-                    }
-                    st.session_state["current_page"] = "learning_library"
-                    st.session_state["selected_lesson_code"] = cat_map.get(p["category"], "VAR")
-                    st.rerun()
-
+        else:
+            st.markdown("<p style='font-size: 0.775rem; color: #36A879;'>No critical vulnerabilities identified. All active topics meet the proficiency threshold.</p>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
-    else:
+
+    with col_right:
+        # Panel 3: Misconception Frequency Distribution
         st.markdown("""
-        <div class="ls-card">
-            <div class="ls-card-header">
-                <h3 class="ls-card-title">No Recurring Misconceptions Detected</h3>
+        <div class="lm-card">
+            <div class="lm-card-header">
+                <span class="lm-card-title">Cognitive Misconception Frequency</span>
+                <span style="font-size: 0.7rem; color: #718096;">Distractor patterns</span>
             </div>
-            <p style="color: #64748B; font-size: 0.875rem; line-height: 1.6; margin: 0;">
-                Either no assessment attempts have been submitted yet, or all previous answers demonstrated correct cognitive models. Complete additional assessments to monitor your learning trajectory.
-            </p>
-        </div>
         """, unsafe_allow_html=True)
 
-    # 4. Taxonomy Reference
-    st.markdown("""
-    <div class="ls-card" style="margin-top: 1.5rem;">
-        <div class="ls-card-header">
-            <h3 class="ls-card-title">Cognitive Taxonomy Architecture</h3>
-        </div>
-        <p style="color: #475569; font-size: 0.85rem; line-height: 1.55; margin: 0;">
-            LearnSphere AI utilizes an explicit, rule-verified taxonomy of programming misconceptions based on computer science education research (CSEd). Each distractor choice in the question bank is tagged with its cognitive bug code, allowing deterministic error tracking without opaque hallucinations.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+        if patterns:
+            df_p = pd.DataFrame(patterns)
+            fig_mf = px.bar(
+                df_p,
+                x="count",
+                y="name",
+                orientation="h",
+                color="category",
+                labels={"count": "Times Triggered", "name": "Misconception"},
+                color_discrete_map={"Boundary Condition": "#D96B6B", "Control Flow": "#E9AA45", "Data Structure": "#3976B9", "Recursion": "#243B64"}
+            )
+            fig_mf.update_layout(
+                height=180,
+                margin=dict(l=10, r=10, t=10, b=10),
+                paper_bgcolor="#FFFFFF",
+                plot_bgcolor="#FFFFFF",
+                showlegend=False,
+                xaxis=dict(gridcolor="#F5F6F8"),
+                yaxis=dict(gridcolor="#F5F6F8")
+            )
+            st.plotly_chart(fig_mf, use_container_width=True, config={"displayModeBar": False})
+        else:
+            st.info("No misconceptions logged in current telemetry.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # Panel 4: Personalized AI Recommendations
+        recs = RecommenderEngine.generate_recommendations(user_id, mastery_data, attempts, lesson_progress)
+        st.markdown("""
+        <div class="lm-card">
+            <div class="lm-card-header">
+                <span class="lm-card-title">Personalized AI Pedagogical Action Items</span>
+                <span class="lm-pill pill-completed">Real-Time</span>
+            </div>
+        """, unsafe_allow_html=True)
+
+        if recs:
+            for idx, r in enumerate(recs[:2]):
+                col_r_info, col_r_btn = st.columns([3.2, 1])
+                with col_r_info:
+                    st.markdown(f"""
+                    <div style="padding: 0.35rem 0;">
+                        <div style="font-weight: 700; font-size: 0.8rem; color: #243B64;">{r['title']}</div>
+                        <div style="font-size: 0.725rem; color: #718096; margin-top: 0.15rem; line-height: 1.35;">{r['reason']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_r_btn:
+                    st.markdown("<div style='padding-top: 0.35rem;'></div>", unsafe_allow_html=True)
+                    if st.button("Execute", key=f"rec_exec_{idx}", use_container_width=True, type="primary"):
+                        if r["recommended_action"] == "library":
+                            st.session_state["current_page"] = "learning_library"
+                            st.session_state["selected_lesson_code"] = r["concept_code"]
+                        else:
+                            st.session_state["current_page"] = "assessment"
+                            st.session_state["assessment_concept_id"] = r["concept_id"]
+                        st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # Detailed Misconception Catalog
+    st.markdown("<div style='font-size: 0.875rem; font-weight: 700; color: #243B64; margin: 1rem 0 0.5rem 0;'>Cataloged Cognitive Fallacy Descriptions & Remediation</div>", unsafe_allow_html=True)
+    if patterns:
+        for p in patterns:
+            meta = MisconceptionEngine.get_info(p["code"])
+            st.markdown(f"""
+            <div class="lm-card" style="padding: 0.85rem; margin-bottom: 0.65rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-weight: 700; font-size: 0.825rem; color: #243B64;">{p['name']}</span>
+                        <span style="font-size: 0.675rem; color: #718096; background: #F5F6F8; padding: 2px 6px; border-radius: 4px;">{p['code']}</span>
+                    </div>
+                    <span class="lm-pill pill-lagging">{p['count']} Identified</span>
+                </div>
+                <div style="font-size: 0.75rem; color: #718096; margin-bottom: 0.35rem; line-height: 1.4;">
+                    <strong>Underlying Cognition:</strong> {meta['description'] if meta else ''}
+                </div>
+                <div style="background-color: #F5F6F8; border: 1px solid #E4E8ED; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.75rem; color: #36A879;">
+                    <strong>Pedagogical Remediation:</strong> {meta['remediation'] if meta else ''}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)

@@ -2,6 +2,7 @@
 LearnSphere AI: Profile and Account Settings
 Allows modifying learning preferences, updating security credentials,
 and resetting demonstration data for live presentations.
+Enterprise educational management aesthetic.
 """
 
 import streamlit as st
@@ -17,13 +18,11 @@ def render_settings_page(user: dict):
     current_user = get_user_by_id(user_id) or user
 
     st.markdown("""
-    <div style="margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.75rem; font-weight: 700; color: #0f172a; margin: 0;">
-            Account Profile and System Preferences
-        </h2>
-        <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.25rem;">
-            Manage your personal profile, adaptive learning difficulty preferences, and security credentials.
-        </p>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
+        <div>
+            <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">Account Profile & System Settings</h2>
+            <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Manage personal credentials, adaptive assessment preferences, and system maintenance.</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -32,10 +31,10 @@ def render_settings_page(user: dict):
     # 1. Profile Overview & Learning Preferences
     with col1:
         st.markdown("""
-        <div class="ls-card">
-            <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem;">
-                Learner Profile Details
-            </h4>
+        <div class="lm-card">
+            <div class="lm-card-header">
+                <span class="lm-card-title">Learner Profile Details</span>
+            </div>
         """, unsafe_allow_html=True)
 
         st.text_input("Full Name", value=current_user["full_name"], disabled=True)
@@ -43,8 +42,8 @@ def render_settings_page(user: dict):
         st.text_input("Email Address", value=current_user["email"], disabled=True)
         st.text_input("Assigned Role", value=current_user["role"].capitalize(), disabled=True)
 
-        st.markdown("<hr style='border-color: #f1f5f9; margin: 1rem 0;'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='font-size: 0.95rem; font-weight: 600; color: #0f172a;'>Learning Preferences</h4>", unsafe_allow_html=True)
+        st.markdown("<hr style='border-color: #F5F6F8; margin: 0.75rem 0;'>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size: 0.8rem; font-weight: 700; color: #243B64; margin-bottom: 0.35rem;'>Adaptive Learning Preferences</div>", unsafe_allow_html=True)
 
         with st.form("pref_form"):
             diff_options = ["adaptive", "beginner", "intermediate", "advanced"]
@@ -74,10 +73,10 @@ def render_settings_page(user: dict):
     # 2. Security and Demonstration Maintenance
     with col2:
         st.markdown("""
-        <div class="ls-card">
-            <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem;">
-                Security and Password Management
-            </h4>
+        <div class="lm-card">
+            <div class="lm-card-header">
+                <span class="lm-card-title">Security & Password Management</span>
+            </div>
         """, unsafe_allow_html=True)
 
         with st.form("password_change_form"):
@@ -104,12 +103,12 @@ def render_settings_page(user: dict):
 
         # Demonstration Maintenance Box
         st.markdown("""
-        <div class="ls-card" style="border-left: 4px solid #d97706;">
-            <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.25rem;">
-                Live Demonstration Maintenance
-            </h4>
-            <p style="color: #64748b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;">
-                Reset the local SQLite database to pristine demo seed state at any time during a live hackathon presentation.
+        <div class="lm-card" style="border-left: 4px solid #E9AA45;">
+            <div class="lm-card-header">
+                <span class="lm-card-title">Live Demonstration Maintenance</span>
+            </div>
+            <p style="color: #718096; font-size: 0.775rem; line-height: 1.45; margin-bottom: 0.75rem;">
+                Reset the local SQLite database to pristine demo seed state at any time during a live presentation.
             </p>
         """, unsafe_allow_html=True)
 
@@ -120,4 +119,3 @@ def render_settings_page(user: dict):
             st.rerun()
 
         st.markdown("</div>", unsafe_allow_html=True)
-

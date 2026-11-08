@@ -13,11 +13,11 @@ from database.db import (
 
 def render_auth_page():
     st.markdown("""
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <h2 style="font-size: 1.85rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.65rem; font-weight: 700; color: #243B64; margin-bottom: 0.35rem;">
             Access LearnSphere AI
         </h2>
-        <p style="color: #64748b; font-size: 0.95rem;">
+        <p style="color: #718096; font-size: 0.85rem;">
             Sign in to your learning dashboard or launch a pre-configured demonstration profile.
         </p>
     </div>
@@ -54,8 +54,8 @@ def render_auth_page():
 
 def _render_student_login():
     st.markdown("""
-    <div class="ls-card">
-        <h4 style="font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 1rem;">
+    <div class="lm-card">
+        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.75rem;">
             Student Sign In
         </h4>
     </div>
@@ -89,8 +89,8 @@ def _render_student_login():
 
 def _render_teacher_login():
     st.markdown("""
-    <div class="ls-card">
-        <h4 style="font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 1rem;">
+    <div class="lm-card">
+        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.75rem;">
             Teacher and Faculty Sign In
         </h4>
     </div>
@@ -123,8 +123,8 @@ def _render_teacher_login():
 
 def _render_registration():
     st.markdown("""
-    <div class="ls-card">
-        <h4 style="font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 1rem;">
+    <div class="lm-card">
+        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.75rem;">
             Student Registration
         </h4>
     </div>

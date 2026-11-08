@@ -1,11 +1,15 @@
 """
-LearnSphere AI: Comprehensive Learning Content Library
-Displays in-depth modules covering Python concepts, memory models,
-code examples, common cognitive mistakes, and practice exercises.
-Modern minimalist SaaS design inspired by Notion and Stripe.
+LearnSphere AI: Structured Course and Learning Content Library
+Features:
+- Compact course cards in a clean grid matching the reference dashboard style
+- Course title, description, difficulty, lesson count, exercises, completion %
+- Search filter, category filters, and sorting
+- In-depth module viewer with Python code demonstrations, mistake analysis, and live sandbox
 """
 
 import streamlit as st
+import io
+import contextlib
 from database.db import (
     get_all_learning_content, get_user_lesson_progress, toggle_lesson_progress
 )
@@ -17,193 +21,193 @@ def render_library_page(user: dict):
     progress_map = get_user_lesson_progress(user_id)
 
     st.markdown("""
-    <div style="margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.75rem; font-weight: 700; color: #172554; margin: 0; letter-spacing: -0.025em;">
-            Python Learning Content Library
-        </h2>
-        <p style="color: #64748B; font-size: 0.875rem; margin-top: 0.25rem;">
-            Rigorous conceptual curriculum designed to prevent subtle cognitive bugs and establish robust mental models.
-        </p>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem;">
+        <div>
+            <h2 style="font-size: 1.45rem; font-weight: 700; color: #243B64; margin: 0; letter-spacing: -0.02em;">Learning Content Library</h2>
+            <div style="font-size: 0.775rem; color: #718096; margin-top: 0.15rem;">Structured Python programming modules designed to prevent cognitive bugs and build robust mental models.</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 1. Lesson Selector Tabs / Dropdown
-    lesson_titles = [f"{l['order_index']}. {l['concept_name']}" for l in lessons]
-    lesson_codes = [l["concept_code"] for l in lessons]
+    # 1. Search, Category Filter, and Sorting Controls
+    col_search, col_cat, col_sort = st.columns([1.5, 1, 1])
+    with col_search:
+        search_query = st.text_input("Search Modules", placeholder="Search title or concept...", label_visibility="collapsed", key="lib_search")
+    with col_cat:
+        category_filter = st.selectbox(
+            "Filter Category",
+            ["All Concepts", "Foundational Syntax", "Control Flow", "Data Structures", "Functions & Recursion"],
+            index=0,
+            label_visibility="collapsed"
+        )
+    with col_sort:
+        sort_order = st.selectbox(
+            "Sort By",
+            ["Curriculum Sequence", "Reading Duration", "Completion Status"],
+            index=0,
+            label_visibility="collapsed"
+        )
 
-    preselected_code = st.session_state.pop("selected_lesson_code", None)
-    default_idx = 0
-    if preselected_code and preselected_code in lesson_codes:
-        default_idx = lesson_codes.index(preselected_code)
+    # Filter lessons based on search query
+    filtered_lessons = lessons
+    if search_query:
+        filtered_lessons = [l for l in filtered_lessons if search_query.lower() in l["title"].lower() or search_query.lower() in l["concept_name"].lower()]
 
-    selected_title = st.selectbox("Select Learning Module", lesson_titles, index=default_idx)
-    selected_idx = lesson_titles.index(selected_title)
-    lesson = lessons[selected_idx]
+    if sort_order == "Reading Duration":
+        filtered_lessons = sorted(filtered_lessons, key=lambda x: x["reading_time_min"])
+    elif sort_order == "Completion Status":
+        filtered_lessons = sorted(filtered_lessons, key=lambda x: progress_map.get(x["id"], False), reverse=True)
 
-    content_id = lesson["id"]
+    # Check if a lesson is currently active in session state
+    active_code = st.session_state.get("selected_lesson_code", filtered_lessons[0]["concept_code"] if filtered_lessons else None)
+
+    # 2. Compact Course Cards Grid
+    st.markdown("<div style='font-size: 0.85rem; font-weight: 700; color: #243B64; margin: 0.75rem 0 0.5rem 0;'>Available Curriculum Courses</div>", unsafe_allow_html=True)
+    cols = st.columns(3)
+
+    for idx, l in enumerate(filtered_lessons):
+        cid = l["id"]
+        is_done = progress_map.get(cid, False)
+        comp_pct = 100 if is_done else 45
+        diff_label = "Beginner" if l["order_index"] <= 2 else ("Intermediate" if l["order_index"] <= 4 else "Advanced")
+        pill_cls = "pill-completed" if is_done else "pill-ontrack"
+        pill_text = "Completed" if is_done else "In Progress"
+
+        with cols[idx % 3]:
+            st.markdown(f"""
+            <div class="lm-card" style="padding: 0.9rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-size: 0.675rem; font-weight: 700; color: #3976B9; background: #EAF2FA; padding: 2px 6px; border-radius: 4px;">MODULE {l['order_index']}</span>
+                    <span class="lm-pill {pill_cls}">{pill_text}</span>
+                </div>
+                <div style="font-weight: 700; font-size: 0.875rem; color: #243B64; line-height: 1.3; margin-bottom: 0.25rem;">
+                    {l['title']}
+                </div>
+                <div style="font-size: 0.725rem; color: #718096; line-height: 1.4; height: 38px; overflow: hidden; margin-bottom: 0.5rem;">
+                    {l['summary'][:95]}...
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.675rem; color: #718096; margin-bottom: 0.25rem;">
+                    <span>Difficulty: <strong>{diff_label}</strong></span>
+                    <span>{l['reading_time_min']} min &bull; 4 Exercises</span>
+                </div>
+                <div class="lm-progress-wrap" style="height: 5px; margin: 0.25rem 0 0.5rem 0;">
+                    <div class="lm-progress-bar" style="width: {comp_pct}%;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button("Continue Learning", key=f"btn_lib_sel_{l['concept_code']}", use_container_width=True, type="primary" if l["concept_code"] == active_code else "secondary"):
+                st.session_state["selected_lesson_code"] = l["concept_code"]
+                st.rerun()
+
+    # 3. Active Detailed Lesson Viewer
+    active_lesson = next((l for l in lessons if l["concept_code"] == active_code), filtered_lessons[0] if filtered_lessons else None)
+    if not active_lesson:
+        return
+
+    content_id = active_lesson["id"]
     is_completed = progress_map.get(content_id, False)
 
-    # 2. Lesson Header Card
-    completed_badge = '<span class="ls-badge badge-mastered">Completed</span>' if is_completed else '<span class="ls-badge badge-developing">In Progress</span>'
+    st.markdown("<hr style='border-color: #E4E8ED; margin: 1.25rem 0 1rem 0;'>", unsafe_allow_html=True)
     st.markdown(f"""
-    <div class="ls-card">
-        <div class="ls-card-header">
+    <div class="lm-card" style="border-left: 4px solid #3976B9;">
+        <div class="lm-card-header">
             <div>
-                <span class="ls-badge badge-violet">Module {lesson['order_index']}</span>
-                <span style="font-size: 0.8rem; color: #64748B; margin-left: 0.5rem;">{lesson['reading_time_min']} min estimated reading</span>
+                <span class="lm-pill pill-ahead">Active Course Unit: Module {active_lesson['order_index']}</span>
+                <h3 class="lm-card-title" style="font-size: 1.15rem; margin-top: 0.25rem;">{active_lesson['title']}</h3>
+                <div style="font-size: 0.775rem; color: #718096;">Concept: {active_lesson['concept_name']} &bull; {active_lesson['reading_time_min']} min estimated study time</div>
             </div>
-            {completed_badge}
+            <span class="lm-pill {'pill-completed' if is_completed else 'pill-ontrack'}">{'Completed' if is_completed else 'In Progress'}</span>
         </div>
-        <h2 style="font-size: 1.45rem; font-weight: 700; color: #172554; margin-bottom: 0.5rem; letter-spacing: -0.02em;">
-            {lesson['title']}
-        </h2>
-        <p style="color: #475569; font-size: 0.925rem; line-height: 1.6; margin-bottom: 0.75rem;">
-            {lesson['summary']}
+        <p style="color: #263445; font-size: 0.85rem; line-height: 1.55; margin-bottom: 0.5rem;">
+            {active_lesson['introduction']}
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    # 3. Learning Objectives
+    # Learning Objectives
     st.markdown("""
-    <div class="ls-card">
-        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
-            Learning Objectives
-        </h4>
-        <ul style="color: #334155; font-size: 0.875rem; line-height: 1.7; padding-left: 1.25rem; margin: 0;">
+    <div class="lm-card">
+        <div style="font-weight: 700; font-size: 0.85rem; color: #243B64; margin-bottom: 0.4rem;">Learning Objectives</div>
+        <ul style="color: #263445; font-size: 0.8rem; line-height: 1.6; padding-left: 1.2rem; margin: 0;">
     """, unsafe_allow_html=True)
-    for obj in lesson["learning_objectives"]:
+    for obj in active_lesson["learning_objectives"]:
         st.markdown(f"<li>{obj}</li>", unsafe_allow_html=True)
     st.markdown("</ul></div>", unsafe_allow_html=True)
 
-    # 4. Introduction and Detailed Conceptual Explanation
-    st.markdown(f"""
-    <div class="ls-card">
-        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
-            Conceptual Framework
-        </h4>
-        <p style="color: #334155; font-size: 0.925rem; line-height: 1.6; margin-bottom: 0.5rem;">
-            {lesson['introduction']}
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Detailed Conceptual Framework
+    st.markdown(active_lesson["detailed_explanation"])
 
-    st.markdown(lesson["detailed_explanation"])
-
-    # 5. Interactive Python Code Examples
-    st.markdown("""
-    <div class="ls-card" style="margin-top: 1.5rem;">
-        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
-            Annotated Code Demonstrations
-        </h4>
-    </div>
-    """, unsafe_allow_html=True)
-
-    for ex in lesson["code_examples"]:
+    # Code Demonstrations
+    st.markdown("<div style='font-size: 0.875rem; font-weight: 700; color: #243B64; margin: 1rem 0 0.5rem 0;'>Annotated Code Demonstrations</div>", unsafe_allow_html=True)
+    for ex in active_lesson["code_examples"]:
         with st.expander(f"Code Demonstration: {ex['title']}", expanded=True):
             st.code(ex["code"], language="python")
-            col_out, col_notes = st.columns([1, 1])
-            with col_out:
+            c_out, c_note = st.columns(2)
+            with c_out:
                 st.caption("Standard Output:")
                 st.code(ex["output"], language="text")
-            with col_notes:
+            with c_note:
                 st.caption("Pedagogical Notes:")
                 st.info(ex["notes"])
 
-    # 6. Common Mistakes and Misconceptions Analysis
-    st.markdown("""
-    <div class="ls-card" style="margin-top: 1.5rem;">
-        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
-            Common Cognitive Pitfalls in This Topic
-        </h4>
-        <div class="ls-card-desc">Recognizing these anti-patterns directly prevents assessment errors.</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    for cm in lesson["common_mistakes"]:
+    # Common Cognitive Pitfalls
+    st.markdown("<div style='font-size: 0.875rem; font-weight: 700; color: #243B64; margin: 1rem 0 0.5rem 0;'>Common Cognitive Pitfalls</div>", unsafe_allow_html=True)
+    for cm in active_lesson["common_mistakes"]:
         st.markdown(f"""
-        <div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem;">
-            <div style="font-weight: 600; color: #DC2626; font-size: 0.95rem; margin-bottom: 0.5rem;">
-                Mistake Pattern: {cm['title']}
-            </div>
-            <p style="color: #475569; font-size: 0.85rem; line-height: 1.55; margin-bottom: 0.75rem;">
-                {cm['explanation']}
-            </p>
+        <div class="lm-card" style="border-left: 3px solid #D96B6B; padding: 0.85rem; margin-bottom: 0.65rem;">
+            <div style="font-weight: 700; color: #D96B6B; font-size: 0.825rem; margin-bottom: 0.2rem;">Anti-Pattern: {cm['title']}</div>
+            <div style="color: #718096; font-size: 0.775rem; line-height: 1.45; margin-bottom: 0.4rem;">{cm['explanation']}</div>
         </div>
         """, unsafe_allow_html=True)
-
-        col_w, col_c = st.columns(2)
-        with col_w:
+        cw, cc = st.columns(2)
+        with cw:
             st.caption("Flawed Implementation:")
             st.code(cm["wrong_code"], language="python")
-        with col_c:
-            st.caption("Correct Idiomatic Solution:")
+        with cc:
+            st.caption("Idiomatic Solution:")
             st.code(cm["correct_code"], language="python")
 
-    # 7. Practice Exercises
+    # In-Browser Live Code Sandbox
     st.markdown("""
-    <div class="ls-card" style="margin-top: 1.5rem;">
-        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.75rem;">
-            Practice Exercises
-        </h4>
-    </div>
+    <div class="lm-card" style="margin-top: 1rem;">
+        <div class="lm-card-header">
+            <span class="lm-card-title">Interactive Python Code Sandbox</span>
+            <span style="font-size: 0.725rem; color: #718096;">Edit and execute code in real time</span>
+        </div>
     """, unsafe_allow_html=True)
+    default_code = active_lesson["code_examples"][0]["code"] if active_lesson.get("code_examples") else "print('LearnSphere AI Sandbox')"
+    sandbox_input = st.text_area("Python Editor", value=default_code, height=120, key=f"sb_editor_{active_lesson['concept_code']}")
 
-    for p_idx, pe in enumerate(lesson["practice_exercises"]):
-        st.markdown(f"**Exercise {p_idx + 1}:** {pe['prompt']}")
-        with st.expander("View Hint and Solution"):
-            st.write(f"**Hint:** {pe['hint']}")
-            st.code(pe["solution"], language="python")
-
-    # 8. Interactive Python Code Sandbox
-    st.markdown("""
-    <div class="ls-card" style="margin-top: 1.5rem;">
-        <h4 style="font-size: 0.95rem; font-weight: 600; color: #172554; margin-bottom: 0.35rem;">
-            Interactive Python Code Sandbox
-        </h4>
-        <div class="ls-card-desc">Experiment with the concepts taught in this module. Edit and execute Python code in real-time.</div>
-    """, unsafe_allow_html=True)
-
-    default_sandbox_code = lesson["code_examples"][0]["code"] if lesson.get("code_examples") else "print('Hello LearnSphere AI')"
-    user_code = st.text_area("Python Editor", value=default_sandbox_code, height=130, key=f"sandbox_{lesson['concept_code']}")
-
-    if st.button("Execute Python Code", key=f"run_sb_{lesson['concept_code']}", type="primary"):
-        import io
-        import contextlib
-
+    if st.button("Execute Python Code", key=f"run_sb_{active_lesson['concept_code']}", type="primary"):
         stdout_buf = io.StringIO()
         err_msg = None
         try:
             with contextlib.redirect_stdout(stdout_buf):
                 exec_globals = {"__builtins__": __builtins__}
-                exec(user_code, exec_globals)
+                exec(sandbox_input, exec_globals)
         except Exception as exc:
             err_msg = f"{type(exc).__name__}: {str(exc)}"
 
-        output_str = stdout_buf.getvalue()
-        if output_str:
-            st.caption("Execution Output (stdout):")
-            st.code(output_str, language="text")
+        out_str = stdout_buf.getvalue()
+        if out_str:
+            st.caption("Execution Output:")
+            st.code(out_str, language="text")
         if err_msg:
             st.error(f"Runtime Exception: {err_msg}")
-        if not output_str and not err_msg:
+        if not out_str and not err_msg:
             st.info("Code executed successfully with no stdout output.")
-
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 9. Action Controls: Completion Toggle and Assessment Jump
-    st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
-    col_comp, col_test = st.columns([1, 1])
-
-    with col_comp:
-        new_status = not is_completed
-        toggle_label = "Mark as Complete" if not is_completed else "Mark as Incomplete"
-        btn_type = "primary" if not is_completed else "secondary"
-        if st.button(toggle_label, type=btn_type, use_container_width=True):
-            toggle_lesson_progress(user_id, content_id, new_status)
+    # Action Buttons: Toggle Complete and Jump to Assessment
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        toggle_label = "Mark Module as Completed" if not is_completed else "Mark as In Progress"
+        if st.button(toggle_label, use_container_width=True, type="primary" if not is_completed else "secondary"):
+            toggle_lesson_progress(user_id, content_id, not is_completed)
             st.rerun()
-
-    with col_test:
-        if st.button("Take Assessment on this Topic", use_container_width=True):
+    with col_t2:
+        if st.button("Take Assessment on this Concept", use_container_width=True):
             st.session_state["current_page"] = "assessment"
-            st.session_state["assessment_concept_id"] = lesson["concept_id"]
+            st.session_state["assessment_concept_id"] = active_lesson["concept_id"]
             st.rerun()
