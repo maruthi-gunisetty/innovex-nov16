@@ -35,11 +35,16 @@ class TestDatabaseOperations(unittest.TestCase):
     def test_questions_loaded(self):
         questions = get_questions_by_concept_and_difficulty()
         self.assertGreaterEqual(len(questions), 18)
-        # Ensure questions have valid options
-        for q in questions[:5]:
+        # Ensure questions have valid options and varied correct answer positions
+        correct_indices = set()
+        for q in questions:
             self.assertEqual(len(q["options"]), 4)
-            correct_opts = [opt for opt in q["options"] if opt.get("is_correct")]
+            correct_opts = [idx for idx, opt in enumerate(q["options"]) if opt.get("is_correct")]
             self.assertEqual(len(correct_opts), 1)
+            correct_indices.add(correct_opts[0])
+
+        # Verify correct answers are covered across various options (0, 1, 2, 3), not stuck at index 0
+        self.assertEqual(correct_indices, {0, 1, 2, 3})
 
     def test_auth_hashing_and_verification(self):
         password = "SecretPassword!456"

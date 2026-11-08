@@ -1574,18 +1574,33 @@ def seed_database(force: bool = False) -> None:
                 ))
 
         # 5. Seed Assessment Questions (Python, C, Mathematics)
+        # Evenly and variedly distribute correct answer positions across indices 0, 1, 2, 3
         all_questions = QUESTIONS + C_QUESTIONS + MATH_QUESTIONS
         question_id_map = {}
-        for q in all_questions:
+        CYCLE = [1, 2, 0, 3, 2, 3, 1, 0, 3, 0, 2, 1, 0, 1, 3, 2]
+        for q_idx, q in enumerate(all_questions):
             if q["concept_code"] in concept_id_map:
                 cid = concept_id_map[q["concept_code"]]
+                raw_opts = [dict(opt) for opt in q["options"]]
+                corr_list = [o for o in raw_opts if o.get("is_correct")]
+                if corr_list and raw_opts.index(corr_list[0]) == 0 and len(corr_list) == 1:
+                    target_pos = CYCLE[q_idx % len(CYCLE)]
+                    corr_item = corr_list[0]
+                    distractors = [o for o in raw_opts if not o.get("is_correct")]
+                    permuted_opts = distractors[:target_pos] + [corr_item] + distractors[target_pos:]
+                    for idx, opt in enumerate(permuted_opts):
+                        opt["index"] = idx
+                    final_opts = permuted_opts
+                else:
+                    final_opts = raw_opts
+
                 cur.execute("""
                     INSERT INTO questions (
                         concept_id, difficulty, title, prompt, code_snippet, options_json, explanation
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """, (
                     cid, q["difficulty"], q["title"], q["prompt"], q.get("code_snippet"),
-                    json.dumps(q["options"]), q["explanation"]
+                    json.dumps(final_opts), q["explanation"]
                 ))
                 question_id_map[q["title"]] = cur.lastrowid
 
