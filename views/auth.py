@@ -247,3 +247,4 @@ def _render_demo_switcher():
                 st.session_state["user"] = user
                 st.session_state["current_page"] = "teacher_dashboard"
                 st.rerun()
+

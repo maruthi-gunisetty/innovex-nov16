@@ -149,3 +149,4 @@ def render_learning_path_page(user: dict):
                 st.session_state["current_page"] = "assessment"
                 st.session_state["assessment_concept_id"] = primary["concept_id"]
                 st.rerun()
+

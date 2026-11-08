@@ -107,3 +107,4 @@ class BayesianKnowledgeTracing:
                 "color": "#dc2626",
                 "recommendation": "Fundamental prerequisite review recommended before continuing."
             }
+

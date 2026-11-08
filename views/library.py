@@ -154,6 +154,42 @@ def render_library_page(user: dict):
             st.write(f"**Hint:** {pe['hint']}")
             st.code(pe["solution"], language="python")
 
+    # 8. Interactive Python Code Sandbox
+    st.markdown("""
+    <div class="ls-card" style="margin-top: 1.5rem;">
+        <h4 style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.35rem;">
+            Interactive Python Code Sandbox
+        </h4>
+        <div class="ls-card-desc">Experiment with the concepts taught in this module. Edit and execute Python code in real-time.</div>
+    """, unsafe_allow_html=True)
+
+    default_sandbox_code = lesson["code_examples"][0]["code"] if lesson.get("code_examples") else "print('Hello LearnSphere AI')"
+    user_code = st.text_area("Python Editor", value=default_sandbox_code, height=130, key=f"sandbox_{lesson['concept_code']}")
+
+    if st.button("Execute Python Code", key=f"run_sb_{lesson['concept_code']}", type="primary"):
+        import io
+        import contextlib
+
+        stdout_buf = io.StringIO()
+        err_msg = None
+        try:
+            with contextlib.redirect_stdout(stdout_buf):
+                exec_globals = {"__builtins__": __builtins__}
+                exec(user_code, exec_globals)
+        except Exception as exc:
+            err_msg = f"{type(exc).__name__}: {str(exc)}"
+
+        output_str = stdout_buf.getvalue()
+        if output_str:
+            st.caption("Execution Output (stdout):")
+            st.code(output_str, language="text")
+        if err_msg:
+            st.error(f"Runtime Exception: {err_msg}")
+        if not output_str and not err_msg:
+            st.info("Code executed successfully with no stdout output.")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
     # 8. Action Controls: Completion Toggle and Assessment Jump
     st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
     col_comp, col_test = st.columns([1, 1])
@@ -171,3 +207,4 @@ def render_library_page(user: dict):
             st.session_state["current_page"] = "assessment"
             st.session_state["assessment_concept_id"] = lesson["concept_id"]
             st.rerun()
+

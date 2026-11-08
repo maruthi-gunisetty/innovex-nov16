@@ -169,3 +169,4 @@ def render_landing_page():
         LearnSphere AI &copy; 2026. Built for PS 03 Intelligent Education. All rights reserved.
     </div>
     """, unsafe_allow_html=True)
+

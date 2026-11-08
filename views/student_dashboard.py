@@ -253,3 +253,4 @@ def _calculate_streak(attempts: list) -> int:
             break
 
     return max(streak, 1 if dates else 0)
+

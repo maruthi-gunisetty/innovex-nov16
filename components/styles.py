@@ -290,3 +290,4 @@ def render_metric(label: str, value: str, subtext: str = "") -> str:
         {sub_html}
     </div>
     """
+

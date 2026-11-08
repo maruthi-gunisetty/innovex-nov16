@@ -78,3 +78,4 @@ class AuthService:
             return False, "Passwords do not match."
 
         return True, None
+

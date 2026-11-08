@@ -199,3 +199,82 @@ def render_analytics_page(user: dict):
         )
         st.plotly_chart(fig_hist, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
+    # 4. Supervised Machine Learning Risk Engine (Scikit-Learn)
+    st.markdown("""
+    <div class="ls-card">
+        <div class="ls-card-header">
+            <div>
+                <span class="ls-badge badge-demo">Supervised Machine Learning</span>
+                <h3 class="ls-card-title" style="margin-top: 0.25rem;">Scikit-Learn Predictive Cognitive Risk Model</h3>
+                <div class="ls-card-desc">Trained on empirical telemetry (prior mastery, question tier, latency, curriculum order) to forecast success probabilities.</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    from core.ml_predictor import PredictiveLearningEngine
+    ml_engine = PredictiveLearningEngine()
+    train_meta = ml_engine.train()
+
+    col_ml_coef, col_ml_sim = st.columns([1, 1])
+    with col_ml_coef:
+        st.markdown(f"**Model Specifications:** Logistic Regression &bull; Dataset Size: `{train_meta['sample_count']}` observations &bull; Accuracy: `{train_meta['training_accuracy']:.1%}`")
+        df_coef = pd.DataFrame([
+            {"Feature": k.replace("_", " ").title(), "Coefficient Weight": v}
+            for k, v in train_meta["coefficients"].items()
+        ]).sort_values("Coefficient Weight", ascending=False)
+
+        fig_coef = px.bar(
+            df_coef,
+            x="Coefficient Weight",
+            y="Feature",
+            orientation="h",
+            color="Coefficient Weight",
+            color_continuous_scale=["#dc2626", "#94a3b8", "#16a34a"]
+        )
+        fig_coef.update_layout(
+            height=200,
+            margin=dict(l=10, r=10, t=10, b=10),
+            paper_bgcolor="#ffffff",
+            plot_bgcolor="#ffffff",
+            coloraxis_showscale=False
+        )
+        st.plotly_chart(fig_coef, use_container_width=True)
+
+    with col_ml_sim:
+        st.markdown("**Simulate Success Probability for Target Assessment:**")
+        sim_c_order = st.slider("Curriculum Concept Order (1 = VAR, 6 = REC)", 1, 6, 3)
+        sim_diff = st.selectbox("Simulated Question Difficulty", ["beginner", "intermediate", "advanced"], index=1)
+        sim_lat = st.slider("Hypothetical Response Latency (seconds)", 5.0, 60.0, 20.0, 1.0)
+
+        # Average historical accuracy of current user
+        hist_acc = (sum(1 for a in attempts if a["is_correct"]) / len(attempts)) if attempts else 0.50
+        curr_mastery = mastery_data[sim_c_order - 1]["mastery_prob"] if sim_c_order <= len(mastery_data) else 0.50
+
+        pred_res = ml_engine.predict_success_probability(
+            prior_mastery=curr_mastery,
+            difficulty=sim_diff,
+            response_time_sec=sim_lat,
+            concept_order=sim_c_order,
+            historical_accuracy=hist_acc
+        )
+
+        risk_color = "#16a34a" if pred_res["risk_tier"] == "Low Risk" else ("#d97706" if pred_res["risk_tier"] == "Moderate Risk" else "#dc2626")
+        st.markdown(f"""
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; margin-top: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                <span style="font-size: 0.85rem; color: #64748b;">Predicted Success Probability:</span>
+                <strong style="font-size: 1.15rem; color: #0f172a;">{pred_res['success_probability']:.1%}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; color: #64748b;">Risk Classification:</span>
+                <strong style="color: {risk_color};">{pred_res['risk_tier']}</strong>
+            </div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
+                Primary Driver: {pred_res['primary_driver']} &bull; Based on Current Concept Mastery: {curr_mastery:.1%}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+

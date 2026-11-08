@@ -177,3 +177,4 @@ To deploy to Streamlit Community Cloud:
    - **Branch:** `main`
    - **Main file path:** `app.py`
 4. Click **Deploy**. The application will automatically install packages from `requirements.txt`, initialize the SQLite database, and launch.
+

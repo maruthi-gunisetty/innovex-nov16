@@ -188,3 +188,4 @@ def render_teacher_dashboard(user: dict):
                 st.markdown("<p style='color: #16a34a; font-size: 0.85rem;'>No recent incorrect attempts recorded for this student.</p>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
+

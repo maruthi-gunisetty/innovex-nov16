@@ -174,3 +174,4 @@ class RecommenderEngine:
         # Sort by priority descending
         recommendations.sort(key=lambda x: x["priority"], reverse=True)
         return recommendations[:5]
+

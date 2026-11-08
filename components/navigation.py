@@ -101,3 +101,4 @@ def render_navigation():
                 Navigate to Sign In &rarr; Demonstration Mode to immediately test sample student and faculty personas.
             </div>
             """, unsafe_allow_html=True)
+

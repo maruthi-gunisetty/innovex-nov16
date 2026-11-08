@@ -161,3 +161,4 @@ def render_misconception_page(user: dict):
         </p>
     </div>
     """, unsafe_allow_html=True)
+

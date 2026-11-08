@@ -113,3 +113,4 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (content_id) REFERENCES learning_content(id) ON DELETE CASCADE
 );
+
