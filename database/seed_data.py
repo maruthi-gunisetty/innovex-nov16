@@ -1481,7 +1481,12 @@ def seed_database(force: bool = False) -> None:
 
         # Check if already seeded with courses
         cur.execute("SELECT COUNT(*) as cnt FROM courses")
-        if cur.fetchone()["cnt"] > 0 and not force:
+        courses_exist = cur.fetchone()["cnt"] > 0
+
+        # If courses already exist and not forced, ensure extended curriculum (Quantum, DSA, etc.) is up to date and return
+        if courses_exist and not force:
+            from database.extended_seed_data import seed_extended_curriculum
+            seed_extended_curriculum(force=False)
             return
 
         # Clear existing data if forced or upgrading
@@ -1526,52 +1531,99 @@ def seed_database(force: bool = False) -> None:
         py_subj_id = subject_map["programming"]
         py_course_id = course_map["python"]
         for c in CONCEPTS:
-            cur.execute("""
-                INSERT OR REPLACE INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (py_subj_id, py_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
             cur.execute("SELECT id FROM concepts WHERE code = ?", (c["code"],))
-            concept_id_map[c["code"]] = cur.fetchone()["id"]
+            ex = cur.fetchone()
+            if ex:
+                concept_id_map[c["code"]] = ex["id"]
+                cur.execute("""
+                    UPDATE concepts SET subject_id = ?, course_id = ?, name = ?, description = ?,
+                                        order_index = ?, p_init = ?, p_transit = ?, p_guess = ?,
+                                        p_slip = ?, prerequisites = ?
+                    WHERE id = ?
+                """, (py_subj_id, py_course_id, c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"], ex["id"]))
+            else:
+                cur.execute("""
+                    INSERT INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (py_subj_id, py_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
+                concept_id_map[c["code"]] = cur.lastrowid
 
         # 3B. C Programming Concepts
         c_subj_id = subject_map["programming"]
         c_course_id = course_map["c_programming"]
         for c in C_CONCEPTS:
-            cur.execute("""
-                INSERT OR REPLACE INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (c_subj_id, c_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
             cur.execute("SELECT id FROM concepts WHERE code = ?", (c["code"],))
-            concept_id_map[c["code"]] = cur.fetchone()["id"]
+            ex = cur.fetchone()
+            if ex:
+                concept_id_map[c["code"]] = ex["id"]
+                cur.execute("""
+                    UPDATE concepts SET subject_id = ?, course_id = ?, name = ?, description = ?,
+                                        order_index = ?, p_init = ?, p_transit = ?, p_guess = ?,
+                                        p_slip = ?, prerequisites = ?
+                    WHERE id = ?
+                """, (c_subj_id, c_course_id, c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"], ex["id"]))
+            else:
+                cur.execute("""
+                    INSERT INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (c_subj_id, c_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
+                concept_id_map[c["code"]] = cur.lastrowid
 
         # 3C. Mathematics Concepts
         math_subj_id = subject_map["mathematics"]
         math_course_id = course_map["calculus_linear_algebra"]
         for c in MATH_CONCEPTS:
-            cur.execute("""
-                INSERT OR REPLACE INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (math_subj_id, math_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
             cur.execute("SELECT id FROM concepts WHERE code = ?", (c["code"],))
-            concept_id_map[c["code"]] = cur.fetchone()["id"]
+            ex = cur.fetchone()
+            if ex:
+                concept_id_map[c["code"]] = ex["id"]
+                cur.execute("""
+                    UPDATE concepts SET subject_id = ?, course_id = ?, name = ?, description = ?,
+                                        order_index = ?, p_init = ?, p_transit = ?, p_guess = ?,
+                                        p_slip = ?, prerequisites = ?
+                    WHERE id = ?
+                """, (math_subj_id, math_course_id, c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"], ex["id"]))
+            else:
+                cur.execute("""
+                    INSERT INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (math_subj_id, math_course_id, c["code"], c["name"], c["description"], c["order_index"], c["p_init"], c["p_transit"], c["p_guess"], c["p_slip"], c["prerequisites"]))
+                concept_id_map[c["code"]] = cur.lastrowid
 
         # 4. Seed Learning Content (Python, C, Mathematics)
         all_lessons = LESSONS + C_LESSONS + MATH_LESSONS
         for l in all_lessons:
             if l["concept_code"] in concept_id_map:
                 cid = concept_id_map[l["concept_code"]]
-                cur.execute("""
-                    INSERT OR REPLACE INTO learning_content (
-                        concept_id, title, summary, reading_time_min, introduction,
-                        learning_objectives_json, detailed_explanation,
-                        code_examples_json, common_mistakes_json, practice_exercises_json, order_index
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    cid, l["title"], l["summary"], l["reading_time_min"], l["introduction"],
-                    json.dumps(l["learning_objectives"]), l["detailed_explanation"],
-                    json.dumps(l["code_examples"]), json.dumps(l["common_mistakes"]),
-                    json.dumps(l["practice_exercises"]), l["order_index"]
-                ))
+                cur.execute("SELECT id FROM learning_content WHERE concept_id = ?", (cid,))
+                existing_lc = cur.fetchone()
+                if existing_lc:
+                    cur.execute("""
+                        UPDATE learning_content SET
+                            title = ?, summary = ?, reading_time_min = ?, introduction = ?,
+                            learning_objectives_json = ?, detailed_explanation = ?,
+                            code_examples_json = ?, common_mistakes_json = ?,
+                            practice_exercises_json = ?, order_index = ?
+                        WHERE id = ?
+                    """, (
+                        l["title"], l["summary"], l["reading_time_min"], l["introduction"],
+                        json.dumps(l["learning_objectives"]), l["detailed_explanation"],
+                        json.dumps(l["code_examples"]), json.dumps(l["common_mistakes"]),
+                        json.dumps(l["practice_exercises"]), l["order_index"], existing_lc["id"]
+                    ))
+                else:
+                    cur.execute("""
+                        INSERT INTO learning_content (
+                            concept_id, title, summary, reading_time_min, introduction,
+                            learning_objectives_json, detailed_explanation,
+                            code_examples_json, common_mistakes_json, practice_exercises_json, order_index
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        cid, l["title"], l["summary"], l["reading_time_min"], l["introduction"],
+                        json.dumps(l["learning_objectives"]), l["detailed_explanation"],
+                        json.dumps(l["code_examples"]), json.dumps(l["common_mistakes"]),
+                        json.dumps(l["practice_exercises"]), l["order_index"]
+                    ))
 
         # 5. Seed Assessment Questions (Python, C, Mathematics)
         # Evenly and variedly distribute correct answer positions across indices 0, 1, 2, 3

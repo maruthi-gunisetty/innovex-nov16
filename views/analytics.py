@@ -12,7 +12,6 @@ Compact enterprise educational visualizations:
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
 from database.db import get_student_mastery, get_user_attempts
 from core.course_manager import get_active_course, render_course_selector
 
@@ -50,9 +49,9 @@ def render_analytics_page(user: dict):
             st.rerun()
         return
 
-    df_att = pd.DataFrame(attempts)
-    df_att["attempt_number"] = range(len(df_att), 0, -1)
-    df_att = df_att.sort_values("attempt_number")
+    sorted_attempts = list(reversed(attempts))
+    for idx, att in enumerate(sorted_attempts):
+        att["attempt_number"] = idx + 1
 
     # 1. Concept Mastery Radar & Accuracy Donut
     col_chart1, col_chart2 = st.columns([1.2, 1])
@@ -138,22 +137,32 @@ def render_analytics_page(user: dict):
         </div>
     """, unsafe_allow_html=True)
 
-    fig_trend = px.line(
-        df_att,
-        x="attempt_number",
-        y="posterior_mastery",
-        color="concept_name",
-        markers=True,
-        labels={"attempt_number": "Opportunity Index", "posterior_mastery": "BKT P(L)"},
-        color_discrete_sequence=["#3976B9", "#36A879", "#E9AA45", "#243B64", "#D96B6B", "#718096"]
-    )
+    fig_trend = go.Figure()
+    colors = ["#3976B9", "#36A879", "#E9AA45", "#243B64", "#D96B6B", "#718096"]
+    concept_groups = {}
+    for att in sorted_attempts:
+        c_name = att.get("concept_name", "General")
+        if c_name not in concept_groups:
+            concept_groups[c_name] = {"x": [], "y": []}
+        concept_groups[c_name]["x"].append(att["attempt_number"])
+        concept_groups[c_name]["y"].append(att.get("posterior_mastery", 0.5))
+
+    for i, (c_name, data) in enumerate(concept_groups.items()):
+        fig_trend.add_trace(go.Scatter(
+            x=data["x"],
+            y=data["y"],
+            mode="lines+markers",
+            name=c_name,
+            line=dict(color=colors[i % len(colors)], width=2)
+        ))
+
     fig_trend.update_layout(
         height=240,
         margin=dict(l=10, r=10, t=10, b=10),
         paper_bgcolor="#FFFFFF",
         plot_bgcolor="#FFFFFF",
-        xaxis=dict(showgrid=True, gridcolor="#F5F6F8"),
-        yaxis=dict(showgrid=True, gridcolor="#F5F6F8", range=[0.0, 1.0]),
+        xaxis=dict(showgrid=True, gridcolor="#F5F6F8", title="Opportunity Index"),
+        yaxis=dict(showgrid=True, gridcolor="#F5F6F8", range=[0.0, 1.0], title="BKT P(L)"),
         legend=dict(orientation="h", y=-0.25, font=dict(size=10)),
         font=dict(family="Roboto, sans-serif", size=11, color="#263445")
     )
@@ -181,25 +190,28 @@ def render_analytics_page(user: dict):
         </div>
         """, unsafe_allow_html=True)
 
-        df_coef = pd.DataFrame([
-            {"Feature": k.replace("_", " ").title(), "Weight": v}
-            for k, v in train_meta["coefficients"].items()
-        ]).sort_values("Weight", ascending=False)
-
-        fig_coef = px.bar(
-            df_coef,
-            x="Weight",
-            y="Feature",
-            orientation="h",
-            color="Weight",
-            color_continuous_scale=["#D96B6B", "#718096", "#36A879"]
+        coef_items = sorted(
+            [{"Feature": k.replace("_", " ").title(), "Weight": v} for k, v in train_meta["coefficients"].items()],
+            key=lambda x: x["Weight"],
+            reverse=False
         )
+        fig_coef = go.Figure(data=[
+            go.Bar(
+                x=[item["Weight"] for item in coef_items],
+                y=[item["Feature"] for item in coef_items],
+                orientation="h",
+                marker_color=["#36A879" if item["Weight"] >= 0 else "#D96B6B" for item in coef_items],
+                text=[f"{item['Weight']:+.2f}" for item in coef_items],
+                textposition="auto"
+            )
+        ])
         fig_coef.update_layout(
             height=160,
             margin=dict(l=5, r=5, t=5, b=5),
             paper_bgcolor="#FFFFFF",
             plot_bgcolor="#FFFFFF",
-            coloraxis_showscale=False,
+            xaxis=dict(gridcolor="#F5F6F8"),
+            yaxis=dict(gridcolor="#F5F6F8"),
             font=dict(family="Roboto, sans-serif", size=10, color="#263445")
         )
         st.plotly_chart(fig_coef, use_container_width=True, config={"displayModeBar": False})

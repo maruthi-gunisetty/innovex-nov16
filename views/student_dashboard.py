@@ -10,11 +10,11 @@ Zero emojis, strict professional typography, and real database telemetry.
 
 import streamlit as st
 import plotly.graph_objects as go
-import pandas as pd
 from datetime import datetime
 from database.db import (
     get_student_mastery, get_user_attempts, get_user_lesson_progress,
-    get_all_learning_content
+    get_all_learning_content, save_recommendations, get_student_recommendations,
+    mark_recommendation_followed
 )
 from core.bkt import BayesianKnowledgeTracing
 from core.recommender import RecommenderEngine
@@ -421,6 +421,11 @@ def render_student_dashboard(user: dict):
         """, unsafe_allow_html=True)
 
     # ==========================================================
+    # 3.5 AI-POWERED PERSONALIZED LEARNING RECOMMENDATIONS
+    # ==========================================================
+    _render_recommendations_section(user, active_course, mastery_data, attempts, lesson_progress)
+
+    # ==========================================================
     # 4. BOTTOM SECTION: COMPACT LEARNING ROADMAP
     # ==========================================================
     st.markdown(f"""
@@ -500,3 +505,117 @@ def _calculate_streak(attempts: list) -> int:
             break
 
     return max(streak, 1 if dates else 0)
+
+
+def _render_recommendations_section(user, active_course, mastery_data, attempts, lesson_progress):
+    """Renders the AI-powered personalized recommendation engine section with direct actions."""
+    user_id = user["id"]
+    course_id = active_course["id"]
+
+    # Generate live recommendations using pedagogical engine
+    generated_recs = RecommenderEngine.generate_recommendations(user_id, mastery_data, attempts, lesson_progress)
+    if generated_recs:
+        save_recommendations(user_id, course_id, generated_recs)
+
+    # Fetch stored active recommendations from DB
+    recs = get_student_recommendations(user_id, course_id=course_id, limit=6)
+    if not recs and generated_recs:
+        recs = generated_recs[:6]
+
+    st.markdown("""
+    <div class="lm-card" style="margin-top: 0.75rem; margin-bottom: 0.75rem;">
+        <div class="lm-card-header">
+            <div>
+                <span class="lm-card-title">AI-Powered Personalized Learning Recommendations</span>
+                <div style="font-size: 0.725rem; color: #718096; margin-top: 0.15rem;">
+                    Identifies knowledge gaps, prerequisite barriers, and optimal Zone of Proximal Development steps.
+                </div>
+            </div>
+            <span class="lm-pill pill-ahead">6 Pedagogical Categories</span>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if not recs:
+        st.info("No immediate remediation required! Continue with the course progression below or attempt an assessment.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    # Category styling map
+    cat_style = {
+        "Study This Concept": {"bg": "#EFF6FF", "text": "#1E40AF", "border": "#BFDBFE"},
+        "Practice These Questions": {"bg": "#ECFDF5", "text": "#065F46", "border": "#A7F3D0"},
+        "Revise Previous Lessons": {"bg": "#FFFBEB", "text": "#92400E", "border": "#FDE68A"},
+        "Attempt Advanced Questions": {"bg": "#F5F3FF", "text": "#5B21B6", "border": "#DDD6FE"},
+        "Complete Prerequisite Concepts": {"bg": "#FEF2F2", "text": "#991B1B", "border": "#FECACA"},
+        "Continue Your Learning Path": {"bg": "#F8FAFC", "text": "#1E293B", "border": "#CBD5E1"},
+    }
+
+    # Render in 3-column rows
+    for i in range(0, min(len(recs), 6), 3):
+        chunk = recs[i:i+3]
+        cols = st.columns(len(chunk))
+        for col, r in zip(cols, chunk):
+            with col:
+                cat = r.get("category", "Study This Concept")
+                style = cat_style.get(cat, {"bg": "#F1F5F9", "text": "#334155", "border": "#E2E8F0"})
+                diff = r.get("suggested_difficulty", "Intermediate").capitalize()
+                mins = r.get("estimated_minutes", 15)
+                title = r.get("title", "Recommended Step")
+                reason = r.get("reason", "")
+                c_name = r.get("concept_name", "")
+                c_id = r.get("concept_id")
+                rec_id = r.get("id")
+
+                # Match mastery
+                m_prob = 0.20
+                for m in mastery_data:
+                    if m.get("concept_id") == c_id:
+                        m_prob = m.get("mastery_prob", 0.20)
+                        break
+
+                action_type = "learn" if cat in ["Study This Concept", "Revise Previous Lessons", "Complete Prerequisite Concepts"] else "practice"
+                btn_label = "Start Learning" if action_type == "learn" else "Practice Now"
+
+                st.markdown(f"""
+                <div style="background: {style['bg']}; border: 1.5px solid {style['border']}; border-radius: 10px; padding: 0.85rem; height: 260px; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0.65rem;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                            <span style="background: {style['text']}; color: #FFFFFF; font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
+                                {cat}
+                            </span>
+                            <span style="font-size: 0.675rem; color: #64748B; font-weight: 600;">
+                                ⏱ {mins} mins
+                            </span>
+                        </div>
+                        <div style="font-weight: 700; font-size: 0.85rem; color: #172943; margin-bottom: 0.25rem; line-height: 1.3;">
+                            {title}
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 0.45rem;">
+                            <span style="font-size: 0.65rem; color: #475569; background: #FFFFFF; border: 1px solid {style['border']}; padding: 1px 6px; border-radius: 4px; font-weight: 600;">
+                                Difficulty: {diff}
+                            </span>
+                            <span style="font-size: 0.65rem; color: #475569; background: #FFFFFF; border: 1px solid {style['border']}; padding: 1px 6px; border-radius: 4px; font-weight: 600;">
+                                Mastery: {m_prob:.0%}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.725rem; color: #475569; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">
+                            {reason}
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                if st.button(f"{btn_label} →", key=f"btn_rec_act_{rec_id or i}_{c_id}", type="primary", use_container_width=True):
+                    if rec_id:
+                        mark_recommendation_followed(rec_id)
+                    if action_type == "learn":
+                        st.session_state["current_page"] = "learning_library"
+                        st.session_state["_synced_page"] = "learning_library"
+                        st.session_state["lib_search"] = c_name
+                    else:
+                        st.session_state["current_page"] = "assessment"
+                        st.session_state["_synced_page"] = "assessment"
+                        st.session_state["assessment_concept_id"] = c_id
+                    st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)

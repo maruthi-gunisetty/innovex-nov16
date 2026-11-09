@@ -12,7 +12,6 @@ of the reference educational management dashboard:
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
 from database.db import (
     get_class_overview, get_all_students, get_student_mastery,
     get_user_attempts, get_all_courses

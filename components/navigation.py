@@ -101,11 +101,16 @@ def render_navigation():
         """, unsafe_allow_html=True)
         with st.expander("Switch Track", expanded=False):
             render_course_selector(key="sidebar_track_selector", label="Select Track", on_change_rerun=True)
+            if st.button("Browse All Subjects Hub", key="btn_browse_hub_sidebar", use_container_width=True):
+                st.session_state["current_page"] = "subjects"
+                st.session_state["_synced_page"] = "subjects"
+                st.rerun()
 
         # Options Board Items
         if user.get("role") == "teacher":
             nav_map = {
                 "Dashboard": "teacher_dashboard",
+                "Subjects Hub": "subjects",
                 "Assessments": "assessment",
                 "AI Intelligence": "misconceptions",
                 "Learning Path": "learning_path",
@@ -120,6 +125,7 @@ def render_navigation():
         else:
             nav_map = {
                 "Dashboard": "student_dashboard",
+                "Subjects Hub": "subjects",
                 "Assessments": "assessment",
                 "AI Intelligence": "misconceptions",
                 "Learning Path": "learning_path",

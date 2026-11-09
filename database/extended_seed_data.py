@@ -1549,12 +1549,22 @@ def seed_extended_curriculum(force: bool = False):
             s_id = subject_map[course_code]
 
             for cp in concept_list:
-                cur.execute("""
-                    INSERT OR REPLACE INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (s_id, c_id, cp["code"], cp["name"], cp["description"], cp["order_index"], cp["p_init"], cp["p_transit"], cp["p_guess"], cp["p_slip"], cp["prerequisites"]))
                 cur.execute("SELECT id FROM concepts WHERE code = ?", (cp["code"],))
-                concept_id_map[cp["code"]] = cur.fetchone()["id"]
+                existing = cur.fetchone()
+                if existing:
+                    concept_id_map[cp["code"]] = existing["id"]
+                    cur.execute("""
+                        UPDATE concepts SET subject_id = ?, course_id = ?, name = ?, description = ?,
+                                            order_index = ?, p_init = ?, p_transit = ?, p_guess = ?,
+                                            p_slip = ?, prerequisites = ?
+                        WHERE id = ?
+                    """, (s_id, c_id, cp["name"], cp["description"], cp["order_index"], cp["p_init"], cp["p_transit"], cp["p_guess"], cp["p_slip"], cp["prerequisites"], existing["id"]))
+                else:
+                    cur.execute("""
+                        INSERT INTO concepts (subject_id, course_id, code, name, description, order_index, p_init, p_transit, p_guess, p_slip, prerequisites)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (s_id, c_id, cp["code"], cp["name"], cp["description"], cp["order_index"], cp["p_init"], cp["p_transit"], cp["p_guess"], cp["p_slip"], cp["prerequisites"]))
+                    concept_id_map[cp["code"]] = cur.lastrowid
 
         print(f"Seeded {len(concept_id_map)} extended concepts.")
 

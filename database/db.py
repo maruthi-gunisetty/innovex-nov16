@@ -48,6 +48,34 @@ def init_db(force: bool = False) -> None:
             conn.execute("ALTER TABLE concepts ADD COLUMN subject_id INTEGER REFERENCES subjects(id)")
         if "course_id" not in cols:
             conn.execute("ALTER TABLE concepts ADD COLUMN course_id INTEGER REFERENCES courses(id)")
+
+        # Ensure learning_recommendations columns
+        cur.execute("PRAGMA table_info(learning_recommendations)")
+        rec_cols = {row["name"] for row in cur.fetchall()}
+        if "category" not in rec_cols:
+            conn.execute("ALTER TABLE learning_recommendations ADD COLUMN category TEXT DEFAULT 'Study This Concept'")
+        if "suggested_difficulty" not in rec_cols:
+            conn.execute("ALTER TABLE learning_recommendations ADD COLUMN suggested_difficulty TEXT DEFAULT 'intermediate'")
+        if "estimated_minutes" not in rec_cols:
+            conn.execute("ALTER TABLE learning_recommendations ADD COLUMN estimated_minutes INTEGER DEFAULT 15")
+        if "course_id" not in rec_cols:
+            conn.execute("ALTER TABLE learning_recommendations ADD COLUMN course_id INTEGER REFERENCES courses(id)")
+        if "is_followed" not in rec_cols:
+            conn.execute("ALTER TABLE learning_recommendations ADD COLUMN is_followed INTEGER DEFAULT 0")
+
+        # Ensure chat_messages table
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                course_id INTEGER REFERENCES courses(id),
+                concept_id INTEGER REFERENCES concepts(id),
+                sender TEXT NOT NULL,
+                message TEXT NOT NULL,
+                mode TEXT DEFAULT 'curriculum_engine',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         conn.commit()
 
 
@@ -455,14 +483,23 @@ def update_student_mastery_record(
 ) -> None:
     now = datetime.now().isoformat()
     with get_db_connection() as conn:
-        conn.execute("""
-            UPDATE student_mastery
-            SET mastery_prob = ?,
-                total_attempts = total_attempts + 1,
-                correct_attempts = correct_attempts + ?,
-                last_updated = ?
-            WHERE user_id = ? AND concept_id = ?
-        """, (new_mastery, 1 if is_correct else 0, now, user_id, concept_id))
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM student_mastery WHERE user_id = ? AND concept_id = ?", (user_id, concept_id))
+        row = cur.fetchone()
+        if row:
+            conn.execute("""
+                UPDATE student_mastery
+                SET mastery_prob = ?,
+                    total_attempts = total_attempts + 1,
+                    correct_attempts = correct_attempts + ?,
+                    last_updated = ?
+                WHERE user_id = ? AND concept_id = ?
+            """, (new_mastery, 1 if is_correct else 0, now, user_id, concept_id))
+        else:
+            conn.execute("""
+                INSERT INTO student_mastery (user_id, concept_id, mastery_prob, total_attempts, correct_attempts, last_updated)
+                VALUES (?, ?, ?, 1, ?, ?)
+            """, (user_id, concept_id, new_mastery, 1 if is_correct else 0, now))
         conn.commit()
 
 
@@ -604,3 +641,133 @@ def get_class_overview(
             "concept_masteries": concept_masteries,
             "top_misconceptions": misconceptions
         }
+
+
+# ==========================================
+# CHAT & ASSISTANT PERSISTENCE
+# ==========================================
+
+def save_chat_message(
+    user_id: int,
+    course_id: Optional[int],
+    concept_id: Optional[int],
+    sender: str,
+    message: str,
+    mode: str = "curriculum_engine"
+) -> int:
+    """Persists a chat exchange between student and SARVA AI."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO chat_messages (user_id, course_id, concept_id, sender, message, mode)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (user_id, course_id, concept_id, sender, message, mode))
+        conn.commit()
+        return cur.lastrowid
+
+
+def get_chat_history(
+    user_id: int,
+    course_id: Optional[int] = None,
+    limit: int = 50
+) -> List[Dict[str, Any]]:
+    """Retrieves chronological chat messages for a student and active course."""
+    query = "SELECT * FROM chat_messages WHERE user_id = ?"
+    params = [user_id]
+    if course_id:
+        query += " AND (course_id = ? OR course_id IS NULL)"
+        params.append(course_id)
+    query += " ORDER BY id ASC LIMIT ?"
+    params.append(limit)
+
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(query, tuple(params))
+        return [dict(r) for r in cur.fetchall()]
+
+
+def clear_chat_history(user_id: int, course_id: Optional[int] = None) -> None:
+    """Clears conversational session history for a student."""
+    query = "DELETE FROM chat_messages WHERE user_id = ?"
+    params = [user_id]
+    if course_id:
+        query += " AND (course_id = ? OR course_id IS NULL)"
+        params.append(course_id)
+    with get_db_connection() as conn:
+        conn.execute(query, tuple(params))
+        conn.commit()
+
+
+# ==========================================
+# PERSONALIZED RECOMMENDATIONS PERSISTENCE
+# ==========================================
+
+def save_recommendations(
+    user_id: int,
+    course_id: int,
+    recs: List[Dict[str, Any]]
+) -> None:
+    """Stores generated personalized recommendations into the database, refreshing active set."""
+    with get_db_connection() as conn:
+        conn.execute("""
+            DELETE FROM learning_recommendations
+            WHERE user_id = ? AND course_id = ? AND (is_completed = 0 OR is_completed IS NULL)
+        """, (user_id, course_id))
+        for r in recs:
+            cid = r.get("concept_id")
+            category = r.get("category", "Study This Concept")
+            title = r.get("title", "Recommended Step")
+            reason = r.get("reason", "")
+            priority = r.get("priority", 1.0)
+            suggested_diff = r.get("suggested_difficulty", "intermediate")
+            est_mins = r.get("estimated_minutes", 15)
+
+            conn.execute("""
+                INSERT INTO learning_recommendations (
+                    user_id, course_id, concept_id, recommendation_type,
+                    title, reason, priority_score, category,
+                    suggested_difficulty, estimated_minutes, is_completed
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            """, (
+                user_id, course_id, cid, r.get("type", "study"),
+                title, reason, priority, category,
+                suggested_diff, est_mins
+            ))
+        conn.commit()
+
+
+def get_student_recommendations(
+    user_id: int,
+    course_id: Optional[int] = None,
+    limit: int = 6
+) -> List[Dict[str, Any]]:
+    """Retrieves active personalized recommendations for a student."""
+    query = """
+        SELECT lr.*, c.name as concept_name, c.code as concept_code
+        FROM learning_recommendations lr
+        LEFT JOIN concepts c ON lr.concept_id = c.id
+        WHERE lr.user_id = ? AND (lr.is_completed = 0 OR lr.is_completed IS NULL)
+    """
+    params = [user_id]
+    if course_id:
+        query += " AND (lr.course_id = ? OR lr.course_id IS NULL)"
+        params.append(course_id)
+    query += " ORDER BY lr.priority_score DESC, lr.id DESC LIMIT ?"
+    params.append(limit)
+
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(query, tuple(params))
+        return [dict(r) for r in cur.fetchall()]
+
+
+def mark_recommendation_followed(rec_id: int) -> None:
+    """Marks a recommendation as accepted and followed by the student."""
+    with get_db_connection() as conn:
+        conn.execute("""
+            UPDATE learning_recommendations
+            SET is_completed = 1, is_followed = 1
+            WHERE id = ?
+        """, (rec_id,))
+        conn.commit()
+

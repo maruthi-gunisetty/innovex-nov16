@@ -7,7 +7,17 @@ __pycache__/
 .vscode/
 .idea/
 
-
 *.log
 tunnel_runner.py
 scratch/
+temp_edge_*
+*.bak
+*.phase1_bak
+active_preview_url.txt
+preview_live_portal.png
+auth_portal_fresh.png
+after_signout_live.png
+assessment_page_live.png
+debug_view.png
+quantum_assessment_live.png
+student_dashboard_live.png

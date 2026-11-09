@@ -10,6 +10,10 @@ from database.db import get_all_courses, get_course_by_code, get_course_by_id, g
 
 def get_active_course() -> Dict[str, Any]:
     """Retrieves the currently active course record from session state, defaulting to python."""
+    query_track = st.query_params.get("track")
+    if query_track and "active_course_code" not in st.session_state:
+        st.session_state["active_course_code"] = query_track
+
     code = st.session_state.get("active_course_code", "python")
     course = get_course_by_code(code)
     if not course:

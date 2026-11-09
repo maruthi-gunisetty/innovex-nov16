@@ -24,6 +24,8 @@ from views.misconception_view import render_misconception_page
 from views.analytics import render_analytics_page
 from views.teacher_dashboard import render_teacher_dashboard
 from views.settings import render_settings_page
+from views.subjects_hub import render_subjects_hub_page
+from components.sarva_ai import render_sarva_ai_widget
 
 
 def main():
@@ -88,6 +90,8 @@ def main():
         render_student_dashboard(user)
     elif current_page == "teacher_dashboard":
         render_teacher_dashboard(user)
+    elif current_page == "subjects":
+        render_subjects_hub_page(user)
     elif current_page == "assessment":
         render_assessment_page(user)
     elif current_page == "learning_path":
@@ -108,6 +112,9 @@ def main():
             render_teacher_dashboard(user)
         else:
             render_student_dashboard(user)
+
+    # 8. Render Floating SARVA AI Assistant (Subject-Aware, Non-BKT Affecting)
+    render_sarva_ai_widget(user)
 
 
 if __name__ == "__main__":

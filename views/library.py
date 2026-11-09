@@ -157,7 +157,7 @@ def render_library_page(user: dict):
                 st.rerun()
 
     # 3. Active Detailed Lesson Viewer
-    active_lesson = next((l for l in lessons if l["concept_code"] == active_code), filtered_lessons[0] if filtered_lessons else None)
+    active_lesson = next((l for l in lessons if l["concept_code"] == active_code), lessons[0] if lessons else None)
     if not active_lesson:
         return
 

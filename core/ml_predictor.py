@@ -1,27 +1,89 @@
 """
-LearnSphere AI: Scikit-Learn Predictive Learning Risk and Outcome Classifier
-Trains an interpretable classification model (Logistic Regression & Random Forest)
+LearnSphere AI: Predictive Learning Risk and Outcome Classifier
+Trains an interpretable classification model (Logistic Regression)
 on student interaction telemetry to predict outcome probabilities and cognitive risk.
+Includes pure-NumPy fallback to ensure high reliability across all platforms.
 """
 
 import numpy as np
-import pandas as pd
 from typing import Dict, Any, Tuple, Optional
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
 from database.db import get_db_connection
+
+# Attempt Scikit-Learn; provide seamless NumPy fallback if OS policies restrict C-extensions
+try:
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.preprocessing import StandardScaler
+    _SKLEARN_AVAILABLE = True
+except (ImportError, OSError):
+    _SKLEARN_AVAILABLE = False
+
+
+class _NumpyStandardScaler:
+    """Pure-NumPy feature standardizer."""
+    def __init__(self):
+        self.mean_ = None
+        self.scale_ = None
+
+    def fit_transform(self, X: np.ndarray) -> np.ndarray:
+        self.mean_ = np.mean(X, axis=0)
+        self.scale_ = np.std(X, axis=0)
+        self.scale_[self.scale_ == 0] = 1.0
+        return (X - self.mean_) / self.scale_
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        return (X - self.mean_) / self.scale_
+
+
+class _NumpyLogisticRegression:
+    """Pure-NumPy binary logistic regression with L2 regularization."""
+    def __init__(self, max_iter: int = 500, lr: float = 0.1, l2: float = 0.01):
+        self.max_iter = max_iter
+        self.lr = lr
+        self.l2 = l2
+        self.coef_ = None
+        self.intercept_ = None
+
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        n_samples, n_features = X.shape
+        w = np.zeros(n_features)
+        b = 0.0
+        for _ in range(self.max_iter):
+            z = np.clip(np.dot(X, w) + b, -25.0, 25.0)
+            p = 1.0 / (1.0 + np.exp(-z))
+            grad_w = np.dot(X.T, p - y) / n_samples + self.l2 * w
+            grad_b = float(np.mean(p - y))
+            w -= self.lr * grad_w
+            b -= self.lr * grad_b
+        self.coef_ = np.array([w])
+        self.intercept_ = np.array([b])
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        z = np.clip(np.dot(X, self.coef_[0]) + self.intercept_[0], -25.0, 25.0)
+        p1 = 1.0 / (1.0 + np.exp(-z))
+        p0 = 1.0 - p1
+        return np.column_stack([p0, p1])
+
+    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        preds = (self.predict_proba(X)[:, 1] >= 0.5).astype(int)
+        return float(np.mean(preds == y))
 
 
 class PredictiveLearningEngine:
     """
-    Supervised Machine Learning module using Scikit-Learn to model:
+    Supervised Machine Learning module modeling:
     P(Success | prior_mastery, difficulty, latency, concept_complexity, historical_accuracy)
     """
 
     def __init__(self):
-        self.scaler = StandardScaler()
-        self.model = LogisticRegression(max_iter=1000, random_state=42)
+        if _SKLEARN_AVAILABLE:
+            self.scaler = StandardScaler()
+            self.model = LogisticRegression(max_iter=1000, random_state=42)
+            self._backend = "Scikit-Learn"
+        else:
+            self.scaler = _NumpyStandardScaler()
+            self.model = _NumpyLogisticRegression(max_iter=500, lr=0.1)
+            self._backend = "NumPy Optimized Engine"
+
         self.is_trained = False
         self.feature_names = [
             "prior_mastery",
@@ -113,7 +175,8 @@ class PredictiveLearningEngine:
             "sample_count": len(X),
             "training_accuracy": acc,
             "coefficients": coefficients,
-            "intercept": float(self.model.intercept_[0])
+            "intercept": float(self.model.intercept_[0]),
+            "backend": self._backend
         }
 
     def predict_success_probability(
@@ -151,6 +214,6 @@ class PredictiveLearningEngine:
             "success_probability": prob_success,
             "failure_risk_probability": prob_failure,
             "risk_tier": risk_tier,
-            "model_type": "Logistic Regression (Scikit-Learn)",
+            "model_type": f"Logistic Regression ({self._backend})",
             "primary_driver": "Prior Concept Mastery" if prior_mastery < 0.50 else "Item Difficulty Discrepancy"
         }
