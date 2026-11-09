@@ -46,16 +46,7 @@ def main():
     if "target_view" in st.session_state:
         st.session_state["current_page"] = st.session_state.pop("target_view")
 
-    # 5. Render Navigation
-    render_navigation()
-
-    # 5.1 Handle Active Global Search Overlay
-    active_search = st.session_state.get("global_search_query", "").strip()
-    if active_search:
-        render_search_results_view(active_search)
-        return
-
-    # 6. Current Routing
+    # 5. Current Routing & Demo User Provisioning
     current_page = st.session_state.get("current_page", "student_dashboard")
     user = st.session_state.get("user")
 
@@ -68,10 +59,19 @@ def main():
     if current_page in protected_pages and not user:
         from database.db import get_user_by_email, get_user_by_username
         if current_page == "teacher_dashboard":
-            user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123")
+            user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123") or get_user_by_username("dr_bennett")
         else:
             user = get_user_by_email("student@123") or get_user_by_username("student@123")
         st.session_state["user"] = user
+
+    # 6. Render Navigation (Full Top Bar and Left Sidebar)
+    render_navigation()
+
+    # 6.1 Handle Active Global Search Overlay
+    active_search = st.session_state.get("global_search_query", "").strip()
+    if active_search:
+        render_search_results_view(active_search)
+        return
 
     # Route Rendering
     if current_page == "landing":
