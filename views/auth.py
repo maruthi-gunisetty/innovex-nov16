@@ -1,7 +1,11 @@
 """
-LearnSphere AI: Authentication and Access Management
-Supports student registration, student sign-in, teacher access,
-and quick demonstration profile switching.
+SARVAVIDYA: Premium Enterprise Authentication Portal
+Redesigned with Modern White + Blue Enterprise aesthetics:
+- Responsive split-screen architecture (55% Brand Experience / 45% Auth Card)
+- Golden lotus + open book identity and four-subject STEM showcase
+- Modern segmented tabs with instant 1-click evaluation access
+- Preserves 100% of underlying cryptographically secure PBKDF2 authentication,
+  session persistence, role management, and database operations.
 """
 
 import streamlit as st
@@ -9,59 +13,177 @@ from core.auth_service import AuthService
 from database.db import (
     get_user_by_username, get_user_by_email, create_user
 )
-from components.brand import render_full_hero_brand, BRAND_NAME, TAGLINE
+from components.brand import SYMBOL_SVG, BRAND_NAME, TAGLINE
+from components.styles import AUTH_PAGE_CSS
+
+
+def _clean_html(raw_html: str) -> str:
+    """Strips all leading and trailing whitespace from every line so Markdown never treats HTML as code blocks."""
+    return "\n".join(line.strip() for line in raw_html.strip().splitlines() if line.strip())
 
 
 def render_auth_page():
-    render_full_hero_brand(center=True)
-    st.markdown(f"""
-    <div style="text-align: center; margin-bottom: 1.25rem;">
-        <p style="color: #718096; font-size: 0.85rem; margin: 0;">
-            Sign in to your personalized multi-subject workspace or launch a verified academic persona.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    """
+    Renders the premium split-screen authentication portal:
+    Left: Brand identity, learning philosophy, and 4-subject discipline showcase.
+    Right: Modern enterprise authentication card with segmented navigation.
+    """
+    # Enforce strict sidebar hiding and expanded width on login portal
+    st.markdown(AUTH_PAGE_CSS, unsafe_allow_html=True)
 
-    # Determine default active tab from session state if set
-    default_tab = st.session_state.get("auth_tab", "student")
-    tab_index = 0
-    if default_tab == "teacher":
-        tab_index = 1
-    elif default_tab == "register":
-        tab_index = 2
-    elif default_tab == "demo":
-        tab_index = 3
+    col_left, col_right = st.columns([1.18, 0.95], gap="large")
 
-    tabs = st.tabs(["Student Login", "Teacher Login", "Create Account", "Demonstration Mode"])
+    # ==========================================================
+    # 1. LEFT SECTION: BRAND AND LEARNING EXPERIENCE
+    # ==========================================================
+    with col_left:
+        left_raw = f"""
+<div class="sv-auth-left">
+<div style="position: absolute; top: -50px; right: -50px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(214, 181, 109, 0.12) 0%, rgba(57, 118, 185, 0.08) 50%, transparent 70%); pointer-events: none;"></div>
+<div style="position: absolute; bottom: -30px; left: -30px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(36, 59, 100, 0.06) 0%, transparent 70%); pointer-events: none;"></div>
+<div style="display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem;">
+<div style="width: 52px; height: 52px; min-width: 52px; background: #172943; border: 1.5px solid #D6B56D; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 4px; box-shadow: 0 4px 14px rgba(23, 41, 67, 0.2);">
+{SYMBOL_SVG}
+</div>
+<div>
+<div style="font-family: 'Roboto', -apple-system, sans-serif; font-weight: 800; font-size: 1.6rem; color: #172943; letter-spacing: -0.02em; line-height: 1.1;">
+Sarva <span style="color: #D6B56D;">Vidya</span>
+</div>
+<div style="font-size: 0.725rem; font-weight: 600; color: #718096; letter-spacing: 0.04em; text-transform: uppercase;">
+Enterprise Learning Ecosystem
+</div>
+</div>
+</div>
+<h1 style="font-size: 2.1rem; font-weight: 800; color: #172943; line-height: 1.22; margin: 0 0 0.65rem 0; letter-spacing: -0.025em;">
+Unlock Your Potential with Intelligent Learning
+</h1>
+<p style="font-size: 0.925rem; color: #5A6A80; line-height: 1.6; margin: 0 0 1.5rem 0;">
+One personalized learning ecosystem for Programming, Mathematics, Engineering, Science and beyond.
+Diagnose cognitive misconceptions, trace latent mastery via BKT, and accelerate your academic mastery.
+</p>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.5rem;">
+<div class="sv-subject-card">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<div style="width: 28px; height: 28px; border-radius: 6px; background-color: #EAF2FA; display: flex; align-items: center; justify-content: center; color: #243B64;">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+</div>
+<span style="font-weight: 700; font-size: 0.875rem; color: #172943;">Programming</span>
+</div>
+<span class="lm-pill pill-ahead" style="font-size: 0.65rem; padding: 2px 7px;">Python • C • DSA</span>
+</div>
+<div style="font-size: 0.75rem; color: #64748B; line-height: 1.4;">
+Execution traces, pointer memory models, algorithmic recursion & analysis.
+</div>
+</div>
+<div class="sv-subject-card">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<div style="width: 28px; height: 28px; border-radius: 6px; background-color: #FAF5EA; display: flex; align-items: center; justify-content: center; color: #B88F3A;">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>
+</div>
+<span style="font-weight: 700; font-size: 0.875rem; color: #172943;">Mathematics</span>
+</div>
+<span class="lm-pill pill-ahead" style="font-size: 0.65rem; padding: 2px 7px;">Calculus • Linear Alg</span>
+</div>
+<div style="font-size: 0.75rem; color: #64748B; line-height: 1.4;">
+Continuous limits, multi-dimensional matrix transformations & probability.
+</div>
+</div>
+<div class="sv-subject-card">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<div style="width: 28px; height: 28px; border-radius: 6px; background-color: #E6F5EE; display: flex; align-items: center; justify-content: center; color: #2B8A61;">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+</div>
+<span style="font-weight: 700; font-size: 0.875rem; color: #172943;">Engineering</span>
+</div>
+<span class="lm-pill pill-ahead" style="font-size: 0.65rem; padding: 2px 7px;">Digital Logic</span>
+</div>
+<div style="font-size: 0.75rem; color: #64748B; line-height: 1.4;">
+Boolean algebra, gate minimization, circuit synthesis & finite state machines.
+</div>
+</div>
+<div class="sv-subject-card">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<div style="width: 28px; height: 28px; border-radius: 6px; background-color: #F3E8FF; display: flex; align-items: center; justify-content: center; color: #7C3AED;">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M12 21a9 9 0 0 0 9-9c0-4.97-4.03-9-9-9s-9 4.03-9 9a9 9 0 0 0 9 9Z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+</div>
+<span style="font-weight: 700; font-size: 0.875rem; color: #172943;">Science</span>
+</div>
+<span class="lm-pill pill-ahead" style="font-size: 0.65rem; padding: 2px 7px;">Quantum & Physics</span>
+</div>
+<div style="font-size: 0.75rem; color: #64748B; line-height: 1.4;">
+Qubit superposition, quantum gates, Newtonian kinematics & dynamics.
+</div>
+</div>
+</div>
+<div style="background: rgba(255, 255, 255, 0.75); border: 1px solid #E2E8F0; border-radius: 12px; padding: 0.85rem 1.15rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.25rem;">
+<div style="display: flex; align-items: center; gap: 10px;">
+<div style="width: 32px; height: 32px; border-radius: 8px; background: #FAF5EA; border: 1px solid #D6B56D; display: flex; align-items: center; justify-content: center; color: #B88F3A;">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M12 5v14"/></svg>
+</div>
+<div>
+<div style="font-weight: 700; font-size: 0.825rem; color: #172943;">Bayesian Knowledge Tracing & Diagnostics</div>
+<div style="font-size: 0.725rem; color: #718096;">Real-time cognitive error detection & personalized practice drills</div>
+</div>
+</div>
+<span class="lm-pill pill-completed" style="font-size: 0.65rem; padding: 2px 8px;">Active AI</span>
+</div>
+<div style="font-size: 0.775rem; font-weight: 700; color: #D6B56D; letter-spacing: 0.05em; text-transform: uppercase;">
+{TAGLINE}
+</div>
+</div>
+"""
+        st.markdown(_clean_html(left_raw), unsafe_allow_html=True)
 
-    # 1. Student Login
-    with tabs[0]:
-        _render_student_login()
+    # ==========================================================
+    # 2. RIGHT SECTION: PREMIUM AUTHENTICATION CARD
+    # ==========================================================
+    with col_right:
+        # Segmented Tabs
+        tabs = st.tabs(["Student Login", "Teacher Login", "Create Account", "Demonstration Mode"])
 
-    # 2. Teacher Login
-    with tabs[1]:
-        _render_teacher_login()
+        # 1. Student Login Tab
+        with tabs[0]:
+            _render_student_login()
 
-    # 3. Registration
-    with tabs[2]:
-        _render_registration()
+        # 2. Teacher Login Tab
+        with tabs[1]:
+            _render_teacher_login()
 
-    # 4. Instant Demo Mode
-    with tabs[3]:
-        _render_demo_switcher()
+        # 3. Create Account Tab
+        with tabs[2]:
+            _render_registration()
+
+        # 4. Demonstration Mode Tab
+        with tabs[3]:
+            _render_demo_switcher()
 
 
 def _render_student_login():
-    st.markdown("""
-    <div class="lm-card" style="margin-bottom: 0.75rem;">
-        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.25rem;">
-            Student Sign In
-        </h4>
-        <div style="font-size: 0.8rem; color: #64748b;">
-            Default demo credentials pre-filled: <code>student@123</code> / <code>student123</code>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    """Renders the modern student authentication form with instant demo access."""
+    head_html = """
+<div style="margin-bottom: 0.85rem;">
+<h3 style="font-size: 1.45rem; font-weight: 800; color: #172943; margin: 0 0 0.2rem 0; letter-spacing: -0.015em;">
+Welcome Back
+</h3>
+<p style="font-size: 0.825rem; color: #718096; margin: 0;">
+Continue your personalized learning journey.
+</p>
+</div>
+<div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 0.75rem 0.85rem; margin-bottom: 0.85rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+<span style="font-size: 0.75rem; font-weight: 700; color: #243B64;">Quick Evaluation Access</span>
+<span class="lm-pill pill-ahead" style="font-size: 0.625rem; padding: 1px 6px;">Verified Student</span>
+</div>
+<div style="font-size: 0.725rem; color: #64748B;">
+Email: <code>student@123</code> &bull; Password: <code>student123</code>
+</div>
+</div>
+"""
+    st.markdown(_clean_html(head_html), unsafe_allow_html=True)
 
     if st.button("1-Click Instant Student Login (student@123)", key="quick_btn_student", type="primary", use_container_width=True):
         user = get_user_by_email("student@123") or get_user_by_username("student@123")
@@ -74,27 +196,42 @@ def _render_student_login():
             st.session_state.pop("auth_tab", None)
             st.rerun()
 
-    st.markdown("""
-    <div style="display: flex; align-items: center; text-align: center; margin: 0.75rem 0; color: #94a3b8; font-size: 0.75rem;">
-        <div style="flex-grow: 1; border-bottom: 1px solid #e2e8f0;"></div>
-        <span style="padding: 0 8px;">OR SIGN IN WITH FORM</span>
-        <div style="flex-grow: 1; border-bottom: 1px solid #e2e8f0;"></div>
-    </div>
-    """, unsafe_allow_html=True)
+    div_html = """
+<div style="display: flex; align-items: center; text-align: center; margin: 1rem 0; color: #94A3B8; font-size: 0.725rem;">
+<div style="flex-grow: 1; border-bottom: 1px solid #E2E8F0;"></div>
+<span style="padding: 0 10px; font-weight: 600; letter-spacing: 0.04em;">OR SIGN IN WITH CREDENTIALS</span>
+<div style="flex-grow: 1; border-bottom: 1px solid #E2E8F0;"></div>
+</div>
+"""
+    st.markdown(_clean_html(div_html), unsafe_allow_html=True)
+
+    col_lbl, col_tog = st.columns([0.65, 0.35])
+    with col_tog:
+        show_pwd = st.checkbox("Show password", key="stu_show_pwd")
 
     with st.form("student_login_form"):
-        username = st.text_input("Username or Email", value="student@123", placeholder="e.g. student@123", key="stu_login_user")
-        password = st.text_input("Password", value="student123", type="password", key="stu_login_pass")
-        st.caption("Pre-filled Demo Credentials: Email: `student@123` &bull; Password: `student123`")
-        submitted = st.form_submit_button("Sign In as Student", use_container_width=True)
+        username = st.text_input(
+            "Username or Email",
+            value="student@123",
+            placeholder="e.g. student@123 or alex_rivera",
+            key="stu_login_user"
+        )
+        password = st.text_input(
+            "Password",
+            value="student123",
+            type="default" if show_pwd else "password",
+            placeholder="Enter your student password",
+            key="stu_login_pass"
+        )
+        submitted = st.form_submit_button("Sign In as Student", type="primary", use_container_width=True)
 
         if submitted:
             if not username or not password:
-                st.error("Please enter both username and password.")
+                st.error("Please enter both your username/email and password.")
                 return
 
             user = get_user_by_username(username) or get_user_by_email(username)
-            if not user or user["role"] != "student":
+            if not user or user.get("role") != "student":
                 st.error("Invalid student credentials or user does not exist.")
                 return
 
@@ -112,19 +249,30 @@ def _render_student_login():
 
 
 def _render_teacher_login():
-    st.markdown("""
-    <div class="lm-card" style="margin-bottom: 0.75rem;">
-        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.25rem;">
-            Teacher and Faculty Sign In
-        </h4>
-        <div style="font-size: 0.8rem; color: #64748b;">
-            Default demo credentials pre-filled: <code>teacher@123</code> / <code>teacher123</code>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    """Renders the modern educator authentication form."""
+    head_html = """
+<div style="margin-bottom: 0.85rem;">
+<h3 style="font-size: 1.45rem; font-weight: 800; color: #172943; margin: 0 0 0.2rem 0; letter-spacing: -0.015em;">
+Welcome, Educator
+</h3>
+<p style="font-size: 0.825rem; color: #718096; margin: 0;">
+Access your teaching and student performance workspace.
+</p>
+</div>
+<div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 0.75rem 0.85rem; margin-bottom: 0.85rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+<span style="font-size: 0.75rem; font-weight: 700; color: #243B64;">Quick Faculty Access</span>
+<span class="lm-pill pill-ahead" style="font-size: 0.625rem; padding: 1px 6px;">Verified Faculty</span>
+</div>
+<div style="font-size: 0.725rem; color: #64748B;">
+Email: <code>teacher@123</code> &bull; Password: <code>teacher123</code>
+</div>
+</div>
+"""
+    st.markdown(_clean_html(head_html), unsafe_allow_html=True)
 
-    if st.button("1-Click Instant Teacher Login (teacher@123)", key="quick_btn_teacher", type="primary", use_container_width=True):
-        user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123")
+    if st.button("1-Click Instant Faculty Login (teacher@123)", key="quick_btn_teacher", type="primary", use_container_width=True):
+        user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123") or get_user_by_username("dr_bennett")
         if user:
             st.session_state["user"] = user
             st.session_state["current_page"] = "teacher_dashboard"
@@ -134,27 +282,42 @@ def _render_teacher_login():
             st.session_state.pop("auth_tab", None)
             st.rerun()
 
-    st.markdown("""
-    <div style="display: flex; align-items: center; text-align: center; margin: 0.75rem 0; color: #94a3b8; font-size: 0.75rem;">
-        <div style="flex-grow: 1; border-bottom: 1px solid #e2e8f0;"></div>
-        <span style="padding: 0 8px;">OR SIGN IN WITH FORM</span>
-        <div style="flex-grow: 1; border-bottom: 1px solid #e2e8f0;"></div>
-    </div>
-    """, unsafe_allow_html=True)
+    div_html = """
+<div style="display: flex; align-items: center; text-align: center; margin: 1rem 0; color: #94A3B8; font-size: 0.725rem;">
+<div style="flex-grow: 1; border-bottom: 1px solid #E2E8F0;"></div>
+<span style="padding: 0 10px; font-weight: 600; letter-spacing: 0.04em;">OR SIGN IN WITH CREDENTIALS</span>
+<div style="flex-grow: 1; border-bottom: 1px solid #E2E8F0;"></div>
+</div>
+"""
+    st.markdown(_clean_html(div_html), unsafe_allow_html=True)
+
+    col_lbl, col_tog = st.columns([0.65, 0.35])
+    with col_tog:
+        show_pwd = st.checkbox("Show password", key="tchr_show_pwd")
 
     with st.form("teacher_login_form"):
-        username = st.text_input("Username or Email", value="teacher@123", placeholder="e.g. teacher@123", key="tchr_login_user")
-        password = st.text_input("Password", value="teacher123", type="password", key="tchr_login_pass")
-        st.caption("Pre-filled Demo Credentials: Email: `teacher@123` &bull; Password: `teacher123`")
-        submitted = st.form_submit_button("Sign In to Faculty Portal", use_container_width=True)
+        username = st.text_input(
+            "Username or Email",
+            value="teacher@123",
+            placeholder="e.g. teacher@123 or dr_bennett",
+            key="tchr_login_user"
+        )
+        password = st.text_input(
+            "Password",
+            value="teacher123",
+            type="default" if show_pwd else "password",
+            placeholder="Enter your faculty password",
+            key="tchr_login_pass"
+        )
+        submitted = st.form_submit_button("Sign In as Teacher", type="primary", use_container_width=True)
 
         if submitted:
             if not username or not password:
-                st.error("Please enter both username and password.")
+                st.error("Please enter both your faculty username/email and password.")
                 return
 
             user = get_user_by_username(username) or get_user_by_email(username)
-            if not user or user["role"] != "teacher":
+            if not user or user.get("role") != "teacher":
                 st.error("Invalid faculty credentials or insufficient permissions.")
                 return
 
@@ -172,23 +335,32 @@ def _render_teacher_login():
 
 
 def _render_registration():
-    st.markdown("""
-    <div class="lm-card">
-        <h4 style="font-size: 1rem; font-weight: 700; color: #243B64; margin-bottom: 0.75rem;">
-            Student Registration
-        </h4>
-    </div>
-    """, unsafe_allow_html=True)
+    """Renders the student account creation interface."""
+    head_html = """
+<div style="margin-bottom: 0.85rem;">
+<h3 style="font-size: 1.45rem; font-weight: 800; color: #172943; margin: 0 0 0.2rem 0; letter-spacing: -0.015em;">
+Create Account
+</h3>
+<p style="font-size: 0.825rem; color: #718096; margin: 0;">
+Join the intelligent multi-subject learning network.
+</p>
+</div>
+"""
+    st.markdown(_clean_html(head_html), unsafe_allow_html=True)
+
+    col_lbl, col_tog = st.columns([0.65, 0.35])
+    with col_tog:
+        show_pwd = st.checkbox("Show password", key="reg_show_pwd")
 
     with st.form("register_form"):
-        full_name = st.text_input("Full Name", placeholder="e.g. Maya Patel")
-        username = st.text_input("Desired Username", placeholder="e.g. maya_p")
-        email = st.text_input("Institutional or Personal Email", placeholder="e.g. maya@example.edu")
+        full_name = st.text_input("Full Name", placeholder="e.g. Maya Patel", key="reg_full_name")
+        username = st.text_input("Desired Username", placeholder="e.g. maya_p", key="reg_username")
+        email = st.text_input("Institutional or Personal Email", placeholder="e.g. maya@example.edu", key="reg_email")
         col_p1, col_p2 = st.columns(2)
         with col_p1:
-            password = st.text_input("Password", type="password", help="Minimum 6 characters")
+            password = st.text_input("Password", type="default" if show_pwd else "password", help="Minimum 6 characters", key="reg_password")
         with col_p2:
-            confirm_pwd = st.text_input("Confirm Password", type="password")
+            confirm_pwd = st.text_input("Confirm Password", type="default" if show_pwd else "password", key="reg_confirm")
 
         submitted = st.form_submit_button("Create Learning Account", type="primary", use_container_width=True)
 
@@ -219,92 +391,95 @@ def _render_registration():
             user = get_user_by_username(username)
             st.session_state["user"] = user
             st.session_state["current_page"] = "student_dashboard"
+            st.session_state["_synced_page"] = "student_dashboard"
+            st.session_state["sidebar_nav_radio"] = "Dashboard"
+            st.session_state["_active_nav_label"] = "Dashboard"
             st.session_state.pop("auth_tab", None)
             st.success(f"Account created successfully. Welcome, {full_name}!")
             st.rerun()
 
 
 def _render_demo_switcher():
-    st.markdown("""
-    <div class="ls-card">
-        <div class="ls-card-header">
-            <h4 class="ls-card-title">Pre-Configured Demonstration Profiles</h4>
-            <span class="ls-badge badge-demo">Evaluation Mode</span>
-        </div>
-        <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 1.25rem;">
-            Select a verified demonstration persona to immediately evaluate the Bayesian Knowledge Tracing engine, misconception detection diagnostics, and personalized recommendations.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    """Renders the demonstration persona switcher."""
+    head_html = """
+<div style="margin-bottom: 0.85rem;">
+<h3 style="font-size: 1.45rem; font-weight: 800; color: #172943; margin: 0 0 0.2rem 0; letter-spacing: -0.015em;">
+Demonstration Mode
+</h3>
+<p style="font-size: 0.825rem; color: #718096; margin: 0;">
+Instantly evaluate pre-configured academic personas and models.
+</p>
+</div>
+<div style="background-color: #FFFFFF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 0.9rem; margin-bottom: 0.75rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+<div style="font-weight: 700; font-size: 0.875rem; color: #1E40AF;">Alex Rivera (student@123)</div>
+<span class="lm-pill pill-ahead" style="font-size: 0.65rem;">Active Learner</span>
+</div>
+<div style="color: #64748B; font-size: 0.75rem; margin-bottom: 0.5rem;">
+Credentials: <code>student@123</code> &bull; Pass: <code>student123</code>
+</div>
+<div style="font-size: 0.775rem; color: #475569; line-height: 1.45;">
+Exhibits mastered Variables & Conditionals, with active diagnosed misconceptions in Loops (Off-by-One) and Recursion.
+</div>
+</div>
+"""
+    st.markdown(_clean_html(head_html), unsafe_allow_html=True)
+    if st.button("Launch Student Demo (student@123)", key="launch_alex", use_container_width=True, type="primary"):
+        user = get_user_by_email("student@123") or get_user_by_username("student@123")
+        if user:
+            st.session_state["user"] = user
+            st.session_state["current_page"] = "student_dashboard"
+            st.session_state["_synced_page"] = "student_dashboard"
+            st.session_state["sidebar_nav_radio"] = "Dashboard"
+            st.session_state["_active_nav_label"] = "Dashboard"
+            st.rerun()
 
-    col1, col2, col3 = st.columns(3)
+    sophia_html = """
+<div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 0.9rem; margin: 0.75rem 0;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+<div style="font-weight: 700; font-size: 0.875rem; color: #0F172A;">Sophia Chen</div>
+<span class="lm-pill pill-completed" style="font-size: 0.65rem;">Proficient</span>
+</div>
+<div style="color: #64748B; font-size: 0.75rem; margin-bottom: 0.5rem;">
+Credentials: <code>sophia_chen</code> &bull; Pass: <code>sophia123</code>
+</div>
+<div style="font-size: 0.775rem; color: #475569; line-height: 1.45;">
+Advanced proficient scholar. High BKT mastery across core modules, working on algorithmic optimization.
+</div>
+</div>
+"""
+    st.markdown(_clean_html(sophia_html), unsafe_allow_html=True)
+    if st.button("Launch Sophia Chen Profile", key="launch_sophia", use_container_width=True):
+        user = get_user_by_username("sophia_chen")
+        if user:
+            st.session_state["user"] = user
+            st.session_state["current_page"] = "student_dashboard"
+            st.session_state["_synced_page"] = "student_dashboard"
+            st.session_state["sidebar_nav_radio"] = "Dashboard"
+            st.session_state["_active_nav_label"] = "Dashboard"
+            st.rerun()
 
-    with col1:
-        st.markdown("""
-        <div style="background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 1.25rem; height: 100%;">
-            <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem;">Student Demo (student@123)</div>
-            <div style="color: #64748b; font-size: 0.75rem; margin-bottom: 0.5rem;">User/Email: <code>student@123</code> &bull; Pass: <code>student123</code></div>
-            <div style="font-size: 0.825rem; color: #475569; line-height: 1.5; margin-bottom: 1rem;">
-                Shows mastered Variables and Conditionals, but possesses repeating cognitive misconceptions in Loops (Off-by-One) and Recursion.
-            </div>
-            <div style="margin-bottom: 0.5rem;">
-                <span class="ls-badge badge-developing">Active Misconceptions</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Launch Student Profile (student@123)", key="launch_alex", use_container_width=True, type="primary"):
-            user = get_user_by_email("student@123") or get_user_by_username("student@123")
-            if user:
-                st.session_state["user"] = user
-                st.session_state["current_page"] = "student_dashboard"
-                st.session_state["_synced_page"] = "student_dashboard"
-                st.session_state["sidebar_nav_radio"] = "Dashboard"
-                st.session_state["_active_nav_label"] = "Dashboard"
-                st.rerun()
-
-    with col2:
-        st.markdown("""
-        <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; height: 100%;">
-            <div style="font-weight: 600; color: #0f172a; margin-bottom: 0.25rem;">Sophia Chen</div>
-            <div style="color: #64748b; font-size: 0.75rem; margin-bottom: 0.75rem;">Student Profile 2</div>
-            <div style="font-size: 0.825rem; color: #475569; line-height: 1.5; margin-bottom: 1rem;">
-                Advanced proficient learner. High BKT mastery across core modules, working on advanced Recursion and algorithmic efficiency.
-            </div>
-            <div style="margin-bottom: 0.5rem;">
-                <span class="ls-badge badge-mastered">High Mastery</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Launch Sophia Chen Profile", key="launch_sophia", use_container_width=True):
-            user = get_user_by_username("sophia_chen")
-            if user:
-                st.session_state["user"] = user
-                st.session_state["current_page"] = "student_dashboard"
-                st.session_state["_synced_page"] = "student_dashboard"
-                st.session_state["sidebar_nav_radio"] = "Dashboard"
-                st.session_state["_active_nav_label"] = "Dashboard"
-                st.rerun()
-
-    with col3:
-        st.markdown("""
-        <div style="background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 1.25rem; height: 100%;">
-            <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem;">Teacher Demo (teacher@123)</div>
-            <div style="color: #64748b; font-size: 0.75rem; margin-bottom: 0.5rem;">User/Email: <code>teacher@123</code> &bull; Pass: <code>teacher123</code></div>
-            <div style="font-size: 0.825rem; color: #475569; line-height: 1.5; margin-bottom: 1rem;">
-                Faculty portal with access to cohort-wide mastery distributions, common misconception frequencies, and student inspection tools.
-            </div>
-            <div style="margin-bottom: 0.5rem;">
-                <span class="ls-badge badge-proficient">Faculty Role</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Launch Teacher Profile (teacher@123)", key="launch_teacher", use_container_width=True, type="primary"):
-            user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123") or get_user_by_username("dr_bennett")
-            if user:
-                st.session_state["user"] = user
-                st.session_state["current_page"] = "teacher_dashboard"
-                st.session_state["_synced_page"] = "teacher_dashboard"
-                st.session_state["sidebar_nav_radio"] = "Dashboard"
-                st.session_state["_active_nav_label"] = "Dashboard"
-                st.rerun()
-
+    teacher_html = """
+<div style="background-color: #FFFFFF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 0.9rem; margin: 0.75rem 0;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+<div style="font-weight: 700; font-size: 0.875rem; color: #1E40AF;">Dr. Sarah Bennett (teacher@123)</div>
+<span class="lm-pill pill-ahead" style="font-size: 0.65rem;">Faculty Role</span>
+</div>
+<div style="color: #64748B; font-size: 0.75rem; margin-bottom: 0.5rem;">
+Credentials: <code>teacher@123</code> &bull; Pass: <code>teacher123</code>
+</div>
+<div style="font-size: 0.775rem; color: #475569; line-height: 1.45;">
+Faculty portal with cohort-wide mastery distributions, misconception frequencies, and student inspection tools.
+</div>
+</div>
+"""
+    st.markdown(_clean_html(teacher_html), unsafe_allow_html=True)
+    if st.button("Launch Faculty Demo (teacher@123)", key="launch_teacher", use_container_width=True, type="primary"):
+        user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123") or get_user_by_username("dr_bennett")
+        if user:
+            st.session_state["user"] = user
+            st.session_state["current_page"] = "teacher_dashboard"
+            st.session_state["_synced_page"] = "teacher_dashboard"
+            st.session_state["sidebar_nav_radio"] = "Dashboard"
+            st.session_state["_active_nav_label"] = "Dashboard"
+            st.rerun()

@@ -92,30 +92,7 @@ footer {
     max-width: 1320px !important;
 }
 
-/* Sidebar Customization - Compact White 225px, Always Visible */
-section[data-testid="stSidebar"],
-[data-testid="stSidebar"] {
-    display: block !important;
-    visibility: visible !important;
-    transform: none !important;
-    margin-left: 0 !important;
-    background-color: #FFFFFF !important;
-    border-right: 1px solid #E4E8ED !important;
-    width: 225px !important;
-    min-width: 210px !important;
-    max-width: 240px !important;
-    z-index: 100 !important;
-}
-
-/* Ensure sidebar collapse toggle button is accessible if needed */
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="stSidebarCollapseButton"] {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    z-index: 999999 !important;
-}
+/* Sidebar display is managed dynamically via SIDEBAR_CSS (authenticated) and AUTH_PAGE_CSS (login portal) */
 
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
     gap: 0.35rem !important;
@@ -575,6 +552,135 @@ button[kind="secondary"]:hover {
     font-size: 1rem !important;
     line-height: 1 !important;
 }
+
+/* ==========================================================
+   PREMIUM ENTERPRISE AUTH PORTAL STYLING
+   Split-screen modern white + blue enterprise layout
+   ========================================================== */
+
+/* Modern Segmented Tab Bar (Supports both React Aria & BaseWeb) */
+div[role="tablist"],
+div[data-testid="stTabs"] div[data-baseweb="tab-list"] {
+    background-color: #F1F5F9 !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    border: 1px solid #E2E8F0 !important;
+    border-bottom: 1px solid #E2E8F0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 0.75rem !important;
+}
+
+div[data-testid="stTab"],
+div[role="tab"],
+div[data-testid="stTabs"] button[data-baseweb="tab"] {
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    color: #64748B !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    flex: 1 !important;
+    text-align: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    border-bottom: none !important;
+}
+
+div[data-testid="stTab"]:hover,
+div[role="tab"]:hover,
+div[data-testid="stTabs"] button[data-baseweb="tab"]:hover {
+    color: #172943 !important;
+    background-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+div[data-testid="stTab"][aria-selected="true"],
+div[data-testid="stTab"][data-selected="true"],
+div[role="tab"][aria-selected="true"],
+div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
+    background-color: #FFFFFF !important;
+    color: #172943 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 6px rgba(23, 41, 67, 0.08) !important;
+    border-bottom: none !important;
+}
+
+div[role="tablist"] ~ div hr,
+div[role="tablist"] span[data-testid="stTabHighlight"],
+div[data-testid="stTabs"] div[data-baseweb="tab-highlight"],
+div[data-testid="stTabs"] div[data-baseweb="tab-border"] {
+    display: none !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Auth Split Screen Containers */
+.sv-auth-left {
+    background: linear-gradient(150deg, #FFFFFF 0%, #F5F9FE 55%, #EAF2FA 100%);
+    border: 1px solid #DCE6F1;
+    border-radius: 20px;
+    padding: 2.25rem 2rem;
+    box-shadow: 0 10px 30px -5px rgba(23, 41, 67, 0.05);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Tab Panel - Clean White Card with Shadow */
+div[role="tabpanel"],
+div[data-baseweb="tab-panel"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E4E8ED !important;
+    border-radius: 16px !important;
+    padding: 1.75rem 1.85rem !important;
+    box-shadow: 0 10px 30px -5px rgba(23, 41, 67, 0.08), 0 4px 12px rgba(23, 41, 67, 0.03) !important;
+    margin-top: 0.35rem !important;
+}
+
+/* Subject Showcase Cards */
+.sv-subject-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(23, 41, 67, 0.03);
+}
+
+.sv-subject-card:hover {
+    border-color: #3976B9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(57, 118, 185, 0.1);
+}
+
+/* Input Fields inside Auth */
+div[role="tabpanel"] [data-testid="stTextInput"] input,
+div[data-baseweb="tab-panel"] [data-testid="stTextInput"] input {
+    border-radius: 8px !important;
+    border: 1px solid #CBD5E1 !important;
+    height: 42px !important;
+    font-size: 0.85rem !important;
+    transition: all 0.2s ease !important;
+}
+
+div[role="tabpanel"] [data-testid="stTextInput"] input:focus,
+div[data-baseweb="tab-panel"] [data-testid="stTextInput"] input:focus {
+    border-color: #243B64 !important;
+    box-shadow: 0 0 0 3px rgba(36, 59, 100, 0.12) !important;
+}
+
+/* Checkbox Toggle Styling */
+div[role="tabpanel"] .stCheckbox label span,
+div[data-baseweb="tab-panel"] .stCheckbox label span {
+    font-size: 0.8rem !important;
+    color: #64748B !important;
+    font-weight: 500 !important;
+}
 </style>
 """
 
@@ -582,3 +688,73 @@ button[kind="secondary"]:hover {
 def get_icon(name: str) -> str:
     """Returns SVG icon string by name."""
     return ICONS.get(name, "")
+
+
+# ==========================================================
+# AUTHENTICATION & SIDEBAR SCOPED STYLES
+# ==========================================================
+
+SIDEBAR_CSS = """
+<style>
+/* Sidebar Customization - Compact White 225px, Visible on Authenticated Pages */
+section[data-testid="stSidebar"],
+[data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
+    transform: none !important;
+    margin-left: 0 !important;
+    background-color: #FFFFFF !important;
+    border-right: 1px solid #E4E8ED !important;
+    width: 225px !important;
+    min-width: 210px !important;
+    max-width: 240px !important;
+    z-index: 100 !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+}
+</style>
+"""
+
+AUTH_PAGE_CSS = """
+<style>
+/* Strictly eliminate Streamlit left sidebar and collapse chevrons on the login portal */
+section[data-testid="stSidebar"],
+[data-testid="stSidebar"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapseButton"],
+div[data-testid="stSidebarUserContent"],
+div[data-testid="stSidebarNav"] {
+    display: none !important;
+    width: 0px !important;
+    min-width: 0px !important;
+    max-width: 0px !important;
+    margin-left: -500px !important;
+    transform: translateX(-500px) !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Expand main container width to fill page for premium split-screen authentication portal */
+.block-container,
+[data-testid="stAppViewBlockContainer"],
+.main .block-container {
+    max-width: 1400px !important;
+    padding-top: 1.5rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    margin: 0 auto !important;
+}
+</style>
+"""
+

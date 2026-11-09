@@ -10,7 +10,7 @@ import os
 # Ensure project root is in Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from components.styles import CUSTOM_CSS
+from components.styles import CUSTOM_CSS, SIDEBAR_CSS, AUTH_PAGE_CSS
 from components.navigation import render_navigation
 from components.search_view import render_search_results_view
 from database.seed_data import seed_database
@@ -28,43 +28,53 @@ from views.settings import render_settings_page
 
 def main():
     # 1. Page Configuration (Strictly no emojis)
+    # Automatically collapse sidebar for unauthenticated visitors
+    user = st.session_state.get("user")
+    initial_sidebar = "expanded" if user else "collapsed"
+
     favicon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "brand", "favicon.png")
     st.set_page_config(
         page_title="Sarva Vidya – One Platform. Every Subject. Infinite Knowledge.",
         page_icon=favicon_path if os.path.exists(favicon_path) else None,
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state=initial_sidebar
     )
 
-    # 2. Inject SaaS Design System CSS
+    # 2. Inject Base SaaS Design System CSS
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
     # 3. Ensure Database and Seed Content Exist
     seed_database(force=False)
 
-    # 4. Handle Redirection State
+    # 4. Handle Redirection State & Query Params
     if "target_view" in st.session_state:
         st.session_state["current_page"] = st.session_state.pop("target_view")
+    query_page = st.query_params.get("page")
+    if query_page and "current_page" not in st.session_state:
+        st.session_state["current_page"] = query_page
 
-    # 5. Current Routing & Demo User Provisioning
+    # 5. Global Authentication Gate
+    # When user is not authenticated, strictly show only the login portal with sidebar hidden
+    if not user:
+        st.session_state["current_page"] = "auth"
+        st.markdown(AUTH_PAGE_CSS, unsafe_allow_html=True)
+        render_auth_page()
+        return
+
+    # Authenticated user session
     current_page = st.session_state.get("current_page", "student_dashboard")
-    user = st.session_state.get("user")
+    if current_page == "auth":
+        current_page = "teacher_dashboard" if user.get("role") == "teacher" else "student_dashboard"
+        st.session_state["current_page"] = current_page
 
-    # Access Guard: Auto-provision demo account if accessing learning platform pages
-    protected_pages = [
-        "student_dashboard", "assessment", "learning_path",
-        "learning_library", "misconceptions", "analytics",
-        "teacher_dashboard", "settings"
-    ]
-    if current_page in protected_pages and not user:
-        from database.db import get_user_by_email, get_user_by_username
-        if current_page == "teacher_dashboard":
-            user = get_user_by_email("teacher@123") or get_user_by_username("teacher@123") or get_user_by_username("dr_bennett")
-        else:
-            user = get_user_by_email("student@123") or get_user_by_username("student@123")
-        st.session_state["user"] = user
+    # Role-based access control
+    if current_page == "teacher_dashboard" and user.get("role") != "teacher":
+        st.warning("Access restricted to faculty members. Redirecting to student dashboard.")
+        st.session_state["current_page"] = "student_dashboard"
+        st.rerun()
 
-    # 6. Render Navigation (Full Top Bar and Left Sidebar)
+    # 6. Inject Authenticated Sidebar Styling & Render Navigation
+    st.markdown(SIDEBAR_CSS, unsafe_allow_html=True)
     render_navigation()
 
     # 6.1 Handle Active Global Search Overlay
@@ -73,13 +83,11 @@ def main():
         render_search_results_view(active_search)
         return
 
-    # Route Rendering
-    if current_page == "landing":
-        render_landing_page()
-    elif current_page == "auth":
-        render_auth_page()
-    elif current_page == "student_dashboard":
+    # 7. Authenticated Route Rendering
+    if current_page == "student_dashboard":
         render_student_dashboard(user)
+    elif current_page == "teacher_dashboard":
+        render_teacher_dashboard(user)
     elif current_page == "assessment":
         render_assessment_page(user)
     elif current_page == "learning_path":
@@ -90,12 +98,16 @@ def main():
         render_misconception_page(user)
     elif current_page == "analytics":
         render_analytics_page(user)
-    elif current_page == "teacher_dashboard":
-        render_teacher_dashboard(user)
     elif current_page == "settings":
         render_settings_page(user)
-    else:
+    elif current_page == "landing":
         render_landing_page()
+    else:
+        # Default fallback for student or teacher
+        if user.get("role") == "teacher":
+            render_teacher_dashboard(user)
+        else:
+            render_student_dashboard(user)
 
 
 if __name__ == "__main__":
