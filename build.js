@@ -27,3 +27,4 @@ if (fs.existsSync(srcAssets)) {
 }
 
 console.log('✨ Build finished successfully! Ready for Vercel deployment.');
+

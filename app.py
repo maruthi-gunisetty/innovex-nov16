@@ -117,6 +117,35 @@ def main():
     render_sarva_ai_widget(user)
 
 
+# ==========================================================
+# VERCEL SERVERLESS PYTHON ENTRYPOINT COMPATIBILITY
+# Required by @vercel/python runtime when deployed on Vercel
+# ==========================================================
+def _get_static_html():
+    html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+    if os.path.exists(html_path):
+        with open(html_path, "rb") as f:
+            return f.read()
+    return b"<!DOCTYPE html><html><body><h1>SARVAVIDYA Platform Live</h1></body></html>"
+
+
+def application(environ, start_response):
+    """WSGI entrypoint for Vercel Python runtime."""
+    body = _get_static_html()
+    status = "200 OK"
+    headers = [
+        ("Content-Type", "text/html; charset=utf-8"),
+        ("Content-Length", str(len(body)))
+    ]
+    start_response(status, headers)
+    return [body]
+
+
+app = application
+handler = application
+
+
 if __name__ == "__main__":
     main()
+
 
