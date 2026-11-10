@@ -1,11 +1,15 @@
 {
   "version": 2,
+  "buildCommand": "node build.js",
+  "outputDirectory": "dist",
   "cleanUrls": true,
   "routes": [
+    {
+      "handle": "filesystem"
+    },
     {
       "src": "/(.*)",
       "dest": "/index.html"
     }
   ]
 }
-

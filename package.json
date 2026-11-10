@@ -1,0 +1,11 @@
+{
+  "name": "sarvavidya-platform",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node build.js",
+    "build": "node build.js",
+    "preview": "node build.js"
+  }
+}
