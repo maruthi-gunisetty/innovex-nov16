@@ -681,6 +681,108 @@ div[data-baseweb="tab-panel"] .stCheckbox label span {
     color: #64748B !important;
     font-weight: 500 !important;
 }
+
+/* ==========================================================
+   MOBILE & LAPTOP RESPONSIVE ENGINE
+   Seamless adaptability across phones, tablets, and desktops
+   ========================================================== */
+
+@media (max-width: 768px) {
+    /* Responsive Viewport Padding */
+    .block-container,
+    [data-testid="stAppViewBlockContainer"],
+    .main .block-container {
+        padding-top: 0.5rem !important;
+        padding-bottom: 2rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    /* Columns responsive stacking */
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+        gap: 0.65rem !important;
+    }
+
+    [data-testid="column"] {
+        min-width: 100% !important;
+        width: 100% !important;
+        margin-bottom: 0.4rem !important;
+    }
+
+    /* Keep 2-button action rows side-by-side if they are small action buttons */
+    [data-testid="stHorizontalBlock"]:has(> div:nth-child(2):last-child) [data-testid="column"] {
+        min-width: calc(50% - 0.4rem) !important;
+        width: calc(50% - 0.4rem) !important;
+    }
+
+    /* Grid layout auto-stacking on phone screens */
+    div[style*="grid-template-columns: 1fr 1fr"],
+    div[style*="grid-template-columns: 1fr 1fr 1fr"],
+    div[style*="grid-template-columns: repeat(4, 1fr)"],
+    div[style*="grid-template-columns: repeat(5, 1fr)"] {
+        grid-template-columns: 1fr !important;
+        gap: 0.65rem !important;
+    }
+
+    /* Touch-friendly interactive targets */
+    .stButton > button {
+        min-height: 44px !important;
+        font-size: 0.9rem !important;
+        width: 100% !important;
+    }
+
+    .stRadio [data-testid="stRadioOption"],
+    .stRadio label {
+        min-height: 44px !important;
+        padding: 0.65rem 0.85rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Typography adjustment for smaller screens */
+    h1, .sv-auth-left h1 {
+        font-size: 1.5rem !important;
+        line-height: 1.25 !important;
+    }
+
+    h2 {
+        font-size: 1.3rem !important;
+    }
+
+    h3 {
+        font-size: 1.1rem !important;
+    }
+
+    /* Auth left banner on mobile: compact padding */
+    .sv-auth-left {
+        padding: 1.25rem 1rem !important;
+        border-radius: 14px !important;
+    }
+
+    div[role="tabpanel"],
+    div[data-baseweb="tab-panel"] {
+        padding: 1.25rem 1rem !important;
+        border-radius: 14px !important;
+    }
+
+    /* Metric cards responsive wrapping */
+    .metric-card, .metric-card-interactive {
+        padding: 0.85rem 1rem !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Tablet responsive scaling */
+    .block-container {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+
+    div[style*="grid-template-columns: repeat(4, 1fr)"],
+    div[style*="grid-template-columns: repeat(5, 1fr)"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
 </style>
 """
 
@@ -696,30 +798,61 @@ def get_icon(name: str) -> str:
 
 SIDEBAR_CSS = """
 <style>
-/* Sidebar Customization - Compact White 225px, Visible on Authenticated Pages */
-section[data-testid="stSidebar"],
-[data-testid="stSidebar"] {
-    display: block !important;
-    visibility: visible !important;
-    transform: none !important;
-    margin-left: 0 !important;
-    background-color: #FFFFFF !important;
-    border-right: 1px solid #E4E8ED !important;
-    width: 225px !important;
-    min-width: 210px !important;
-    max-width: 240px !important;
-    z-index: 100 !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
+/* Laptop & Desktop (min-width: 769px): Compact docked sidebar */
+@media (min-width: 769px) {
+    section[data-testid="stSidebar"],
+    [data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
+        transform: none !important;
+        margin-left: 0 !important;
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E4E8ED !important;
+        width: 225px !important;
+        min-width: 210px !important;
+        max-width: 240px !important;
+        z-index: 100 !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        z-index: 999999 !important;
+    }
 }
 
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="stSidebarCollapseButton"] {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    z-index: 999999 !important;
+/* Mobile Devices (max-width: 768px): Slide-over drawer with accessible toggle */
+@media (max-width: 768px) {
+    section[data-testid="stSidebar"],
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        width: 82vw !important;
+        max-width: 290px !important;
+        z-index: 99999 !important;
+        box-shadow: 4px 0 24px rgba(23, 41, 67, 0.25) !important;
+    }
+
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        z-index: 999999 !important;
+        position: fixed !important;
+        top: 8px !important;
+        left: 8px !important;
+        background: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    }
 }
 </style>
 """
@@ -754,6 +887,17 @@ div[data-testid="stSidebarNav"] {
     padding-left: 2rem !important;
     padding-right: 2rem !important;
     margin: 0 auto !important;
+}
+
+@media (max-width: 768px) {
+    .block-container,
+    [data-testid="stAppViewBlockContainer"],
+    .main .block-container {
+        padding-top: 0.75rem !important;
+        padding-bottom: 1.5rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
 }
 </style>
 """

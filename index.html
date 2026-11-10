@@ -2,7 +2,10 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#080c14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>SARVAVIDYA – One Platform. Every Subject. Infinite Knowledge.</title>
     <meta name="description" content="AI-Powered Personalized Learning Ecosystem featuring Bayesian Knowledge Tracing, multi-subject curriculum, and SARVA AI companion.">
     <!-- Tailwind CSS -->
@@ -20,7 +23,7 @@
                             600: '#4f46e5',
                             700: '#4338ca',
                             900: '#1e1b4b',
-                            dark: '#0b0f19',
+                            dark: '#080c14',
                             card: '#111827',
                             border: '#1f2937'
                         }
@@ -31,10 +34,15 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #080c14;
             color: #f3f4f6;
+            overflow-x: hidden;
         }
         .code-font {
             font-family: 'JetBrains Mono', monospace;
@@ -45,21 +53,59 @@
             -webkit-text-fill-color: transparent;
         }
         .glass-card {
-            background: rgba(17, 24, 39, 0.75);
+            background: rgba(17, 24, 39, 0.78);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .glow {
             box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.35);
         }
+        
+        /* Device Preview Containers */
+        .preview-wrapper {
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            margin: 0 auto;
+        }
+        .preview-wrapper.mode-laptop {
+            max-width: 100%;
+        }
+        .preview-wrapper.mode-mobile {
+            max-width: 395px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 10px #1f2937;
+            border-radius: 40px;
+        }
+        
         .iframe-container {
             position: relative;
             width: 100%;
             height: 820px;
-            border-radius: 1rem;
             overflow: hidden;
             background: #0d1117;
+            transition: all 0.35s ease;
+        }
+        .preview-wrapper.mode-laptop .iframe-container {
+            border-radius: 1rem;
             border: 1px solid #1f2937;
+            height: 820px;
+        }
+        .preview-wrapper.mode-mobile .iframe-container {
+            border-radius: 32px;
+            height: 740px;
+        }
+
+        @media (max-width: 768px) {
+            .preview-wrapper.mode-laptop .iframe-container,
+            .preview-wrapper.mode-mobile .iframe-container {
+                height: 75vh;
+                min-height: 520px;
+                border-radius: 0.75rem;
+            }
+            .preview-wrapper.mode-mobile {
+                max-width: 100%;
+                border-radius: 0.75rem;
+                box-shadow: none;
+            }
         }
         iframe {
             width: 100%;
@@ -70,7 +116,7 @@
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
 
-    <!-- Top Navigation Bar -->
+    <!-- Top Navigation Bar (Mobile & Laptop Adaptive) -->
     <header class="sticky top-0 z-50 glass-card border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -83,16 +129,20 @@
                 </div>
             </div>
 
-            <!-- Nav Links -->
-            <div class="flex items-center space-x-3 sm:space-x-4">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+            <!-- Nav Links & Mobile Direct Launch -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
                     <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     Live Vercel Cloud
                 </span>
-                <a href="#interactive-app" class="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-sm">
+                <a href="#interactive-app" class="px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-sm">
                     Open App
                 </a>
-                <a href="https://github.com/maruthi-gunisetty/innovex-nov16" target="_blank" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition flex items-center space-x-1.5">
+                <a id="mobile-direct-btn" href="https://tells-daniel-soma-disciplinary.trycloudflare.com" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600/90 hover:bg-cyan-500 text-white transition flex items-center space-x-1">
+                    <span>Direct Launch</span>
+                    <span>↗</span>
+                </a>
+                <a href="https://github.com/maruthi-gunisetty/innovex-nov16" target="_blank" class="hidden sm:flex px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition items-center space-x-1.5">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
                     <span>GitHub</span>
                 </a>
@@ -102,39 +152,39 @@
 
     <!-- Hero Section -->
     <main class="flex-1">
-        <section class="relative overflow-hidden pt-12 pb-14 px-4 sm:px-6 lg:px-8 text-center max-w-5xl mx-auto">
+        <section class="relative overflow-hidden pt-8 sm:pt-14 pb-10 sm:pb-14 px-4 sm:px-6 lg:px-8 text-center max-w-5xl mx-auto">
             <!-- Ambient Glow -->
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-950/70 border border-indigo-700/60 text-indigo-300 text-xs font-semibold mb-6">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-950/70 border border-indigo-700/60 text-indigo-300 text-xs font-semibold mb-4 sm:mb-6">
                 <span>⚡ SARVAVIDYA 2.0 AI PLATFORM</span>
                 <span>•</span>
-                <span class="text-cyan-400">Bayesian Knowledge Tracing Enabled</span>
+                <span class="text-cyan-400">Mobile & Laptop Responsive</span>
             </div>
 
-            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
+            <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4">
                 One Platform. Every Subject.<br>
                 <span class="gradient-text">Infinite Knowledge.</span>
             </h1>
 
-            <p class="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
+            <p class="text-sm sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8">
                 An intelligent educational ecosystem that understands how each student learns, pinpoints knowledge gaps, adapts learning difficulty, and delivers personalized recommendations using Machine Learning.
             </p>
 
             <div class="flex flex-wrap items-center justify-center gap-3">
-                <a href="#interactive-app" class="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-base shadow-lg shadow-indigo-600/30 transition">
+                <a href="#interactive-app" class="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-sm sm:text-base shadow-lg shadow-indigo-600/30 transition">
                     Launch Interactive App ↓
                 </a>
-                <a href="https://share.streamlit.io/deploy?repository=maruthi-gunisetty/innovex-nov16&branch=main&mainModule=app.py" target="_blank" class="px-6 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 font-semibold text-base transition flex items-center space-x-2">
+                <a href="https://share.streamlit.io/deploy?repository=maruthi-gunisetty/innovex-nov16&branch=main&mainModule=app.py" target="_blank" class="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 font-semibold text-sm sm:text-base transition flex items-center space-x-2">
                     <span>Deploy on Streamlit Cloud</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </a>
             </div>
         </section>
 
-        <!-- Interactive Live App Frame -->
-        <section id="interactive-app" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-            <div class="glass-card rounded-2xl p-4 sm:p-6 glow">
+        <!-- Interactive Live App Frame (Adjustable for Laptop & Mobile) -->
+        <section id="interactive-app" class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-16">
+            <div class="glass-card rounded-2xl p-3 sm:p-6 glow">
                 <!-- Frame Header Controls -->
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-800">
                     <div class="flex items-center space-x-2">
@@ -144,36 +194,52 @@
                         <span class="text-xs font-mono text-gray-400 ml-2">sarvavidya.workspace // live-client</span>
                     </div>
 
+                    <!-- Laptop vs Mobile Preview Mode Switcher -->
                     <div class="flex items-center space-x-2">
-                        <button onclick="reloadIframe()" class="px-3 py-1 rounded-lg text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
-                            ↻ Reload
+                        <div class="flex items-center space-x-1 bg-gray-900/90 p-1 rounded-xl border border-gray-700/80">
+                            <button id="btn-mode-laptop" onclick="setDeviceMode('laptop')" class="px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center space-x-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                <span>Laptop</span>
+                            </button>
+                            <button id="btn-mode-mobile" onclick="setDeviceMode('mobile')" class="px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition flex items-center space-x-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                <span>Mobile</span>
+                            </button>
+                        </div>
+
+                        <button onclick="reloadIframe()" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
+                            ↻
                         </button>
-                        <a id="open-direct-link" href="https://demand-difficulties-harley-engineer.trycloudflare.com" target="_blank" class="px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center space-x-1">
-                            <span>Open In Full Tab</span>
+                        <a id="open-direct-link" href="https://tells-daniel-soma-disciplinary.trycloudflare.com" target="_blank" class="px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center space-x-1">
+                            <span>Fullscreen</span>
                             <span>↗</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- Live Iframe Window -->
-                <div class="iframe-container shadow-2xl relative">
-                    <div id="loader-overlay" class="absolute inset-0 bg-gray-950 flex flex-col items-center justify-center z-10 transition-opacity duration-500">
-                        <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <p class="text-sm font-medium text-gray-300">Connecting to SARVAVIDYA Live Engine...</p>
-                        <p class="text-xs text-gray-500 mt-1">Bayesian Knowledge Tracing & Subjects Hub</p>
+                <!-- Adjustable Preview Frame Wrapper -->
+                <div id="preview-wrapper" class="preview-wrapper mode-laptop">
+                    <div class="iframe-container shadow-2xl relative">
+                        <div id="loader-overlay" class="absolute inset-0 bg-gray-950 flex flex-col items-center justify-center z-10 transition-opacity duration-500">
+                            <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                            <p class="text-sm font-medium text-gray-300">Connecting to SARVAVIDYA Live Engine...</p>
+                            <p class="text-xs text-gray-500 mt-1">Bayesian Knowledge Tracing & Multi-Subject Hub</p>
+                        </div>
+                        <iframe id="app-frame" src="https://tells-daniel-soma-disciplinary.trycloudflare.com" allow="clipboard-read; clipboard-write;" onload="hideLoader()"></iframe>
                     </div>
-                    <iframe id="app-frame" src="https://demand-difficulties-harley-engineer.trycloudflare.com" allow="clipboard-read; clipboard-write;" onload="hideLoader()"></iframe>
                 </div>
 
                 <!-- Helper Bar Below Frame -->
-                <div class="mt-4 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-2">
+                <div class="mt-4 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-3 pt-2 border-t border-gray-800/80">
                     <div class="flex items-center space-x-2">
-                        <span class="text-gray-500">Connect to custom host:</span>
-                        <input id="custom-url-input" type="text" placeholder="https://your-tunnel.trycloudflare.com" class="px-2.5 py-1 rounded bg-gray-900 border border-gray-700 text-gray-200 text-xs w-64 focus:outline-none focus:border-indigo-500 code-font">
+                        <span class="text-gray-500 hidden sm:inline">Connect to host:</span>
+                        <input id="custom-url-input" type="text" placeholder="https://your-tunnel.trycloudflare.com" class="px-2.5 py-1 rounded bg-gray-900 border border-gray-700 text-gray-200 text-xs w-52 sm:w-64 focus:outline-none focus:border-indigo-500 code-font">
                         <button onclick="updateUrl()" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 rounded text-gray-200 border border-gray-700">Connect</button>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <span>Default Demo: <span class="text-indigo-400 font-mono">maruthi / password123</span></span>
+                    <div class="flex items-center space-x-3 text-xs">
+                        <span>Student: <span class="text-indigo-400 font-mono font-semibold">student@123 / student123</span></span>
+                        <span>•</span>
+                        <span>Faculty: <span class="text-amber-400 font-mono font-semibold">teacher@123 / teacher123</span></span>
                     </div>
                 </div>
             </div>
@@ -181,19 +247,19 @@
 
         <!-- 4 Pillars Section -->
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-extrabold text-white mb-3">The 4 Pillars of SARVAVIDYA</h2>
-                <p class="text-gray-400 max-w-2xl mx-auto">Engineered to deliver an intelligent, closed-loop educational lifecycle.</p>
+            <div class="text-center mb-10 sm:mb-12">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">The 4 Pillars of SARVAVIDYA</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-sm sm:text-base">Engineered to deliver an intelligent, closed-loop educational lifecycle on mobile & laptop.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Pillar 1 -->
-                <div class="glass-card rounded-2xl p-6 hover:border-indigo-500/40 transition">
-                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-5">
+                <div class="glass-card rounded-2xl p-5 sm:p-6 hover:border-indigo-500/40 transition">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 sm:mb-5">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">1. AI Recommendation Engine</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    <h3 class="text-lg sm:text-xl font-bold text-white mb-2">1. AI Recommendation Engine</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed mb-4">
                         Powered by student mastery vectors, BKT probability shifts, and prerequisite graphs. Automatically distributes guidance across 6 actionable categories:
                     </p>
                     <div class="grid grid-cols-2 gap-2 text-xs font-medium text-gray-300">
@@ -207,12 +273,12 @@
                 </div>
 
                 <!-- Pillar 2 -->
-                <div class="glass-card rounded-2xl p-6 hover:border-cyan-500/40 transition">
-                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-5">
+                <div class="glass-card rounded-2xl p-5 sm:p-6 hover:border-cyan-500/40 transition">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 sm:mb-5">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">2. Multi-Subject Learning Hub</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    <h3 class="text-lg sm:text-xl font-bold text-white mb-2">2. Multi-Subject Learning Hub</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed mb-4">
                         True multi-disciplinary platform with isolated knowledge models across Programming, Mathematics, Quantum Computing, and Engineering disciplines:
                     </p>
                     <div class="flex flex-wrap gap-2 text-xs font-medium">
@@ -225,12 +291,12 @@
                 </div>
 
                 <!-- Pillar 3 -->
-                <div class="glass-card rounded-2xl p-6 hover:border-purple-500/40 transition">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-5">
+                <div class="glass-card rounded-2xl p-5 sm:p-6 hover:border-purple-500/40 transition">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-4 sm:mb-5">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">3. SARVA AI Assistant</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    <h3 class="text-lg sm:text-xl font-bold text-white mb-2">3. SARVA AI Assistant</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed mb-4">
                         A context-aware learning companion attached directly to the student's active track. Features deep syllabus fallback, step-by-step math breakdowns, and code troubleshooting.
                     </p>
                     <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 text-xs font-mono text-purple-300">
@@ -239,12 +305,12 @@
                 </div>
 
                 <!-- Pillar 4 -->
-                <div class="glass-card rounded-2xl p-6 hover:border-emerald-500/40 transition">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-5">
+                <div class="glass-card rounded-2xl p-5 sm:p-6 hover:border-emerald-500/40 transition">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 sm:mb-5">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">4. Bayesian Knowledge Tracing</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    <h3 class="text-lg sm:text-xl font-bold text-white mb-2">4. Bayesian Knowledge Tracing</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed mb-4">
                         Formal probabilistic student modeling using the standard 4-parameter BKT formulation:
                     </p>
                     <div class="grid grid-cols-4 gap-2 text-center text-xs code-font">
@@ -271,7 +337,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-800 glass-card py-8 px-4 sm:px-6 lg:px-8 mt-auto text-center text-xs text-gray-400">
+    <footer class="border-t border-gray-800 glass-card py-6 sm:py-8 px-4 sm:px-6 lg:px-8 mt-auto text-center text-xs text-gray-400">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center space-x-2">
                 <span class="font-bold text-gray-200">SARVAVIDYA Ecosystem</span>
@@ -286,7 +352,7 @@
         </div>
     </footer>
 
-    <!-- Script for iframe handling -->
+    <!-- Script for iframe handling and device toggle -->
     <script>
         function hideLoader() {
             const loader = document.getElementById('loader-overlay');
@@ -314,6 +380,27 @@
                 loader.style.opacity = '1';
                 document.getElementById('app-frame').src = val;
                 document.getElementById('open-direct-link').href = val;
+                document.getElementById('mobile-direct-btn').href = val;
+            }
+        }
+        function setDeviceMode(mode) {
+            const wrapper = document.getElementById('preview-wrapper');
+            const btnLaptop = document.getElementById('btn-mode-laptop');
+            const btnMobile = document.getElementById('btn-mode-mobile');
+            if (mode === 'mobile') {
+                wrapper.classList.remove('mode-laptop');
+                wrapper.classList.add('mode-mobile');
+                btnMobile.classList.add('bg-indigo-600', 'text-white');
+                btnMobile.classList.remove('text-gray-400');
+                btnLaptop.classList.remove('bg-indigo-600', 'text-white');
+                btnLaptop.classList.add('text-gray-400');
+            } else {
+                wrapper.classList.remove('mode-mobile');
+                wrapper.classList.add('mode-laptop');
+                btnLaptop.classList.add('bg-indigo-600', 'text-white');
+                btnLaptop.classList.remove('text-gray-400');
+                btnMobile.classList.remove('bg-indigo-600', 'text-white');
+                btnMobile.classList.add('text-gray-400');
             }
         }
         // Fallback timeout in case iframe onload doesn't trigger immediately
