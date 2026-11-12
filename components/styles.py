@@ -58,6 +58,9 @@ header[data-testid="stHeader"],
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarHeader"],
+div[data-testid="stSidebarHeader"],
 #MainMenu,
 footer {
     display: none !important;
@@ -816,13 +819,30 @@ SIDEBAR_CSS = """
         pointer-events: auto !important;
     }
 
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="stSidebarCollapseButton"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        z-index: 999999 !important;
+    /* Strictly eliminate the << sidebar collapse chevron button */
+    [data-testid="stSidebarCollapseButton"],
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarHeader"] button,
+    [data-testid="stSidebarHeader"],
+    div[data-testid="stSidebarHeader"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        pointer-events: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    [data-testid="stSidebarCollapsedControl"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
 }
 
@@ -837,8 +857,21 @@ SIDEBAR_CSS = """
         box-shadow: 4px 0 24px rgba(23, 41, 67, 0.25) !important;
     }
 
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="stSidebarCollapseButton"] {
+    /* Keep << collapse button hidden even on mobile */
+    [data-testid="stSidebarCollapseButton"],
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarHeader"] button,
+    [data-testid="stSidebarHeader"],
+    div[data-testid="stSidebarHeader"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+    }
+
+    [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
