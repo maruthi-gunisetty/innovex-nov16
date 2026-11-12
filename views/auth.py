@@ -142,20 +142,20 @@ Qubit superposition, quantum gates, Newtonian kinematics & dynamics.
     # 2. RIGHT SECTION: PREMIUM AUTHENTICATION CARD
     # ==========================================================
     with col_right:
-        # Segmented Tabs
-        tabs = st.tabs(["Student Login", "Teacher Login", "Create Account", "Demonstration Mode"])
+        # Segmented Tabs: Prominently feature "Create Account" for newly joined students
+        tabs = st.tabs(["Student Login", "✨ Create Account", "Teacher Login", "Demonstration Mode"])
 
-        # 1. Student Login Tab
+        # 1. Student Login Tab (includes 1-click switch to Create Account)
         with tabs[0]:
             _render_student_login()
 
-        # 2. Teacher Login Tab
+        # 2. Create Account Tab (Dedicated self-registration)
         with tabs[1]:
-            _render_teacher_login()
-
-        # 3. Create Account Tab
-        with tabs[2]:
             _render_registration()
+
+        # 3. Teacher Login Tab
+        with tabs[2]:
+            _render_teacher_login()
 
         # 4. Demonstration Mode Tab
         with tabs[3]:
@@ -163,7 +163,12 @@ Qubit superposition, quantum gates, Newtonian kinematics & dynamics.
 
 
 def _render_student_login():
-    """Renders the modern student authentication form with instant demo access."""
+    """Renders the modern student authentication form with instant demo access and 1-click registration switch."""
+    if st.session_state.get("auth_show_register", False):
+        st.button("← Back to Student Login", key="btn_back_to_login", use_container_width=False, on_click=lambda: st.session_state.update({"auth_show_register": False}))
+        _render_registration()
+        return
+
     head_html = """
 <div style="margin-bottom: 0.85rem;">
 <h3 style="font-size: 1.45rem; font-weight: 800; color: #172943; margin: 0 0 0.2rem 0; letter-spacing: -0.015em;">
@@ -246,6 +251,22 @@ Email: <code>student@123</code> &bull; Password: <code>student123</code>
                 st.rerun()
             else:
                 st.error("Incorrect password. Please verify your credentials.")
+
+    # Dedicated New Student Registration Callout
+    new_student_html = """
+<div style="background: linear-gradient(135deg, #F0FDF4 0%, #EFF6FF 100%); border: 1.5px dashed #86EFAC; border-radius: 12px; padding: 0.95rem 1.1rem; margin-top: 1.25rem; text-align: center;">
+<div style="font-size: 0.9rem; font-weight: 800; color: #166534; margin-bottom: 0.25rem;">
+🌱 Newly Joined Student?
+</div>
+<div style="font-size: 0.775rem; color: #374151; margin-bottom: 0.75rem; line-height: 1.45;">
+Join SARVAVIDYA today to unlock personalized BKT mastery diagnostics, AI tutoring, and <strong>50 bonus starter coins</strong>.
+</div>
+</div>
+"""
+    st.markdown(_clean_html(new_student_html), unsafe_allow_html=True)
+    if st.button("✨ Create a New Student Account", key="btn_switch_to_register", type="secondary", use_container_width=True):
+        st.session_state["auth_show_register"] = True
+        st.rerun()
 
 
 def _render_teacher_login():
@@ -335,15 +356,24 @@ Email: <code>teacher@123</code> &bull; Password: <code>teacher123</code>
 
 
 def _render_registration():
-    """Renders the student account creation interface."""
+    """Renders the student account creation interface connected to the SQLite database."""
     head_html = """
 <div style="margin-bottom: 0.85rem;">
-<h3 style="font-size: 1.45rem; font-weight: 800; color: #172943; margin: 0 0 0.2rem 0; letter-spacing: -0.015em;">
-Create Account
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+<h3 style="font-size: 1.45rem; font-weight: 800; color: #172943; margin: 0; letter-spacing: -0.015em;">
+Create Student Account
 </h3>
-<p style="font-size: 0.825rem; color: #718096; margin: 0;">
-Join the intelligent multi-subject learning network.
+<span class="lm-pill pill-completed" style="font-size: 0.65rem; padding: 2px 8px;">
+🟢 DB Connected
+</span>
+</div>
+<p style="font-size: 0.825rem; color: #718096; margin: 0 0 0.5rem 0;">
+Join SARVAVIDYA to track your learning journey, earn coins, and master every concept.
 </p>
+<div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.75rem; color: #166534; display: flex; justify-content: space-between; align-items: center;">
+<span>🎁 <strong>Starter Perk:</strong> 50 SARVA Coins awarded automatically upon registration!</span>
+<span style="font-family: monospace; font-size: 0.7rem; color: #15803D;">learnsphere.db</span>
+</div>
 </div>
 """
     st.markdown(_clean_html(head_html), unsafe_allow_html=True)
@@ -362,7 +392,7 @@ Join the intelligent multi-subject learning network.
         with col_p2:
             confirm_pwd = st.text_input("Confirm Password", type="default" if show_pwd else "password", key="reg_confirm")
 
-        submitted = st.form_submit_button("Create Learning Account", type="primary", use_container_width=True)
+        submitted = st.form_submit_button("Create Learning Account & Start Learning", type="primary", use_container_width=True)
 
         if submitted:
             valid, err = AuthService.validate_registration(username, email, password, confirm_pwd, full_name)
@@ -395,7 +425,15 @@ Join the intelligent multi-subject learning network.
             st.session_state["sidebar_nav_radio"] = "Dashboard"
             st.session_state["_active_nav_label"] = "Dashboard"
             st.session_state.pop("auth_tab", None)
-            st.success(f"Account created successfully. Welcome, {full_name}!")
+            st.session_state["auth_show_register"] = False
+            st.success(f"Account successfully created in database! Welcome, {full_name}!")
+            st.rerun()
+
+    # Link back to Sign In
+    if st.session_state.get("auth_show_register", False):
+        st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+        if st.button("Already have an account? Sign in as Student →", key="btn_switch_to_login", use_container_width=True):
+            st.session_state["auth_show_register"] = False
             st.rerun()
 
 

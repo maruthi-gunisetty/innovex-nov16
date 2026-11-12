@@ -413,6 +413,7 @@ def render_assessment_page(user: dict):
             col_next_q, col_retry, col_review = st.columns([1.2, 1.0, 1.0])
             with col_next_q:
                 if st.button("Proceed to Next Question →", key="btn_next_q_after_eval", type="primary", use_container_width=True):
+                    st.session_state["sarva_ai_dialog_open"] = False
                     st.session_state.pop(eval_key, None)
                     st.session_state.pop(f"show_ai_why_{current_q['id']}", None)
                     st.session_state[f"q_start_time_{current_q['id']}"] = time.time()
@@ -420,6 +421,7 @@ def render_assessment_page(user: dict):
                     st.rerun()
             with col_retry:
                 if st.button("Try Question Again", key=f"btn_retry_{current_q['id']}", use_container_width=True):
+                    st.session_state["sarva_ai_dialog_open"] = False
                     st.session_state.pop(eval_key, None)
                     st.session_state.pop(f"show_ai_why_{current_q['id']}", None)
                     st.session_state[f"q_start_time_{current_q['id']}"] = time.time()

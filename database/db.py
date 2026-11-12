@@ -130,9 +130,22 @@ def create_user(
         user_id = cur.lastrowid
         conn.commit()
 
-        # Initialize student mastery rows for all concepts if role is student
+        # Initialize student mastery rows and rewards wallet for new students
         if role == "student":
             init_student_mastery(user_id)
+            try:
+                from core.rewards_engine import RewardsEngine
+                RewardsEngine.get_or_create_wallet(user_id)
+                RewardsEngine.award_coins(
+                    user_id=user_id,
+                    amount=50,
+                    source_activity="SIGNUP_WELCOME_BONUS",
+                    entity_id=f"welcome_{user_id}",
+                    description="Welcome to SARVAVIDYA! Starter learning bonus.",
+                    idempotency_key=f"welcome_{user_id}"
+                )
+            except Exception:
+                pass
 
         return user_id
 

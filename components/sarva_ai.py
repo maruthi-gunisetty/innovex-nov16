@@ -283,14 +283,17 @@ def render_sarva_ai_modal(user: dict):
                         misconception_name=m_name
                     )
                     st.session_state[alt_key] = alt_res
+                    st.session_state["sarva_ai_dialog_open"] = True
                     st.rerun()
         with col_c2:
             if st.button("💬 General Q&A Mode", key="modal_btn_switch_general", use_container_width=True):
                 st.session_state.pop("sarva_ai_active_context", None)
+                st.session_state["sarva_ai_dialog_open"] = True
                 st.rerun()
         with col_c3:
             if st.button("Close Assistant", key="modal_btn_close_ctx", type="primary", use_container_width=True):
                 st.session_state["sarva_ai_dialog_open"] = False
+                st.session_state.pop("sarva_ai_active_context", None)
                 st.rerun()
 
         # Follow-up Input Form (Auto-clears on submit and triggers instant responsive rerun)
@@ -308,6 +311,7 @@ def render_sarva_ai_modal(user: dict):
 
             if fup_submit and fup_query.strip():
                 st.session_state[f"modal_fup_pending_{q['id']}"] = fup_query.strip()
+                st.session_state["sarva_ai_dialog_open"] = True
                 st.rerun()
 
     # ==========================================================
@@ -327,18 +331,22 @@ def render_sarva_ai_modal(user: dict):
         with c1:
             if st.button("💡 Explain", key="m_chip_exp", use_container_width=True):
                 st.session_state["sarva_ai_modal_pending"] = f"Explain {active_concept['name'] if active_concept else active_course['name']} in simple terms with analogies"
+                st.session_state["sarva_ai_dialog_open"] = True
                 st.rerun()
         with c2:
             if st.button("💻 Code Example", key="m_chip_code", use_container_width=True):
                 st.session_state["sarva_ai_modal_pending"] = f"Show a practical code demonstration for {active_concept['name'] if active_concept else active_course['name']}"
+                st.session_state["sarva_ai_dialog_open"] = True
                 st.rerun()
         with c3:
             if st.button("❓ Diagnose", key="m_chip_diag", use_container_width=True):
                 st.session_state["sarva_ai_modal_pending"] = "Diagnose my recent mistakes in this subject and show how to fix them."
+                st.session_state["sarva_ai_dialog_open"] = True
                 st.rerun()
         with c4:
             if st.button("🎯 Practice", key="m_chip_quiz", use_container_width=True):
                 st.session_state["sarva_ai_modal_pending"] = "Give me a challenging practice question for this topic."
+                st.session_state["sarva_ai_dialog_open"] = True
                 st.rerun()
 
         # Chat container
@@ -395,6 +403,7 @@ def render_sarva_ai_modal(user: dict):
 
             if send_sub and user_msg.strip():
                 st.session_state["sarva_ai_modal_pending"] = user_msg.strip()
+                st.session_state["sarva_ai_dialog_open"] = True
                 st.rerun()
 
         # Bottom row: Clear History & Close Assistant
@@ -404,6 +413,7 @@ def render_sarva_ai_modal(user: dict):
                 clear_chat_history(user_id, active_course.get("id"))
                 st.session_state["sarva_ai_modal_history"] = []
                 st.session_state["sarva_ai_page_history"] = []
+                st.session_state["sarva_ai_dialog_open"] = True
                 st.rerun()
         with b2:
             if st.button("Open Full Studio ↗", key="modal_open_studio_btn", use_container_width=True):
@@ -414,6 +424,7 @@ def render_sarva_ai_modal(user: dict):
         with b3:
             if st.button("Close Assistant", key="modal_close_btn", type="primary", use_container_width=True):
                 st.session_state["sarva_ai_dialog_open"] = False
+                st.session_state.pop("sarva_ai_active_context", None)
                 st.rerun()
 
 
@@ -541,6 +552,7 @@ def render_sarva_ai_launcher():
 def render_sarva_ai_widget(user: dict):
     """
     Renders both the floating launcher and (when active) the central modal AI assistant.
+    Strictly opens ONLY when the user clicks an AI launcher or 'Ask AI Why?' option.
     """
     if not user:
         return
@@ -548,6 +560,8 @@ def render_sarva_ai_widget(user: dict):
     # 1. Floating Launcher
     render_sarva_ai_launcher()
 
-    # 2. Central Modal Dialog (Triggered on click)
+    # 2. Central Modal Dialog (Only opens when explicitly triggered by AI button)
     if st.session_state.get("sarva_ai_dialog_open", False):
+        # Consume the single-open trigger immediately so subsequent page/option interactions do NOT re-open the dialog!
+        st.session_state["sarva_ai_dialog_open"] = False
         render_sarva_ai_modal(user)
