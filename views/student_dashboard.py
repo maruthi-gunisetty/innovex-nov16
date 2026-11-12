@@ -67,11 +67,23 @@ def render_student_dashboard(user: dict):
     with col_subject:
         render_course_selector(key="dash_course_selector", label="Select Track", on_change_rerun=True)
 
-    # SARVA AI Gemini Integration Banner
+    # SARVA AI & Rewards Dashboard Integration
+    u_coins = 0
+    u_streak = 0
+    u_level = "Bronze Learner"
+    try:
+        from core.rewards_engine import RewardsEngine
+        rw = RewardsEngine.get_or_create_wallet(user_id)
+        u_coins = rw.get("available_coins", 0)
+        u_streak = rw.get("current_streak", 0)
+        u_level = rw.get("current_level", "Bronze Learner")
+    except Exception:
+        pass
+
     col_dash_ai, col_dash_btn = st.columns([0.78, 0.22])
     with col_dash_ai:
-        st.markdown("""
-        <div style="background: linear-gradient(135deg, #172943 0%, #243B64 100%); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 0.65rem 1rem; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; box-shadow: 0 4px 14px rgba(23, 41, 67, 0.1);">
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #172943 0%, #243B64 100%); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 0.65rem 1rem; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; box-shadow: 0 4px 14px rgba(23, 41, 67, 0.1);">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 32px; height: 32px; border-radius: 8px; background: #D6B56D; color: #172943; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">SA</div>
                 <div>
@@ -79,14 +91,39 @@ def render_student_dashboard(user: dict):
                     <div style="font-size: 0.725rem; color: #CBD5E1;">Ask anything about your syllabus, math derivations, or code debugging.</div>
                 </div>
             </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: rgba(217, 119, 6, 0.2); border: 1px solid #F59E0B; color: #FDE68A; padding: 2px 8px; border-radius: 8px; font-size: 0.725rem; font-weight: 700;">
+                    🪙 {u_coins:,} Coins
+                </span>
+                <span style="background: rgba(220, 38, 38, 0.2); border: 1px solid #EF4444; color: #FECDD3; padding: 2px 8px; border-radius: 8px; font-size: 0.725rem; font-weight: 700;">
+                    🔥 {u_streak}d Streak
+                </span>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     with col_dash_btn:
         st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
         if st.button("💬 Chat with AI", key="dash_open_sarva_ai_btn", type="primary", use_container_width=True):
-            st.session_state["current_page"] = "sarva_ai_page"
-            st.session_state["_synced_page"] = "sarva_ai_page"
-            st.session_state["sidebar_nav_radio"] = "SARVA AI Companion"
+            st.session_state["sarva_ai_dialog_open"] = True
+            st.session_state.pop("sarva_ai_active_context", None)
+            st.rerun()
+
+    # Rewards Action Bar
+    col_rw_bar, col_rw_btn = st.columns([0.78, 0.22])
+    with col_rw_bar:
+        st.markdown(f"""
+        <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 0.45rem 0.85rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 0.775rem; color: #92400E; font-weight: 600;">
+                🎁 <strong>SARVAVIDYA REWARDS:</strong> Earn coins on every verified quiz & streak. Current Tier: <span style="font-weight: 800; color: #B45309;">{u_level}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_rw_btn:
+        st.markdown("<div style='height: 2px;'></div>", unsafe_allow_html=True)
+        if st.button("🎁 Rewards Store", key="dash_open_rewards_btn", use_container_width=True):
+            st.session_state["current_page"] = "rewards"
+            st.session_state["_synced_page"] = "rewards"
+            st.session_state["sidebar_nav_radio"] = "SARVAVIDYA Rewards"
             st.rerun()
 
     # ==========================================================

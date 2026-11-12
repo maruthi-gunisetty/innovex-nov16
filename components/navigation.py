@@ -38,13 +38,34 @@ def render_navigation():
             render_search_input()
 
     with col_user_portal:
-        col_notif, col_track, col_u_profile, col_signout = st.columns([0.22, 1.0, 1.18, 0.8])
-        with col_notif:
-            st.markdown("""
-            <div style="display: flex; align-items: center; justify-content: center; padding-top: 0.45rem;">
-                <div style="width: 30px; height: 30px; border-radius: 50%; background-color: #F5F6F8; display: flex; align-items: center; justify-content: center; color: #718096; border: 1px solid #E4E8ED;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-                </div>
+        col_streak, col_coins, col_track, col_u_profile, col_signout = st.columns([0.48, 0.48, 0.95, 1.15, 0.74])
+        
+        # Fetch wallet info for compact header display
+        u_coins = 0
+        u_streak = 0
+        try:
+            from core.rewards_engine import RewardsEngine
+            w = RewardsEngine.get_or_create_wallet(user["id"])
+            u_coins = w.get("available_coins", 0)
+            u_streak = w.get("current_streak", 0)
+        except Exception:
+            pass
+
+        with col_streak:
+            st.markdown(f"""
+            <div style="display: flex; align-items: center; height: 100%; padding-top: 0.35rem;">
+                <span class="lm-pill" style="background:#FEF2F2; color:#DC2626; border:1px solid #FECDD3; font-size: 0.7rem; padding: 3px 8px; font-weight: 700; white-space: nowrap;" title="Current Learning Streak">
+                    🔥 {u_streak}d
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col_coins:
+            st.markdown(f"""
+            <div style="display: flex; align-items: center; height: 100%; padding-top: 0.35rem;">
+                <span class="lm-pill" style="background:#FFFBEB; color:#D97706; border:1px solid #FDE68A; font-size: 0.7rem; padding: 3px 8px; font-weight: 700; white-space: nowrap;" title="SARVAVIDYA Coin Balance">
+                    🪙 {u_coins:,}
+                </span>
             </div>
             """, unsafe_allow_html=True)
         with col_track:
@@ -110,6 +131,7 @@ def render_navigation():
         if user.get("role") == "teacher":
             nav_map = {
                 "Dashboard": "teacher_dashboard",
+                "SARVAVIDYA Rewards": "rewards",
                 "Subjects Hub": "subjects",
                 "Assessments": "assessment",
                 "SARVA AI Companion": "sarva_ai_page",
@@ -126,6 +148,7 @@ def render_navigation():
         else:
             nav_map = {
                 "Dashboard": "student_dashboard",
+                "SARVAVIDYA Rewards": "rewards",
                 "Subjects Hub": "subjects",
                 "Assessments": "assessment",
                 "SARVA AI Companion": "sarva_ai_page",

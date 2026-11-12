@@ -141,3 +141,88 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (content_id) REFERENCES learning_content(id) ON DELETE CASCADE
 );
+
+-- ==========================================
+-- SARVAVIDYA REWARDS ECOSYSTEM SCHEMA
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS student_wallets (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    available_coins INTEGER NOT NULL DEFAULT 0 CHECK(available_coins >= 0),
+    lifetime_earned_coins INTEGER NOT NULL DEFAULT 0,
+    lifetime_spent_coins INTEGER NOT NULL DEFAULT 0,
+    current_level TEXT NOT NULL DEFAULT 'Bronze Learner',
+    current_streak INTEGER NOT NULL DEFAULT 0,
+    longest_streak INTEGER NOT NULL DEFAULT 0,
+    last_active_date TEXT,
+    streak_freeze_tokens INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS coin_transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    transaction_type TEXT NOT NULL CHECK(transaction_type IN ('EARN', 'SPEND', 'BONUS', 'FREEZE_USED')),
+    amount INTEGER NOT NULL,
+    balance_after INTEGER NOT NULL,
+    source_activity TEXT NOT NULL,
+    entity_id TEXT,
+    description TEXT NOT NULL,
+    idempotency_key TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS daily_missions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mission_code TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    reward_coins INTEGER NOT NULL,
+    target_count INTEGER DEFAULT 1,
+    mission_type TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS student_mission_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    mission_id INTEGER NOT NULL REFERENCES daily_missions(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,
+    current_count INTEGER DEFAULT 0,
+    is_completed INTEGER DEFAULT 0,
+    is_claimed INTEGER DEFAULT 0,
+    claimed_at TIMESTAMP,
+    UNIQUE(user_id, mission_id, date)
+);
+
+CREATE TABLE IF NOT EXISTS reward_store_items (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('avatar', 'frame', 'theme', 'badge', 'powerup', 'exclusive_challenge')),
+    description TEXT NOT NULL,
+    coin_price INTEGER NOT NULL,
+    icon TEXT NOT NULL,
+    is_consumable INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS student_inventory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    item_id TEXT NOT NULL REFERENCES reward_store_items(id) ON DELETE CASCADE,
+    quantity INTEGER DEFAULT 1,
+    is_equipped INTEGER DEFAULT 0,
+    purchased_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, item_id)
+);
+
+CREATE TABLE IF NOT EXISTS reward_claims (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    claim_type TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    date_str TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, claim_type, entity_id, date_str)
+);
+

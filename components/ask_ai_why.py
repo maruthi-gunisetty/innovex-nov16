@@ -88,16 +88,37 @@ def render_ask_ai_why_component(
     </style>
     """, unsafe_allow_html=True)
 
-    col_btn, col_desc = st.columns([0.38, 0.62])
+    col_btn, col_desc = st.columns([0.42, 0.58])
     with col_btn:
-        btn_label = "✨ Close AI Why Breakdown" if is_panel_open else "✨ Ask AI Why?"
         if st.button(
-            btn_label,
-            key=f"btn_toggle_ai_why_{q_id}",
-            type="primary" if not is_panel_open else "secondary",
+            "✨ Ask AI Why? (Open Assistant)",
+            key=f"btn_modal_ai_why_{q_id}",
+            type="primary",
             use_container_width=True
         ):
-            st.session_state[show_key] = not is_panel_open
+            st.session_state["sarva_ai_dialog_open"] = True
+            st.session_state["sarva_ai_active_context"] = {
+                "type": "ask_ai_why",
+                "question": current_q,
+                "options": options,
+                "chosen_opt": chosen_opt,
+                "is_correct": is_correct,
+                "eval_res": eval_res
+            }
+            # Also award engagement coins
+            try:
+                from core.rewards_engine import RewardsEngine
+                RewardsEngine.update_mission_progress(user["id"], "ai_activity", 1)
+                RewardsEngine.award_coins(
+                    user_id=user["id"],
+                    amount=5,
+                    source_activity="ASK_AI_WHY_ENGAGEMENT",
+                    entity_id=f"why_{q_id}",
+                    description=f"Consulted SARVA AI Why for Q#{q_id}",
+                    idempotency_key=f"why_consult_{user['id']}_{q_id}"
+                )
+            except Exception:
+                pass
             st.rerun()
 
     with col_desc:
@@ -108,7 +129,7 @@ def render_ask_ai_why_component(
                 🤖 Don't understand why your answer was wrong?
             </div>
             <div style="font-size: 0.725rem; color: #4F46E5;">
-                Click <strong>Ask AI Why?</strong> to inspect a step-by-step diagnosis powered by <em>{engine_label}</em>.
+                Click <strong>Ask AI Why?</strong> to launch the centered AI diagnostic coach powered by <em>{engine_label}</em>.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -295,3 +316,4 @@ def render_ask_ai_why_component(
 
         # Close Outer Wrapper
         st.markdown("</div>", unsafe_allow_html=True)
+

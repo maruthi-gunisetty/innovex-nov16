@@ -269,6 +269,50 @@ def render_assessment_page(user: dict):
                         "explanation": current_q["explanation"]
                     }
 
+                    # ==========================================================
+                    # SARVAVIDYA REWARDS & GAMIFICATION INTEGRATION
+                    # ==========================================================
+                    try:
+                        from core.rewards_engine import RewardsEngine
+                        RewardsEngine.record_daily_learning_activity(user_id)
+                        RewardsEngine.update_mission_progress(user_id, "practice_questions", 1)
+                        RewardsEngine.update_mission_progress(user_id, "assessment", 1)
+
+                        # Award Practice Completion (5 Coins, Idempotent)
+                        RewardsEngine.award_coins(
+                            user_id=user_id,
+                            amount=5,
+                            source_activity="ASSESSMENT_PRACTICE",
+                            entity_id=str(current_q["id"]),
+                            description=f"Completed practice on '{current_q['title']}'",
+                            idempotency_key=f"assess_{user_id}_{current_q['id']}"
+                        )
+
+                        if is_correct:
+                            # Award Perfect Accuracy Bonus (15 Coins, Idempotent)
+                            RewardsEngine.award_coins(
+                                user_id=user_id,
+                                amount=15,
+                                source_activity="PERFECT_SCORE_BONUS",
+                                entity_id=f"perf_{current_q['id']}",
+                                description=f"100% Accuracy on '{current_q['title']}'",
+                                idempotency_key=f"perf_{user_id}_{current_q['id']}"
+                            )
+                            RewardsEngine.update_mission_progress(user_id, "score_improvement", 1)
+
+                        # Check BKT Concept Mastery Threshold
+                        if next_prior >= 0.85 and prior_mastery < 0.85:
+                            RewardsEngine.award_coins(
+                                user_id=user_id,
+                                amount=25,
+                                source_activity="BKT_MASTERY_MILESTONE",
+                                entity_id=str(concept_id),
+                                description=f"Mastered Concept: {current_q['concept_name']} (>=85%)",
+                                idempotency_key=f"bkt_mastery_{user_id}_{concept_id}"
+                            )
+                    except Exception:
+                        pass
+
                     completed_q_ids.add(current_q["id"])
                     if "completed_assessment_q_ids" not in st.session_state:
                         st.session_state["completed_assessment_q_ids"] = set()
