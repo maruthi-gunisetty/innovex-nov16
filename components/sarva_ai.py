@@ -18,6 +18,7 @@ from database.db import (
     save_chat_message, get_chat_history, clear_chat_history
 )
 from core.course_manager import get_active_course
+from core.ai_service import query_gemini_ai, get_gemini_api_key
 
 
 def _get_curriculum_response(prompt: str, user: dict, course: dict, concept: Optional[dict]) -> str:
@@ -196,7 +197,11 @@ def render_sarva_ai_widget(user: dict):
 
     # If Chatbot Window is OPEN, render the floating dialog
     if st.session_state["sarva_ai_is_open"]:
-        st.markdown("""
+        has_gemini = bool(get_gemini_api_key())
+        badge_label = "✨ Gemini 3.1 Live AI" if has_gemini else "Curriculum Engine"
+        badge_bg = "background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(165, 180, 252, 0.3); color: #C7D2FE;" if has_gemini else "background: rgba(255,255,255,0.12); color: #E4E8ED;"
+
+        st.markdown(f"""
         <div style="
             position: fixed;
             bottom: 20px;
@@ -221,8 +226,8 @@ def render_sarva_ai_widget(user: dict):
                         <div style="font-size: 0.65rem; color: #D6B56D; letter-spacing: 0.03em;">Your Personal Learning Companion</div>
                     </div>
                 </div>
-                <div style="font-size: 0.65rem; background: rgba(255,255,255,0.12); padding: 2px 8px; border-radius: 10px; color: #E4E8ED;">
-                    Curriculum Engine
+                <div style="font-size: 0.65rem; {badge_bg} padding: 2px 8px; border-radius: 10px; font-weight: 600;">
+                    {badge_label}
                 </div>
             </div>
         </div>
@@ -288,12 +293,37 @@ def _handle_chat_input(user_text: str, user: dict, course: dict, concept: Option
     st.session_state["sarva_ai_history"].append({"sender": "user", "message": user_text, "mode": "user"})
     save_chat_message(user_id, course_id, concept_id, "user", user_text, mode="user")
 
-    # 2. Generate response via Curriculum Knowledge Engine
-    reply = _get_curriculum_response(user_text, user, course, concept)
+    # 2. Gather lesson & misconception context
+    lesson_summary = None
+    if concept_id:
+        lesson = get_learning_content_by_concept(concept_id)
+        if lesson:
+            lesson_summary = lesson.get("summary")
 
-    # 3. Save and append assistant message
-    st.session_state["sarva_ai_history"].append({"sender": "assistant", "message": reply, "mode": "curriculum_engine"})
-    save_chat_message(user_id, course_id, concept_id, "assistant", reply, mode="curriculum_engine")
+    recent_attempts = get_user_attempts(user_id, limit=5, course_id=course_id)
+    last_incorrect = next((a for a in recent_attempts if not a.get("is_correct")), None)
+    misconception_info = None
+    if last_incorrect:
+        misconception_info = f"Question: '{last_incorrect.get('question_title')}', Code: {last_incorrect.get('misconception_code')}"
+
+    # 3. Query Gemini Live AI if key is present
+    reply = query_gemini_ai(
+        prompt=user_text,
+        course_name=course["name"],
+        concept_name=concept["name"] if concept else "General Curriculum",
+        lesson_summary=lesson_summary,
+        misconception_info=misconception_info
+    )
+    mode = "gemini_live"
+
+    # 4. Fallback to Verified Curriculum Engine if external API fails or is offline
+    if not reply:
+        reply = _get_curriculum_response(user_text, user, course, concept)
+        mode = "curriculum_engine"
+
+    # 5. Save and append assistant message
+    st.session_state["sarva_ai_history"].append({"sender": "assistant", "message": reply, "mode": mode})
+    save_chat_message(user_id, course_id, concept_id, "assistant", reply, mode=mode)
 
     st.rerun()
 
