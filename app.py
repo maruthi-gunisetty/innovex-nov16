@@ -30,6 +30,13 @@ from views.rewards_view import render_rewards_page
 from components.sarva_ai import render_sarva_ai_widget
 
 
+@st.cache_resource
+def _initialize_database_once():
+    """Runs database initialization and seeding exactly once on startup."""
+    seed_database(force=False)
+    return True
+
+
 def main():
     # 1. Page Configuration (Strictly no emojis)
     # Automatically collapse sidebar for unauthenticated visitors
@@ -47,8 +54,8 @@ def main():
     # 2. Inject Base SaaS Design System CSS
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
-    # 3. Ensure Database and Seed Content Exist
-    seed_database(force=False)
+    # 3. Ensure Database and Seed Content Exist (Cached for sub-millisecond fast response)
+    _initialize_database_once()
 
     # 4. Handle Redirection State & Query Params
     if "target_view" in st.session_state:

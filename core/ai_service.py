@@ -47,16 +47,24 @@ def get_gemini_api_key() -> Optional[str]:
     return None
 
 
+_AI_RESPONSE_CACHE: Dict[str, str] = {}
+
+
 def _call_gemini_api(prompt: str, temperature: float = 0.4, max_tokens: int = 800) -> Optional[str]:
     """Internal helper to dispatch prompt to high-speed Gemini API models with low-latency fallback."""
+    # 0. Check in-memory cache for instant sub-millisecond response
+    cache_key = f"{prompt.strip()}_{temperature}_{max_tokens}"
+    if cache_key in _AI_RESPONSE_CACHE:
+        return _AI_RESPONSE_CACHE[cache_key]
+
     api_key = get_gemini_api_key()
     if not api_key:
         return None
 
-    # Use lowest latency, high-throughput models first:
-    # 1. gemini-3.1-flash-lite: sub-second generation latency (~0.9s - 1.2s)
-    # 2. gemini-flash-lite-latest: reliable secondary fast model (~1.4s)
-    models = ["gemini-3.1-flash-lite", "gemini-flash-lite-latest"]
+    # Use fastest, highest-availability models first:
+    # 1. gemini-flash-lite-latest: sub-second generation latency (~1.1s)
+    # 2. gemini-3.1-flash-lite: secondary fallback
+    models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
     payload = {
         "contents": [
             {
@@ -80,7 +88,7 @@ def _call_gemini_api(prompt: str, temperature: float = 0.4, max_tokens: int = 80
             headers={"Content-Type": "application/json"}
         )
         try:
-            with urllib.request.urlopen(req, timeout=5) as response:
+            with urllib.request.urlopen(req, timeout=3.5) as response:
                 result = json.loads(response.read().decode("utf-8"))
                 candidates = result.get("candidates", [])
                 if candidates:
@@ -88,6 +96,7 @@ def _call_gemini_api(prompt: str, temperature: float = 0.4, max_tokens: int = 80
                     if parts:
                         text = parts[0].get("text", "").strip()
                         if text:
+                            _AI_RESPONSE_CACHE[cache_key] = text
                             return text
         except Exception:
             continue

@@ -173,27 +173,25 @@ def render_navigation():
             st.session_state["sidebar_nav_radio"] = curr_label
             st.session_state["_active_nav_label"] = curr_label
 
-        selected_nav = st.radio(
-            "Navigation",
-            nav_keys,
-            index=default_idx,
-            label_visibility="collapsed",
-            key="sidebar_nav_radio"
-        )
-
-        # Handle navigation change or Sign Out
-        if st.session_state.get("_active_nav_label") != selected_nav:
-            st.session_state["_active_nav_label"] = selected_nav
-            if selected_nav == "Sign Out":
+        def _on_nav_change():
+            sel = st.session_state.get("sidebar_nav_radio")
+            if sel == "Sign Out":
                 st.session_state.pop("user", None)
                 st.session_state["current_page"] = "auth"
                 st.session_state.pop("sidebar_nav_radio", None)
                 st.session_state.pop("_active_nav_label", None)
                 st.session_state.pop("_synced_page", None)
-                st.rerun()
-            else:
-                target_page = nav_map[selected_nav]
-                if target_page != st.session_state.get("current_page"):
-                    st.session_state["current_page"] = target_page
-                    st.session_state["_synced_page"] = target_page
-                    st.rerun()
+            elif sel in nav_map:
+                tgt = nav_map[sel]
+                st.session_state["current_page"] = tgt
+                st.session_state["_synced_page"] = tgt
+                st.session_state["_active_nav_label"] = sel
+
+        selected_nav = st.radio(
+            "Navigation",
+            nav_keys,
+            index=default_idx,
+            label_visibility="collapsed",
+            key="sidebar_nav_radio",
+            on_change=_on_nav_change
+        )

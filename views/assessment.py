@@ -199,124 +199,146 @@ def render_assessment_page(user: dict):
         is_evaluated = eval_key in st.session_state
 
         if not is_evaluated:
-            # ACTIVE QUESTION FORM: Clean selection and submission
-            form_key = f"q_form_{current_q['id']}_{q_idx}"
-            with st.form(form_key):
-                selected_display = st.radio(
-                    "Select your response:",
-                    opt_display_labels,
-                    index=None,
-                    key=f"radio_{current_q['id']}_{q_idx}",
-                    label_visibility="collapsed"
+            # Helper to execute evaluation when an option is selected with sub-millisecond responsiveness
+            def _submit_option_choice(chosen_opt):
+                elapsed_time = round(time.time() - st.session_state.get(q_key, time.time()), 2)
+                is_correct = bool(chosen_opt.get("is_correct", False))
+                misconception_code = chosen_opt.get("misconception_code")
+
+                concept_id = current_q["concept_id"]
+                m_rec = get_student_concept_mastery(user_id, concept_id)
+                prior_mastery = m_rec["mastery_prob"] if m_rec else 0.20
+
+                bkt = BayesianKnowledgeTracing(
+                    p_init=m_rec.get("p_init", 0.20) if m_rec else 0.20,
+                    p_transit=m_rec.get("p_transit", 0.15) if m_rec else 0.15,
+                    p_guess=m_rec.get("p_guess", 0.20) if m_rec else 0.20,
+                    p_slip=m_rec.get("p_slip", 0.10) if m_rec else 0.10
+                )
+                posterior_obs, next_prior = bkt.update(prior_mastery, is_correct)
+                update_student_mastery_record(user_id, concept_id, next_prior, is_correct)
+
+                record_assessment_attempt(
+                    user_id=user_id,
+                    question_id=current_q["id"],
+                    concept_id=concept_id,
+                    selected_option_index=chosen_opt["index"],
+                    is_correct=is_correct,
+                    difficulty=current_q["difficulty"],
+                    response_time_sec=elapsed_time,
+                    misconception_code=misconception_code,
+                    prior_mastery=prior_mastery,
+                    posterior_mastery=next_prior
                 )
 
-                col_sub, col_prev, col_next = st.columns([1.5, 1, 1])
-                with col_sub:
-                    submit_answer = st.form_submit_button("Submit Answer", type="primary", use_container_width=True)
-                with col_prev:
-                    prev_btn = st.form_submit_button("Previous", use_container_width=True)
-                with col_next:
-                    next_btn = st.form_submit_button("Next", use_container_width=True)
+                st.session_state[eval_key] = {
+                    "is_correct": is_correct,
+                    "chosen_opt": chosen_opt,
+                    "prior_mastery": prior_mastery,
+                    "posterior_mastery": next_prior,
+                    "elapsed_time": elapsed_time,
+                    "explanation": current_q["explanation"]
+                }
 
-                if prev_btn:
-                    st.session_state["q_index"] = max(0, q_idx - 1)
-                    st.rerun()
-                if next_btn:
-                    st.session_state["q_index"] = min(len(questions) - 1, q_idx + 1)
-                    st.rerun()
+                # SARVAVIDYA REWARDS & GAMIFICATION INTEGRATION
+                try:
+                    from core.rewards_engine import RewardsEngine
+                    RewardsEngine.record_daily_learning_activity(user_id)
+                    RewardsEngine.update_mission_progress(user_id, "practice_questions", 1)
+                    RewardsEngine.update_mission_progress(user_id, "assessment", 1)
 
-            if submit_answer:
-                if selected_display is None:
-                    st.error("Please select an answer option before submitting.")
-                else:
-                    elapsed_time = round(time.time() - st.session_state.get(q_key, time.time()), 2)
-                    chosen_opt = label_to_opt[selected_display]
-                    is_correct = bool(chosen_opt.get("is_correct", False))
-                    misconception_code = chosen_opt.get("misconception_code")
-
-                    concept_id = current_q["concept_id"]
-                    m_rec = get_student_concept_mastery(user_id, concept_id)
-                    prior_mastery = m_rec["mastery_prob"] if m_rec else 0.20
-
-                    bkt = BayesianKnowledgeTracing(
-                        p_init=m_rec.get("p_init", 0.20) if m_rec else 0.20,
-                        p_transit=m_rec.get("p_transit", 0.15) if m_rec else 0.15,
-                        p_guess=m_rec.get("p_guess", 0.20) if m_rec else 0.20,
-                        p_slip=m_rec.get("p_slip", 0.10) if m_rec else 0.10
-                    )
-                    posterior_obs, next_prior = bkt.update(prior_mastery, is_correct)
-                    update_student_mastery_record(user_id, concept_id, next_prior, is_correct)
-
-                    record_assessment_attempt(
+                    # Award Practice Completion (5 Coins, Idempotent)
+                    RewardsEngine.award_coins(
                         user_id=user_id,
-                        question_id=current_q["id"],
-                        concept_id=concept_id,
-                        selected_option_index=chosen_opt["index"],
-                        is_correct=is_correct,
-                        difficulty=current_q["difficulty"],
-                        response_time_sec=elapsed_time,
-                        misconception_code=misconception_code,
-                        prior_mastery=prior_mastery,
-                        posterior_mastery=next_prior
+                        amount=5,
+                        source_activity="ASSESSMENT_PRACTICE",
+                        entity_id=str(current_q["id"]),
+                        description=f"Completed practice on '{current_q['title']}'",
+                        idempotency_key=f"assess_{user_id}_{current_q['id']}"
                     )
 
-                    st.session_state[eval_key] = {
-                        "is_correct": is_correct,
-                        "chosen_opt": chosen_opt,
-                        "prior_mastery": prior_mastery,
-                        "posterior_mastery": next_prior,
-                        "elapsed_time": elapsed_time,
-                        "explanation": current_q["explanation"]
-                    }
-
-                    # ==========================================================
-                    # SARVAVIDYA REWARDS & GAMIFICATION INTEGRATION
-                    # ==========================================================
-                    try:
-                        from core.rewards_engine import RewardsEngine
-                        RewardsEngine.record_daily_learning_activity(user_id)
-                        RewardsEngine.update_mission_progress(user_id, "practice_questions", 1)
-                        RewardsEngine.update_mission_progress(user_id, "assessment", 1)
-
-                        # Award Practice Completion (5 Coins, Idempotent)
+                    if is_correct:
+                        # Award Perfect Accuracy Bonus (15 Coins, Idempotent)
                         RewardsEngine.award_coins(
                             user_id=user_id,
-                            amount=5,
-                            source_activity="ASSESSMENT_PRACTICE",
-                            entity_id=str(current_q["id"]),
-                            description=f"Completed practice on '{current_q['title']}'",
-                            idempotency_key=f"assess_{user_id}_{current_q['id']}"
+                            amount=15,
+                            source_activity="PERFECT_SCORE_BONUS",
+                            entity_id=f"perf_{current_q['id']}",
+                            description=f"100% Accuracy on '{current_q['title']}'",
+                            idempotency_key=f"perf_{user_id}_{current_q['id']}"
                         )
+                        RewardsEngine.update_mission_progress(user_id, "score_improvement", 1)
 
-                        if is_correct:
-                            # Award Perfect Accuracy Bonus (15 Coins, Idempotent)
-                            RewardsEngine.award_coins(
-                                user_id=user_id,
-                                amount=15,
-                                source_activity="PERFECT_SCORE_BONUS",
-                                entity_id=f"perf_{current_q['id']}",
-                                description=f"100% Accuracy on '{current_q['title']}'",
-                                idempotency_key=f"perf_{user_id}_{current_q['id']}"
-                            )
-                            RewardsEngine.update_mission_progress(user_id, "score_improvement", 1)
+                    # Check BKT Concept Mastery Threshold
+                    if next_prior >= 0.85 and prior_mastery < 0.85:
+                        RewardsEngine.award_coins(
+                            user_id=user_id,
+                            amount=25,
+                            source_activity="BKT_MASTERY_MILESTONE",
+                            entity_id=str(concept_id),
+                            description=f"Mastered Concept: {current_q['concept_name']} (>=85%)",
+                            idempotency_key=f"bkt_mastery_{user_id}_{concept_id}"
+                        )
+                except Exception:
+                    pass
 
-                        # Check BKT Concept Mastery Threshold
-                        if next_prior >= 0.85 and prior_mastery < 0.85:
-                            RewardsEngine.award_coins(
-                                user_id=user_id,
-                                amount=25,
-                                source_activity="BKT_MASTERY_MILESTONE",
-                                entity_id=str(concept_id),
-                                description=f"Mastered Concept: {current_q['concept_name']} (>=85%)",
-                                idempotency_key=f"bkt_mastery_{user_id}_{concept_id}"
-                            )
-                    except Exception:
-                        pass
+                completed_q_ids.add(current_q["id"])
+                if "completed_assessment_q_ids" not in st.session_state:
+                    st.session_state["completed_assessment_q_ids"] = set()
+                st.session_state["completed_assessment_q_ids"].add(current_q["id"])
+                st.rerun()
 
-                    completed_q_ids.add(current_q["id"])
-                    if "completed_assessment_q_ids" not in st.session_state:
-                        st.session_state["completed_assessment_q_ids"] = set()
-                    st.session_state["completed_assessment_q_ids"].add(current_q["id"])
+            # Render Instant 1-Click Option Selection Cards
+            st.markdown("""
+            <style>
+            div[class*="st-key-instant_opt_"] button {
+                text-align: left !important;
+                justify-content: flex-start !important;
+                padding: 0.8rem 1.1rem !important;
+                border: 1.5px solid #CBD5E1 !important;
+                background-color: #FFFFFF !important;
+                border-radius: 8px !important;
+                margin-bottom: 0.4rem !important;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+                transition: all 0.15s ease-in-out !important;
+            }
+            div[class*="st-key-instant_opt_"] button:hover {
+                border-color: #4F46E5 !important;
+                background-color: #EEF2FF !important;
+                box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15) !important;
+                transform: translateY(-1px);
+            }
+            div[class*="st-key-instant_opt_"] button p {
+                text-align: left !important;
+                font-size: 0.875rem !important;
+                font-weight: 600 !important;
+                color: #1E293B !important;
+            }
+            </style>
+            <p style='font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:0.6rem;'>
+                Select an option below to submit your answer:
+            </p>
+            """, unsafe_allow_html=True)
+
+            for idx, opt in enumerate(options):
+                opt_letter = chr(65 + idx)
+                opt_btn_label = f"{opt_letter}.   {opt['text']}"
+                if st.button(
+                    opt_btn_label,
+                    key=f"instant_opt_{current_q['id']}_{idx}_{q_idx}",
+                    use_container_width=True
+                ):
+                    _submit_option_choice(opt)
+
+            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+            col_prev, col_next, _ = st.columns([1, 1, 2])
+            with col_prev:
+                if st.button("← Previous", key=f"nav_prev_{current_q['id']}_{q_idx}", disabled=(q_idx == 0), use_container_width=True):
+                    st.session_state["q_index"] = max(0, q_idx - 1)
+                    st.rerun()
+            with col_next:
+                if st.button("Next →", key=f"nav_next_{current_q['id']}_{q_idx}", disabled=(q_idx == len(questions) - 1), use_container_width=True):
+                    st.session_state["q_index"] = min(len(questions) - 1, q_idx + 1)
                     st.rerun()
 
         else:
