@@ -83,19 +83,19 @@ def render_student_dashboard(user: dict):
     col_dash_ai, col_dash_btn = st.columns([0.78, 0.22])
     with col_dash_ai:
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #172943 0%, #243B64 100%); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 0.65rem 1rem; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; box-shadow: 0 4px 14px rgba(23, 41, 67, 0.1);">
+        <div style="background: #FFFFFF; border: 1.5px solid #E0E7FF; border-radius: 12px; padding: 0.65rem 1rem; color: #172943; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; box-shadow: 0 2px 10px rgba(99, 102, 241, 0.05);">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: #D6B56D; color: #172943; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">SA</div>
+                <div style="width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); border: 1.5px solid #C7D2FE; color: #4338CA; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">SA</div>
                 <div>
-                    <div style="font-weight: 700; font-size: 0.875rem;">SARVA AI Companion &bull; <span style="color: #A5B4FC; font-weight: 600;">✨ Powered by Gemini 3.1 Live AI</span></div>
-                    <div style="font-size: 0.725rem; color: #CBD5E1;">Ask anything about your syllabus, math derivations, or code debugging.</div>
+                    <div style="font-weight: 800; font-size: 0.885rem; color: #172943;">SARVA AI Companion &bull; <span style="color: #4F46E5; font-weight: 700;">✨ Powered by Gemini 3.1 Live AI</span></div>
+                    <div style="font-size: 0.725rem; color: #64748B;">Ask anything about your syllabus, math derivations, or code debugging.</div>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="background: rgba(217, 119, 6, 0.2); border: 1px solid #F59E0B; color: #FDE68A; padding: 2px 8px; border-radius: 8px; font-size: 0.725rem; font-weight: 700;">
+                <span style="background: #FFFBEB; border: 1px solid #FCD34D; color: #B45309; padding: 2px 8px; border-radius: 8px; font-size: 0.725rem; font-weight: 700;">
                     🪙 {u_coins:,} Coins
                 </span>
-                <span style="background: rgba(220, 38, 38, 0.2); border: 1px solid #EF4444; color: #FECDD3; padding: 2px 8px; border-radius: 8px; font-size: 0.725rem; font-weight: 700;">
+                <span style="background: #FEF2F2; border: 1px solid #FECDD3; color: #DC2626; padding: 2px 8px; border-radius: 8px; font-size: 0.725rem; font-weight: 700;">
                     🔥 {u_streak}d Streak
                 </span>
             </div>
