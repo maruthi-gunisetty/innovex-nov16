@@ -48,8 +48,8 @@ def get_gemini_api_key() -> Optional[str]:
 
 def query_gemini_ai(
     prompt: str,
-    course_name: str,
-    concept_name: str,
+    course_name: str = "General Studies",
+    concept_name: str = "General Concept",
     lesson_summary: Optional[str] = None,
     misconception_info: Optional[str] = None
 ) -> Optional[str]:
