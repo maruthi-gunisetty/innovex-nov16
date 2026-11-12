@@ -47,13 +47,16 @@ def get_gemini_api_key() -> Optional[str]:
     return None
 
 
-def _call_gemini_api(prompt: str, temperature: float = 0.4, max_tokens: int = 1200) -> Optional[str]:
-    """Internal helper to dispatch prompt to Gemini API models with multi-tier fallback."""
+def _call_gemini_api(prompt: str, temperature: float = 0.4, max_tokens: int = 800) -> Optional[str]:
+    """Internal helper to dispatch prompt to high-speed Gemini API models with low-latency fallback."""
     api_key = get_gemini_api_key()
     if not api_key:
         return None
 
-    models = ["gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-3.5-flash"]
+    # Use lowest latency, high-throughput models first:
+    # 1. gemini-3.1-flash-lite: sub-second generation latency (~0.9s - 1.2s)
+    # 2. gemini-flash-lite-latest: reliable secondary fast model (~1.4s)
+    models = ["gemini-3.1-flash-lite", "gemini-flash-lite-latest"]
     payload = {
         "contents": [
             {
@@ -77,7 +80,7 @@ def _call_gemini_api(prompt: str, temperature: float = 0.4, max_tokens: int = 12
             headers={"Content-Type": "application/json"}
         )
         try:
-            with urllib.request.urlopen(req, timeout=12) as response:
+            with urllib.request.urlopen(req, timeout=5) as response:
                 result = json.loads(response.read().decode("utf-8"))
                 candidates = result.get("candidates", [])
                 if candidates:
@@ -111,18 +114,19 @@ def query_gemini_ai(
     if lesson_summary:
         context_prefix += f"Module context summary: {lesson_summary}\n"
     if misconception_info:
-        context_prefix += f"Student's recent error pattern to remediate: {misconception_info}\n"
+        context_prefix += f"Student's recent error pattern (only reference if relevant to user's question or when diagnosing): {misconception_info}\n"
 
     instructions = (
-        "\nPedagogical Guidelines:\n"
+        "\nPedagogical & Conversational Guidelines:\n"
+        "- If the student is greeting (e.g., 'hi', 'hello', 'hey', 'hiiiiiiii') or asking general questions, greet them warmly and ask how you can help them with this course today. Do NOT bring up past quiz mistakes unless they ask.\n"
         "- Explain step-by-step with encouraging, clear language.\n"
         "- Use markdown formatting, bullet points, and code blocks with syntax highlighting where relevant.\n"
         "- If code is asked, give clean, practical, tested syntax.\n"
-        "- Keep explanations focused, intuitive, and under 250 words.\n"
+        "- Keep explanations focused, intuitive, and under 200 words for fast conversational flow.\n"
     )
 
     full_prompt = f"{context_prefix}{instructions}\nStudent Question: {prompt}"
-    return _call_gemini_api(full_prompt, temperature=0.4, max_tokens=800)
+    return _call_gemini_api(full_prompt, temperature=0.4, max_tokens=500)
 
 
 def generate_fallback_why_explanation(

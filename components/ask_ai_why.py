@@ -281,8 +281,8 @@ def render_ask_ai_why_component(
                 </div>
                 """, unsafe_allow_html=True)
 
-        # Follow-up input form
-        with st.form(key=f"form_followup_{q_id}_{chosen_idx}"):
+        # Follow-up input form (auto-clears typed text on submission)
+        with st.form(key=f"form_followup_{q_id}_{chosen_idx}", clear_on_submit=True):
             col_f_in, col_f_btn = st.columns([0.8, 0.2])
             with col_f_in:
                 user_followup = st.text_input(
@@ -295,7 +295,7 @@ def render_ask_ai_why_component(
                 send_f = st.form_submit_button("Ask Doubt", type="primary", use_container_width=True)
 
             if send_f and user_followup.strip():
-                with st.spinner("SARVA AI is analyzing your doubt..."):
+                with st.spinner("✨ SARVA AI is analyzing your doubt..."):
                     reply = query_ai_why_followup(
                         user_query=user_followup.strip(),
                         concept_name=current_q.get("concept_name", "Current Topic"),

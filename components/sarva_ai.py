@@ -251,6 +251,26 @@ def render_sarva_ai_modal(user: dict):
                     with st.chat_message("assistant", avatar="🎓"):
                         st.markdown(item["response"])
 
+            # Check for pending follow-up doubt
+            pending_fup_key = f"modal_fup_pending_{q['id']}"
+            pending_fup = st.session_state.pop(pending_fup_key, None)
+            if pending_fup:
+                st.chat_message("user").write(pending_fup)
+                with st.chat_message("assistant", avatar="🎓"):
+                    with st.spinner("✨ SARVA AI is analyzing your follow-up doubt..."):
+                        ans = query_ai_why_followup(
+                            user_query=pending_fup,
+                            concept_name=q.get("concept_name", "Current Topic"),
+                            course_name=active_course.get("name", "Active Course"),
+                            question_title=q["title"],
+                            selected_answer=chosen_opt.get("text", ""),
+                            correct_answer=correct_text
+                        )
+                        if fup_key not in st.session_state:
+                            st.session_state[fup_key] = []
+                        st.session_state[fup_key].append({"query": pending_fup, "response": ans})
+                    st.markdown(ans)
+
         # Context Action Controls
         col_c1, col_c2, col_c3 = st.columns([0.35, 0.35, 0.30])
         with col_c1:
@@ -273,8 +293,8 @@ def render_sarva_ai_modal(user: dict):
                 st.session_state["sarva_ai_dialog_open"] = False
                 st.rerun()
 
-        # Follow-up Input Form
-        with st.form(key=f"modal_fup_form_{q['id']}"):
+        # Follow-up Input Form (Auto-clears on submit and triggers instant responsive rerun)
+        with st.form(key=f"modal_fup_form_{q['id']}", clear_on_submit=True):
             fup_col_in, fup_col_btn = st.columns([0.82, 0.18])
             with fup_col_in:
                 fup_query = st.text_input(
@@ -287,19 +307,8 @@ def render_sarva_ai_modal(user: dict):
                 fup_submit = st.form_submit_button("Send Doubt", type="primary", use_container_width=True)
 
             if fup_submit and fup_query.strip():
-                with st.spinner("SARVA AI is analyzing your follow-up doubt..."):
-                    ans = query_ai_why_followup(
-                        user_query=fup_query.strip(),
-                        concept_name=q.get("concept_name", "Current Topic"),
-                        course_name=active_course.get("name", "Active Course"),
-                        question_title=q["title"],
-                        selected_answer=chosen_opt.get("text", ""),
-                        correct_answer=correct_text
-                    )
-                    if fup_key not in st.session_state:
-                        st.session_state[fup_key] = []
-                    st.session_state[fup_key].append({"query": fup_query.strip(), "response": ans})
-                    st.rerun()
+                st.session_state[f"modal_fup_pending_{q['id']}"] = fup_query.strip()
+                st.rerun()
 
     # ==========================================================
     # BRANCH 2: GENERAL COMPANION CHAT MODE
@@ -317,21 +326,25 @@ def render_sarva_ai_modal(user: dict):
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             if st.button("💡 Explain", key="m_chip_exp", use_container_width=True):
-                _process_modal_prompt(f"Explain {active_concept['name'] if active_concept else active_course['name']} in simple terms with analogies", user, active_course, active_concept)
+                st.session_state["sarva_ai_modal_pending"] = f"Explain {active_concept['name'] if active_concept else active_course['name']} in simple terms with analogies"
+                st.rerun()
         with c2:
             if st.button("💻 Code Example", key="m_chip_code", use_container_width=True):
-                _process_modal_prompt(f"Show a practical code demonstration for {active_concept['name'] if active_concept else active_course['name']}", user, active_course, active_concept)
+                st.session_state["sarva_ai_modal_pending"] = f"Show a practical code demonstration for {active_concept['name'] if active_concept else active_course['name']}"
+                st.rerun()
         with c3:
             if st.button("❓ Diagnose", key="m_chip_diag", use_container_width=True):
-                _process_modal_prompt("Diagnose my recent mistakes in this subject and show how to fix them.", user, active_course, active_concept)
+                st.session_state["sarva_ai_modal_pending"] = "Diagnose my recent mistakes in this subject and show how to fix them."
+                st.rerun()
         with c4:
             if st.button("🎯 Practice", key="m_chip_quiz", use_container_width=True):
-                _process_modal_prompt("Give me a challenging practice question for this topic.", user, active_course, active_concept)
+                st.session_state["sarva_ai_modal_pending"] = "Give me a challenging practice question for this topic."
+                st.rerun()
 
         # Chat container
         chat_container = st.container(height=360)
         with chat_container:
-            if not st.session_state["sarva_ai_modal_history"]:
+            if not st.session_state["sarva_ai_modal_history"] and not st.session_state.get("sarva_ai_modal_pending"):
                 st.markdown(f"""
                 <div style="text-align: center; padding: 2.5rem 1rem; color: #94A3B8;">
                     <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🎓</div>
@@ -351,8 +364,24 @@ def render_sarva_ai_modal(user: dict):
                             st.markdown(msg["message"])
                             st.caption(mode_tag)
 
-        # Input form
-        with st.form(key="sarva_ai_modal_form"):
+            # Check if there is a pending user prompt to process
+            pending_query = st.session_state.pop("sarva_ai_modal_pending", None)
+            if pending_query:
+                # 1. Immediately render user message
+                st.chat_message("user").write(pending_query)
+                st.session_state["sarva_ai_modal_history"].append({"sender": "user", "message": pending_query, "mode": "user"})
+                save_chat_message(user_id, active_course["id"], active_concept["id"] if active_concept else None, "user", pending_query, mode="user")
+
+                # 2. Render assistant response with live spinner inside container
+                with st.chat_message("assistant", avatar="🎓"):
+                    with st.spinner("✨ SARVA AI is formulating your response..."):
+                        reply, mode = _handle_assistant_generation(pending_query, user, active_course, active_concept)
+                    st.markdown(reply)
+                    mode_tag = " ✨ *Gemini 3.1 AI*" if mode == "gemini_live" else " 📚 *Curriculum Engine*"
+                    st.caption(mode_tag)
+
+        # Input form (Auto-clears input field immediately upon submission)
+        with st.form(key="sarva_ai_modal_form", clear_on_submit=True):
             col_in, col_snd = st.columns([0.82, 0.18])
             with col_in:
                 user_msg = st.text_input(
@@ -365,7 +394,8 @@ def render_sarva_ai_modal(user: dict):
                 send_sub = st.form_submit_button("Send", type="primary", use_container_width=True)
 
             if send_sub and user_msg.strip():
-                _process_modal_prompt(user_msg.strip(), user, active_course, active_concept)
+                st.session_state["sarva_ai_modal_pending"] = user_msg.strip()
+                st.rerun()
 
         # Bottom row: Clear History & Close Assistant
         b1, b2, b3 = st.columns([0.35, 0.35, 0.30])
@@ -387,17 +417,11 @@ def render_sarva_ai_modal(user: dict):
                 st.rerun()
 
 
-def _process_modal_prompt(text: str, user: dict, course: dict, concept: Optional[dict]):
-    """Processes chat prompt inside modal dialog."""
+def _handle_assistant_generation(text: str, user: dict, course: dict, concept: Optional[dict]):
+    """Generates assistant response with multi-tier fallback and rewards tracking."""
     user_id = user["id"]
     course_id = course["id"]
     concept_id = concept["id"] if concept else None
-
-    if "sarva_ai_modal_history" not in st.session_state:
-        st.session_state["sarva_ai_modal_history"] = []
-
-    st.session_state["sarva_ai_modal_history"].append({"sender": "user", "message": text, "mode": "user"})
-    save_chat_message(user_id, course_id, concept_id, "user", text, mode="user")
 
     # Lesson summary
     lesson_summary = None
@@ -444,6 +468,12 @@ def _process_modal_prompt(text: str, user: dict, course: dict, concept: Optional
     except Exception:
         pass
 
+    return reply, mode
+
+
+def _process_modal_prompt(text: str, user: dict, course: dict, concept: Optional[dict]):
+    """Processes chat prompt inside modal dialog."""
+    st.session_state["sarva_ai_modal_pending"] = text
     st.rerun()
 
 
