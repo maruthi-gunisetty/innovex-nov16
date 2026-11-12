@@ -255,8 +255,6 @@ def render_ask_ai_why_component(
         with col_act3:
             if st.button("💬 Ask in AI Studio", key=f"btn_goto_studio_{q_id}", use_container_width=True):
                 st.session_state["current_page"] = "sarva_ai_page"
-                st.session_state["_synced_page"] = "sarva_ai_page"
-                st.session_state["sidebar_nav_radio"] = "SARVA AI Companion"
                 st.rerun()
 
         # Follow-Up Question Doubts Interface

@@ -461,3 +461,4 @@ def render_rewards_page(user: dict):
                 """
             t_html = t_header + rows + "</tbody></table>"
             st.markdown(t_html, unsafe_allow_html=True)
+

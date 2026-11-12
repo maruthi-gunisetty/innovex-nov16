@@ -122,8 +122,6 @@ def render_student_dashboard(user: dict):
         st.markdown("<div style='height: 2px;'></div>", unsafe_allow_html=True)
         if st.button("🎁 Rewards Store", key="dash_open_rewards_btn", use_container_width=True):
             st.session_state["current_page"] = "rewards"
-            st.session_state["_synced_page"] = "rewards"
-            st.session_state["sidebar_nav_radio"] = "SARVAVIDYA Rewards"
             st.rerun()
 
     # ==========================================================

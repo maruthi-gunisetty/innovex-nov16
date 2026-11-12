@@ -156,34 +156,29 @@ def render_sarva_ai_modal(user: dict):
     active_ctx = st.session_state.get("sarva_ai_active_context")
 
     # Header Card
-    badge_html = """
-    <span style="background: linear-gradient(135deg, #4338CA 0%, #6366F1 100%); color: #FFFFFF; padding: 4px 12px; border-radius: 12px; font-size: 0.725rem; font-weight: 700; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);">
-        ✨ Powered by Google Gemini 3.1 Live AI
-    </span>
-    """ if has_gemini else """
-    <span style="background: #E2E8F0; color: #475569; padding: 4px 12px; border-radius: 12px; font-size: 0.725rem; font-weight: 700;">
-        📚 Verified Curriculum Engine
-    </span>
-    """
+    badge_html = (
+        '<span style="background: linear-gradient(135deg, #4338CA 0%, #6366F1 100%); color: #FFFFFF; padding: 4px 12px; border-radius: 12px; font-size: 0.725rem; font-weight: 700; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);">'
+        '✨ Powered by Google Gemini 3.1 Live AI'
+        '</span>'
+    ) if has_gemini else (
+        '<span style="background: #E2E8F0; color: #475569; padding: 4px 12px; border-radius: 12px; font-size: 0.725rem; font-weight: 700;">'
+        '📚 Verified Curriculum Engine'
+        '</span>'
+    )
 
-    st.markdown(f"""
-    <div style="background: #FFFFFF; border: 1.5px solid #E0E7FF; border-radius: 12px; padding: 0.85rem 1.15rem; margin-bottom: 0.75rem; box-shadow: 0 2px 10px rgba(99, 102, 241, 0.05);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: #172943; color: #D6B56D; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; border: 1.5px solid #D6B56D;">
-                    SA
-                </div>
-                <div>
-                    <h3 style="font-size: 1.15rem; font-weight: 800; color: #172943; margin: 0; line-height: 1.2;">SARVA AI Companion</h3>
-                    <p style="font-size: 0.75rem; color: #64748B; margin: 0;">{active_course['name']} ({active_course.get('subject_name', 'General')}) &bull; <em>One Platform. Every Subject. Infinite Knowledge.</em></p>
-                </div>
-            </div>
-            <div>
-                {badge_html}
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="background: #FFFFFF; border: 1.5px solid #E0E7FF; border-radius: 12px; padding: 0.85rem 1.15rem; margin-bottom: 0.75rem; box-shadow: 0 2px 10px rgba(99, 102, 241, 0.05);">'
+        f'<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">'
+        f'<div style="display: flex; align-items: center; gap: 10px;">'
+        f'<div style="width: 36px; height: 36px; border-radius: 10px; background: #172943; color: #D6B56D; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; border: 1.5px solid #D6B56D;">SA</div>'
+        f'<div>'
+        f'<h3 style="font-size: 1.15rem; font-weight: 800; color: #172943; margin: 0; line-height: 1.2;">SARVA AI Companion</h3>'
+        f'<p style="font-size: 0.75rem; color: #64748B; margin: 0;">{active_course["name"]} ({active_course.get("subject_name", "General")}) &bull; <em>One Platform. Every Subject. Infinite Knowledge.</em></p>'
+        f'</div></div>'
+        f'<div>{badge_html}</div>'
+        f'</div></div>',
+        unsafe_allow_html=True
+    )
 
     # ==========================================================
     # BRANCH 1: CONTEXTUAL "ASK AI WHY?" MODE
