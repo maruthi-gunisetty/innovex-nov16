@@ -119,3 +119,4 @@ def query_gemini_ai(
             continue
 
     return None
+

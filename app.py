@@ -25,6 +25,7 @@ from views.analytics import render_analytics_page
 from views.teacher_dashboard import render_teacher_dashboard
 from views.settings import render_settings_page
 from views.subjects_hub import render_subjects_hub_page
+from views.sarva_ai_page import render_sarva_ai_page
 from components.sarva_ai import render_sarva_ai_widget
 
 
@@ -94,6 +95,8 @@ def main():
         render_subjects_hub_page(user)
     elif current_page == "assessment":
         render_assessment_page(user)
+    elif current_page == "sarva_ai_page":
+        render_sarva_ai_page(user)
     elif current_page == "learning_path":
         render_learning_path_page(user)
     elif current_page == "learning_library":

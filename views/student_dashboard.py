@@ -67,6 +67,28 @@ def render_student_dashboard(user: dict):
     with col_subject:
         render_course_selector(key="dash_course_selector", label="Select Track", on_change_rerun=True)
 
+    # SARVA AI Gemini Integration Banner
+    col_dash_ai, col_dash_btn = st.columns([0.78, 0.22])
+    with col_dash_ai:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #172943 0%, #243B64 100%); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 0.65rem 1rem; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; box-shadow: 0 4px 14px rgba(23, 41, 67, 0.1);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: #D6B56D; color: #172943; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">SA</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 0.875rem;">SARVA AI Companion &bull; <span style="color: #A5B4FC; font-weight: 600;">✨ Powered by Gemini 3.1 Live AI</span></div>
+                    <div style="font-size: 0.725rem; color: #CBD5E1;">Ask anything about your syllabus, math derivations, or code debugging.</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_dash_btn:
+        st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+        if st.button("💬 Chat with AI", key="dash_open_sarva_ai_btn", type="primary", use_container_width=True):
+            st.session_state["current_page"] = "sarva_ai_page"
+            st.session_state["_synced_page"] = "sarva_ai_page"
+            st.session_state["sidebar_nav_radio"] = "SARVA AI Companion"
+            st.rerun()
+
     # ==========================================================
     # 2. TOP SECTION: 4 COMPACT SUMMARY CARDS
     # ==========================================================
