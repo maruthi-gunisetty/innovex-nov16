@@ -178,3 +178,4 @@ def _process_prompt(text: str, user: dict, course: dict, concept: Optional[dict]
     st.session_state["sarva_ai_page_history"].append({"sender": "assistant", "message": reply, "mode": mode})
     save_chat_message(user_id, course_id, concept_id, "assistant", reply, mode=mode)
     st.rerun()
+

@@ -178,109 +178,24 @@ def render_sarva_ai_widget(user: dict):
     active_concepts = get_concepts_by_course(active_course["id"])
     active_concept = active_concepts[0] if active_concepts else None
 
-    # Toggle Button at the bottom of sidebar / page controls
+    # Clean Sidebar Link directly opening SARVA AI Companion Studio
     with st.sidebar:
         st.markdown("<hr style='border-color: #E4E8ED; margin: 0.75rem 0;'>", unsafe_allow_html=True)
-        col_ai_btn, col_ai_txt = st.columns([0.3, 0.7])
+        col_ai_btn, col_ai_txt = st.columns([0.35, 0.65])
         with col_ai_btn:
-            btn_label = "✖ Close" if st.session_state["sarva_ai_is_open"] else "💬 AI"
-            if st.button(btn_label, key="toggle_sarva_ai_sidebar_btn", use_container_width=True):
-                st.session_state["sarva_ai_is_open"] = not st.session_state["sarva_ai_is_open"]
+            if st.button("💬 AI", key="open_sarva_ai_sidebar_btn", use_container_width=True):
+                st.session_state["current_page"] = "sarva_ai_page"
+                st.session_state["_synced_page"] = "sarva_ai_page"
+                st.session_state["sidebar_nav_radio"] = "SARVA AI Companion"
+                st.session_state["_active_nav_label"] = "SARVA AI Companion"
                 st.rerun()
         with col_ai_txt:
             st.markdown("""
             <div style="line-height: 1.1; padding-top: 2px;">
                 <div style="font-weight: 700; font-size: 0.775rem; color: #172943;">SARVA AI</div>
-                <div style="font-size: 0.65rem; color: #718096;">Learning Assistant</div>
+                <div style="font-size: 0.65rem; color: #6366F1; font-weight: 600;">✨ Gemini 3.1 Live</div>
             </div>
             """, unsafe_allow_html=True)
-
-    # If Chatbot Window is OPEN, render the floating dialog
-    if st.session_state["sarva_ai_is_open"]:
-        has_gemini = bool(get_gemini_api_key())
-        badge_label = "✨ Gemini 3.1 Live AI" if has_gemini else "Curriculum Engine"
-        badge_bg = "background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(165, 180, 252, 0.3); color: #C7D2FE;" if has_gemini else "background: rgba(255,255,255,0.12); color: #E4E8ED;"
-
-        st.markdown(f"""
-        <div style="
-            position: fixed;
-            bottom: 20px;
-            right: 24px;
-            width: 380px;
-            max-width: 90vw;
-            background: #FFFFFF;
-            border: 1.5px solid #D6B56D;
-            border-radius: 16px;
-            box-shadow: 0 12px 36px rgba(23, 41, 67, 0.2);
-            z-index: 99999;
-            overflow: hidden;
-            font-family: 'Roboto', sans-serif;
-        ">
-            <div style="background: linear-gradient(135deg, #172943 0%, #243B64 100%); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; color: #FFFFFF;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #D6B56D; color: #172943; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;">
-                        SA
-                    </div>
-                    <div>
-                        <div style="font-weight: 700; font-size: 0.875rem; letter-spacing: -0.01em;">SARVA AI</div>
-                        <div style="font-size: 0.65rem; color: #D6B56D; letter-spacing: 0.03em;">Your Personal Learning Companion</div>
-                    </div>
-                </div>
-                <div style="font-size: 0.65rem; {badge_bg} padding: 2px 8px; border-radius: 10px; font-weight: 600;">
-                    {badge_label}
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        with st.container():
-            # Dedicated chat expander floating area
-            with st.expander("💬 SARVA AI Assistant Window (Active Context)", expanded=True):
-                st.caption(f"Active Track: **{active_course['name']}** &bull; Module: **{active_concept['name'] if active_concept else 'All Modules'}**")
-
-                # Action Chips
-                col_ch1, col_ch2, col_ch3 = st.columns(3)
-                with col_ch1:
-                    if st.button("💡 Explain", key="chip_explain", use_container_width=True):
-                        _handle_chat_input("Explain this concept in simple language", user, active_course, active_concept)
-                with col_ch2:
-                    if st.button("💻 Example", key="chip_example", use_container_width=True):
-                        _handle_chat_input("Give me a practical code example", user, active_course, active_concept)
-                with col_ch3:
-                    if st.button("❓ Why Wrong?", key="chip_why_wrong", use_container_width=True):
-                        _handle_chat_input("Why was my previous answer incorrect?", user, active_course, active_concept)
-
-                # Message display area
-                chat_box = st.container(height=260)
-                with chat_box:
-                    if not st.session_state["sarva_ai_history"]:
-                        st.info("Ask SARVA AI any question about your curriculum, code syntax, or misconceptions!")
-                    for msg in st.session_state["sarva_ai_history"]:
-                        if msg["sender"] == "user":
-                            st.chat_message("user").write(msg["message"])
-                        else:
-                            st.chat_message("assistant", avatar="🎓").markdown(msg["message"])
-
-                # Input Row
-                col_inp, col_snd = st.columns([0.8, 0.2])
-                with col_inp:
-                    user_query = st.text_input("Ask a question...", key="sarva_ai_text_query", label_visibility="collapsed", placeholder="Ask SARVA AI...")
-                with col_snd:
-                    send_clicked = st.button("Send", key="sarva_ai_send_btn", type="primary", use_container_width=True)
-
-                if send_clicked and user_query.strip():
-                    _handle_chat_input(user_query.strip(), user, active_course, active_concept)
-
-                col_clr, col_cls = st.columns([0.5, 0.5])
-                with col_clr:
-                    if st.button("Clear History", key="clear_sarva_chat_btn", use_container_width=True):
-                        clear_chat_history(user_id, active_course.get("id"))
-                        st.session_state["sarva_ai_history"] = []
-                        st.rerun()
-                with col_cls:
-                    if st.button("Close Assistant", key="close_sarva_chat_btn", use_container_width=True):
-                        st.session_state["sarva_ai_is_open"] = False
-                        st.rerun()
 
 
 def _handle_chat_input(user_text: str, user: dict, course: dict, concept: Optional[dict]):
