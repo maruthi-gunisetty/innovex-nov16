@@ -18,6 +18,7 @@ from core.bkt import BayesianKnowledgeTracing
 from core.misconception import MisconceptionEngine
 from core.recommender import RecommenderEngine
 from core.course_manager import get_active_course, render_course_selector
+from components.ask_ai_why import render_ask_ai_why_component
 
 
 def render_assessment_page(user: dict):
@@ -294,7 +295,7 @@ def render_assessment_page(user: dict):
                 elif was_chosen and not is_this_corr:
                     card_border = "#D96B6B"
                     card_bg = "#FDF2F2"
-                    badge = '<span class="lm-pill pill-lagging" style="font-size:0.65rem;">Your Answer &bull; Incorrect</span>'
+                    badge = '<span class="lm-pill pill-lagging" style="font-size:0.65rem;">Your Answer &bull; Incorrect</span> <span style="font-size:0.7rem; color:#4338CA; font-weight:700; margin-left:6px; background:#EEF2FF; padding:2px 8px; border-radius:4px; border:1px solid #C7D2FE;">✨ Ask AI Why? Below</span>'
                 elif is_this_corr:
                     card_border = "#36A879"
                     card_bg = "#F0FDF4"
@@ -353,17 +354,30 @@ def render_assessment_page(user: dict):
                 </div>
                 """, unsafe_allow_html=True)
 
+                # AI-POWERED "ASK AI WHY?" INTERACTION
+                render_ask_ai_why_component(
+                    current_q=current_q,
+                    options=options,
+                    chosen_opt=res["chosen_opt"],
+                    is_correct=is_corr,
+                    eval_res=res,
+                    active_course=active_course,
+                    user=user
+                )
+
             # Evaluated Action Buttons
             col_next_q, col_retry, col_review = st.columns([1.2, 1.0, 1.0])
             with col_next_q:
                 if st.button("Proceed to Next Question →", key="btn_next_q_after_eval", type="primary", use_container_width=True):
                     st.session_state.pop(eval_key, None)
+                    st.session_state.pop(f"show_ai_why_{current_q['id']}", None)
                     st.session_state[f"q_start_time_{current_q['id']}"] = time.time()
                     st.session_state["q_index"] = (st.session_state["q_index"] + 1) % len(questions)
                     st.rerun()
             with col_retry:
                 if st.button("Try Question Again", key=f"btn_retry_{current_q['id']}", use_container_width=True):
                     st.session_state.pop(eval_key, None)
+                    st.session_state.pop(f"show_ai_why_{current_q['id']}", None)
                     st.session_state[f"q_start_time_{current_q['id']}"] = time.time()
                     st.rerun()
             with col_review:
