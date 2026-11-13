@@ -112,23 +112,23 @@ def render_student_dashboard(user: dict):
     from database.db import get_user_equipped_avatar
     eq_avatar = get_user_equipped_avatar(user_id)
 
-    av_tag = ""
-    if eq_avatar:
-        from views.avatarverse import _get_svg_data_uri
-        av_uri = _get_svg_data_uri(eq_avatar["asset_rel"])
-        av_tag = f'<div style="display: flex; align-items: center; gap: 8px;"><img src="{av_uri}" style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D6B56D; object-fit: cover;" alt="Avatar"/><span style="font-size: 0.725rem; font-weight: 700; color: #1E3A8A;">{eq_avatar["name"]}</span></div>'
-
     col_rw_bar, col_rw_btn, col_av_btn = st.columns([0.62, 0.19, 0.19])
     with col_rw_bar:
-        rw_bar_html = f"""
-<div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: 8px; padding: 0.45rem 0.85rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
-    <div style="font-size: 0.775rem; color: #92400E; font-weight: 600;">
-        🎁 <strong>SARVAVIDYA REWARDS:</strong> Tier: <span style="font-weight: 800; color: #B45309;">{u_level}</span> &bull; 🪙 <strong>{u_coins:,} Coins</strong>
-    </div>
-    {av_tag}
-</div>
-"""
-        st.markdown("\n".join(l.strip() for l in rw_bar_html.splitlines() if l.strip()), unsafe_allow_html=True)
+        with st.container(border=True):
+            c_r1, c_r2 = st.columns([0.65, 0.35])
+            with c_r1:
+                st.markdown(f"🎁 **SARVAVIDYA REWARDS:** Tier: **{u_level}** • 🪙 **{u_coins:,} Coins**")
+            with c_r2:
+                if eq_avatar:
+                    eq_img_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), eq_avatar["asset_rel"])
+                    c_eq_i, c_eq_n = st.columns([0.3, 0.7])
+                    with c_eq_i:
+                        if os.path.exists(eq_img_path):
+                            st.image(eq_img_path, width=28)
+                    with c_eq_n:
+                        st.caption(f"**{eq_avatar['name']}**")
+                else:
+                    st.caption("🎓 Default Scholar")
     with col_rw_btn:
         st.markdown("<div style='height: 2px;'></div>", unsafe_allow_html=True)
         if st.button("🎁 Rewards Store", key="dash_open_rewards_btn", use_container_width=True):

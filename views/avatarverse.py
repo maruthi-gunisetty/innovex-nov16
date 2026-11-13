@@ -6,7 +6,7 @@ Features:
 - Exactly 10 Avatar Levels:
   - Levels 1-5: EPIC (Mystic Scholar, Celestial Dreamer, Cyber Sage, Tech Wizard, Quantum Learner)
   - Levels 6-10: LEGENDARY (Shadow Knight, Phoenix Aura, Star Guardian, Royal Enigma, Legendary Ace)
-- Deep navy background (#0B132B / #0F172A), royal blue buttons (#2563EB / #3B82F6), subtle gold details (#D6B56D)
+- Native Streamlit image rendering (st.image) for guaranteed cross-platform graphics display
 - Try Before Buying: Interactive live preview modal rendering user's equipped profile badge
 - Secure Purchase Confirmation before coin deduction
 - Equip Avatar functionality with persistent inventory and profile integration
@@ -23,14 +23,14 @@ from core.avatarverse_data import (
 from core.rewards_engine import RewardsEngine
 
 
-def _clean_html(html_str: str) -> str:
-    """Strips all leading and trailing whitespace per line to strictly prevent CommonMark from rendering HTML as indented code blocks."""
-    return "\n".join(line.strip() for line in html_str.strip().splitlines() if line.strip())
+def _get_asset_abs_path(rel_path: str) -> str:
+    """Returns absolute path to local avatar asset file."""
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), rel_path)
 
 
 def _get_svg_data_uri(rel_path: str) -> str:
-    """Reads local SVG asset and encodes into a fast, self-contained base64 data URI."""
-    abs_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), rel_path)
+    """Reads local SVG asset and encodes into a fast base64 data URI."""
+    abs_path = _get_asset_abs_path(rel_path)
     if os.path.exists(abs_path):
         try:
             with open(abs_path, "r", encoding="utf-8") as f:
@@ -45,43 +45,35 @@ def _get_svg_data_uri(rel_path: str) -> str:
 @st.dialog("👁️ Try Before Buying: Live Avatar Preview")
 def _show_try_before_buying_modal(avatar: dict, user: dict, wallet: dict):
     """Interactive preview dialog showing how the avatar appears when equipped on user's profile."""
-    data_uri = _get_svg_data_uri(avatar["asset_rel"])
-    tier_color = "#EAB308" if avatar["tier"] == "Legendary" else "#818CF8"
+    img_path = _get_asset_abs_path(avatar["asset_rel"])
+    tier = avatar["tier"]
+    price = avatar["coin_price"]
+    level = avatar["level"]
 
-    modal_html = f"""
-    <div style="background: #0B132B; border: 1.5px solid {tier_color}; border-radius: 14px; padding: 1.25rem; color: #FFFFFF; text-align: center; margin-bottom: 1rem;">
-        <div style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
-            <div style="width: 130px; height: 130px; border-radius: 50%; border: 3px solid {tier_color}; box-shadow: 0 0 20px {tier_color}40; overflow: hidden; background: #0F172A;">
-                <img src="{data_uri}" style="width: 100%; height: 100%; object-fit: cover;" alt="{avatar['name']}"/>
-            </div>
-        </div>
-        <div style="font-size: 0.75rem; font-weight: 800; color: {tier_color}; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px;">
-            Level {avatar['level']} &bull; {avatar['tier']} Digital Identity
-        </div>
-        <h3 style="font-size: 1.35rem; font-weight: 800; color: #FFFFFF; margin: 0 0 0.35rem 0;">
-            {avatar['name']}
-        </h3>
-        <p style="font-size: 0.825rem; color: #94A3B8; max-width: 360px; margin: 0 auto 0.75rem auto; line-height: 1.45;">
-            {avatar['description']}
-        </p>
-        <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 0.75rem; margin-top: 0.75rem; text-align: left;">
-            <div style="font-size: 0.675rem; color: #D6B56D; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Dashboard Profile Badge Simulation</div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="{data_uri}" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid {tier_color};" alt="preview"/>
-                <div>
-                    <div style="font-weight: 700; font-size: 0.85rem; color: #FFFFFF;">{user.get('full_name', 'Scholar')}</div>
-                    <div style="font-size: 0.725rem; color: #64748B;">Equipped: <strong style="color: {tier_color};">{avatar['name']}</strong> &bull; {user.get('role', 'student').capitalize()}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    """
-    st.markdown(_clean_html(modal_html), unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([0.25, 0.5, 0.25])
+    with c2:
+        if os.path.exists(img_path):
+            st.image(img_path, use_container_width=True)
 
-    can_afford = wallet["available_coins"] >= avatar["coin_price"]
+    tier_emoji = "👑" if tier == "Legendary" else "💜"
+    st.markdown(f"<div style='text-align: center; margin-top: 4px;'><strong>{tier_emoji} Level {level} • {tier} Digital Identity</strong><h2 style='margin: 4px 0 6px 0; color: #172943;'>{avatar['name']}</h2><p style='color: #64748B; font-size: 0.9rem;'>{avatar['title']}</p></div>", unsafe_allow_html=True)
+    st.write(avatar["description"])
+
+    # Profile Badge Preview Simulation
+    with st.container(border=True):
+        st.caption("DASHBOARD PROFILE BADGE SIMULATION")
+        sim_col1, sim_col2 = st.columns([0.22, 0.78])
+        with sim_col1:
+            if os.path.exists(img_path):
+                st.image(img_path, width=44)
+        with sim_col2:
+            st.markdown(f"**{user.get('full_name', 'Scholar')}**")
+            st.caption(f"Equipped: **{avatar['name']}** • {user.get('role', 'student').capitalize()}")
+
+    can_afford = wallet["available_coins"] >= price
     if avatar.get("is_owned"):
         if avatar.get("is_equipped"):
-            st.info("You currently have this avatar equipped.")
+            st.info("You currently have this avatar equipped on your profile.")
         else:
             if st.button("Equip This Avatar Now ✨", type="primary", use_container_width=True):
                 ok, msg = RewardsEngine.equip_item(user["id"], avatar["id"])
@@ -92,7 +84,7 @@ def _show_try_before_buying_modal(avatar: dict, user: dict, wallet: dict):
         c_buy, c_close = st.columns([1, 1])
         with c_buy:
             if st.button(
-                f"Buy Now ({avatar['coin_price']} 🪙)",
+                f"Buy Now ({price:,} 🪙)",
                 type="primary",
                 disabled=not can_afford,
                 use_container_width=True
@@ -101,6 +93,7 @@ def _show_try_before_buying_modal(avatar: dict, user: dict, wallet: dict):
                 st.rerun()
         with c_close:
             if st.button("Close Preview", use_container_width=True):
+                st.session_state.pop("preview_avatar_modal", None)
                 st.rerun()
 
 
@@ -111,45 +104,31 @@ def _show_purchase_confirmation_modal(avatar: dict, user: dict, wallet: dict):
     price = avatar["coin_price"]
     curr_bal = wallet["available_coins"]
     rem_bal = curr_bal - price
-    data_uri = _get_svg_data_uri(avatar["asset_rel"])
-    tier_color = "#EAB308" if avatar["tier"] == "Legendary" else "#818CF8"
+    img_path = _get_asset_abs_path(avatar["asset_rel"])
 
-    confirm_html = f"""
-    <div style="text-align: center; padding: 0.5rem 0 1rem 0;">
-        <div style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
-            <div style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid {tier_color}; overflow: hidden; background: #0F172A;">
-                <img src="{data_uri}" style="width: 100%; height: 100%; object-fit: cover;" alt="{avatar['name']}"/>
-            </div>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: #172943; margin-bottom: 0.25rem;">
-            Unlock {avatar['name']}?
-        </h3>
-        <p style="font-size: 0.8rem; color: #64748B; margin-bottom: 0.85rem;">
-            Level {avatar['level']} &bull; {avatar['tier']} 3D Avatar
-        </p>
-        <div style="background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 0.75rem 1rem; text-align: left; margin-bottom: 1rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
-                <span style="color: #64748B;">Item Price:</span>
-                <span style="font-weight: 800; color: #D97706;">🪙 {price:,} Coins</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
-                <span style="color: #64748B;">Current Wallet Balance:</span>
-                <span style="font-weight: 700; color: #172943;">🪙 {curr_bal:,} Coins</span>
-            </div>
-            <hr style="border-color: #E2E8F0; margin: 6px 0;"/>
-            <div style="display: flex; justify-content: space-between; font-size: 0.825rem;">
-                <span style="font-weight: 700; color: #172943;">Remaining Balance:</span>
-                <span style="font-weight: 800; color: {'#16A34A' if rem_bal >= 0 else '#DC2626'};">
-                    🪙 {rem_bal:,} Coins
-                </span>
-            </div>
-        </div>
-    </div>
-    """
-    st.markdown(_clean_html(confirm_html), unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([0.3, 0.4, 0.3])
+    with c2:
+        if os.path.exists(img_path):
+            st.image(img_path, use_container_width=True)
+
+    st.markdown(f"<div style='text-align: center;'><h3>Unlock {avatar['name']}?</h3><p style='color: #64748B;'>Level {avatar['level']} &bull; {avatar['tier']} 3D Avatar</p></div>", unsafe_allow_html=True)
+
+    with st.container(border=True):
+        col_lbl, col_val = st.columns(2)
+        with col_lbl:
+            st.write("Item Price:")
+            st.write("Current Balance:")
+            st.write("**Remaining Balance:**")
+        with col_val:
+            st.markdown(f"**🪙 {price:,} Coins**")
+            st.markdown(f"🪙 {curr_bal:,} Coins")
+            if rem_bal >= 0:
+                st.markdown(f"<span style='color: #16A34A; font-weight: bold;'>🪙 {rem_bal:,} Coins</span>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<span style='color: #DC2626; font-weight: bold;'>🪙 {rem_bal:,} Coins</span>", unsafe_allow_html=True)
 
     if curr_bal < price:
-        st.error(f"Insufficient coins. You need {price - curr_bal} more coins to unlock this avatar.")
+        st.error(f"Insufficient coins. You need {price - curr_bal:,} more coins to unlock this avatar.")
         if st.button("Close", use_container_width=True):
             st.session_state.pop("confirm_buy_avatar", None)
             st.rerun()
@@ -161,7 +140,6 @@ def _show_purchase_confirmation_modal(avatar: dict, user: dict, wallet: dict):
             ok, msg = RewardsEngine.redeem_store_item(user_id, avatar["id"])
             st.session_state.pop("confirm_buy_avatar", None)
             if ok:
-                # Automatically equip new purchase for instant delight
                 RewardsEngine.equip_item(user_id, avatar["id"])
                 st.toast(f"🎉 {msg} Equipped automatically!", icon="👑")
                 st.rerun()
@@ -198,61 +176,37 @@ def render_avatarverse_page(user: dict):
         _show_try_before_buying_modal(target_av, user, wallet)
 
     # ==========================================================
-    # 1. HERO HEADER: DEEP NAVY, GOLD ACCENTS, ROYAL BLUE BUTTONS
+    # 1. HERO HEADER: NATIVE STREAMLIT LAYOUT (NO RAW HTML CODE)
     # ==========================================================
-    if equipped_avatar:
-        eq_uri = _get_svg_data_uri(equipped_avatar["asset_rel"])
-        equipped_img_html = (
-            f'<div style="display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.65); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 6px 14px;">'
-            f'<img src="{eq_uri}" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid #D6B56D; object-fit: cover;" alt="Equipped"/>'
-            f'<div>'
-            f'<div style="font-size: 0.65rem; color: #D6B56D; font-weight: 700; text-transform: uppercase;">Equipped Avatar</div>'
-            f'<div style="font-size: 0.85rem; font-weight: 800; color: #FFFFFF;">{equipped_avatar["name"]}</div>'
-            f'</div>'
-            f'</div>'
-        )
-    else:
-        equipped_img_html = (
-            f'<div style="display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.65); border: 1.5px solid #475569; border-radius: 12px; padding: 6px 14px;">'
-            f'<div style="width: 32px; height: 32px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #94A3B8;">🎓</div>'
-            f'<div>'
-            f'<div style="font-size: 0.65rem; color: #94A3B8; font-weight: 700; text-transform: uppercase;">Equipped Avatar</div>'
-            f'<div style="font-size: 0.825rem; font-weight: 700; color: #CBD5E1;">Default Scholar</div>'
-            f'</div>'
-            f'</div>'
-        )
+    with st.container(border=True):
+        col_brand, col_eq_box, col_wal_box = st.columns([1.5, 1.1, 0.7])
+        with col_brand:
+            st.markdown("### 🎭 SARVAVIDYA AVATARVERSE")
+            st.markdown("**10-Level 3D Cartoon Digital Identities**")
+            st.caption("Snapchat Bitmoji-inspired 3D avatars for students and faculty. Unlock with verified study coins, preview live, and equip to your profile.")
 
-    hero_html = f"""
-    <div style="background: linear-gradient(135deg, #0B132B 0%, #172943 50%, #0F172A 100%); border: 2px solid #D6B56D; border-radius: 16px; padding: 1.35rem 1.75rem; color: #FFFFFF; margin-bottom: 1.25rem; box-shadow: 0 10px 30px rgba(11, 19, 43, 0.25);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-            <div>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                    <span style="font-size: 1.75rem;">🎭</span>
-                    <h1 style="font-size: 1.65rem; font-weight: 800; color: #FFFFFF; margin: 0; letter-spacing: -0.02em;">
-                        SARVAVIDYA AVATARVERSE
-                    </h1>
-                </div>
-                <div style="font-size: 0.85rem; color: #D6B56D; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;">
-                    10-Level 3D Cartoon Digital Identities
-                </div>
-                <div style="font-size: 0.775rem; color: #94A3B8; margin-top: 4px;">
-                    Snapchat Bitmoji-inspired 3D avatars for students and faculty. Unlock with verified study coins, preview live, and equip to your profile.
-                </div>
-            </div>
-            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                {equipped_img_html}
-                <div style="background: rgba(214, 181, 109, 0.15); border: 1.5px solid #D6B56D; padding: 8px 16px; border-radius: 12px; text-align: center;">
-                    <div style="font-size: 0.65rem; color: #D6B56D; font-weight: 800; text-transform: uppercase;">Wallet Balance</div>
-                    <div style="font-size: 1.25rem; font-weight: 800; color: #F59E0B; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                        <span>🪙</span>
-                        <span>{wallet['available_coins']:,}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    """
-    st.markdown(_clean_html(hero_html), unsafe_allow_html=True)
+        with col_eq_box:
+            st.caption("EQUIPPED PROFILE AVATAR")
+            if equipped_avatar:
+                eq_img_path = _get_asset_abs_path(equipped_avatar["asset_rel"])
+                c_e1, c_e2 = st.columns([0.35, 0.65])
+                with c_e1:
+                    if os.path.exists(eq_img_path):
+                        st.image(eq_img_path, width=44)
+                with c_e2:
+                    st.markdown(f"**{equipped_avatar['name']}**")
+                    st.caption(f"Level {equipped_avatar['level']} • {equipped_avatar['tier']}")
+            else:
+                c_e1, c_e2 = st.columns([0.25, 0.75])
+                with c_e1:
+                    st.markdown("<div style='font-size: 2rem;'>🎓</div>", unsafe_allow_html=True)
+                with c_e2:
+                    st.markdown("**Default Scholar**")
+                    st.caption("Level 0 • Standard")
+
+        with col_wal_box:
+            st.caption("WALLET BALANCE")
+            st.metric(label="Coins", value=f"🪙 {wallet['available_coins']:,}", label_visibility="collapsed")
 
     # ==========================================================
     # 2. FILTER TABS (All, Epic, Legendary, My Collection)
@@ -284,7 +238,7 @@ def render_avatarverse_page(user: dict):
 
 
 def _render_avatar_grid(avatars: List[Dict[str, Any]], user: dict, wallet: dict, tab_key: str):
-    """Renders responsive 3-column avatar card grid matching the approved styling specifications."""
+    """Renders responsive 3-column avatar card grid using native Streamlit containers and images."""
     user_id = user["id"]
     cols_per_row = 3
 
@@ -301,82 +255,63 @@ def _render_avatar_grid(avatars: List[Dict[str, Any]], user: dict, wallet: dict,
                 is_owned = av.get("is_owned", False)
                 is_equipped = av.get("is_equipped", False)
                 can_afford = wallet["available_coins"] >= price
-                data_uri = _get_svg_data_uri(av["asset_rel"])
-
-                # Styling colors based on rarity
+                img_path = _get_asset_abs_path(av["asset_rel"])
                 is_legendary = (tier == "Legendary")
-                card_border = "#D6B56D" if is_legendary else "#818CF8"
-                tier_badge_bg = "rgba(214, 181, 109, 0.18)" if is_legendary else "rgba(99, 102, 241, 0.15)"
-                tier_badge_color = "#EAB308" if is_legendary else "#818CF8"
 
-                # Status pill in top right
-                if is_equipped:
-                    status_html = '<span style="background: #10B981; color: #FFFFFF; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px;">Equipped ✓</span>'
-                elif is_owned:
-                    status_html = '<span style="background: #3B82F6; color: #FFFFFF; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px;">Owned</span>'
-                else:
-                    status_html = f'<span style="background: rgba(245, 158, 11, 0.2); border: 1px solid #F59E0B; color: #F59E0B; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 10px;">🪙 {price:,}</span>'
+                # Native Streamlit bordered card container
+                with st.container(border=True):
+                    # 1. Card Top Badge & Price Header
+                    col_tier, col_status = st.columns([0.6, 0.4])
+                    with col_tier:
+                        tier_badge = "👑 LEGENDARY" if is_legendary else "💜 EPIC"
+                        st.caption(f"{tier_badge} • Lvl {level}")
+                    with col_status:
+                        if is_equipped:
+                            st.caption("🟢 **Equipped**")
+                        elif is_owned:
+                            st.caption("🔵 **Owned**")
+                        else:
+                            st.markdown(f"**🪙 {price:,}**")
 
-                # Card HTML container (Deep navy background, minimal interface)
-                card_html = f"""
-                <div style="background: #0F172A; border: 1.5px solid {card_border}; border-radius: 14px; padding: 1.1rem; margin-bottom: 0.85rem; box-shadow: 0 4px 16px rgba(0,0,0,0.25); display: flex; flex-direction: column; justify-content: space-between; min-height: 380px;">
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
-                            <div style="display: flex; gap: 6px; align-items: center;">
-                                <span style="background: {tier_badge_bg}; color: {tier_badge_color}; border: 1px solid {tier_badge_color}; font-size: 0.625rem; font-weight: 800; padding: 1px 7px; border-radius: 6px; text-transform: uppercase;">
-                                    {tier}
-                                </span>
-                                <span style="background: #1E293B; color: #94A3B8; font-size: 0.625rem; font-weight: 700; padding: 1px 6px; border-radius: 6px;">
-                                    Level {level}
-                                </span>
-                            </div>
-                            {status_html}
-                        </div>
-                        <div style="display: flex; justify-content: center; margin: 0.5rem 0 0.75rem 0;">
-                            <div style="width: 140px; height: 140px; border-radius: 50%; border: 2.5px solid {card_border}; overflow: hidden; background: #0B132B; box-shadow: 0 6px 18px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;">
-                                <img src="{data_uri}" style="width: 100%; height: 100%; object-fit: cover;" alt="{av['name']}"/>
-                            </div>
-                        </div>
-                        <div style="text-align: center; margin-bottom: 0.5rem;">
-                            <h4 style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin: 0 0 2px 0;">{av['name']}</h4>
-                            <div style="font-size: 0.7rem; color: #D6B56D; font-weight: 600;">{av['title']}</div>
-                        </div>
-                        <p style="font-size: 0.75rem; color: #94A3B8; line-height: 1.45; text-align: center; margin: 0 0 0.75rem 0; min-height: 48px;">
-                            {av['description']}
-                        </p>
-                    </div>
-                </div>
-                """
-                st.markdown(_clean_html(card_html), unsafe_allow_html=True)
+                    # 2. 3D Cartoon Avatar Graphic displayed in actual image format
+                    c_sp1, c_img, c_sp2 = st.columns([0.15, 0.7, 0.15])
+                    with c_img:
+                        if os.path.exists(img_path):
+                            st.image(img_path, use_container_width=True)
 
-                # Action Controls Row
-                col_prev, col_act = st.columns([0.45, 0.55])
-                with col_prev:
-                    if st.button("👁️ Try On", key=f"btn_prev_{tab_key}_{av_id}", use_container_width=True):
-                        st.session_state["preview_avatar_modal"] = av_id
-                        st.rerun()
+                    # 3. Avatar Name, Identity Title, and Story Description
+                    st.markdown(f"#### {av['name']}")
+                    st.caption(f"✨ {av['title']}")
+                    st.write(av["description"])
 
-                with col_act:
-                    if is_equipped:
-                        st.button("Equipped ✓", key=f"btn_eq_done_{tab_key}_{av_id}", disabled=True, use_container_width=True)
-                    elif is_owned:
-                        if st.button("Equip Avatar", key=f"btn_eq_act_{tab_key}_{av_id}", type="primary", use_container_width=True):
-                            ok, msg = RewardsEngine.equip_item(user_id, av_id)
-                            if ok:
-                                st.toast(f"✨ {msg}", icon="👑")
-                                st.rerun()
-                            else:
-                                st.error(msg)
-                    else:
-                        btn_label = f"Buy Now ({price} 🪙)"
-                        if st.button(
-                            btn_label,
-                            key=f"btn_buy_act_{tab_key}_{av_id}",
-                            type="primary" if can_afford else "secondary",
-                            disabled=not can_afford,
-                            use_container_width=True
-                        ):
-                            st.session_state["confirm_buy_avatar"] = av_id
+                    # 4. Action Buttons
+                    col_prev, col_act = st.columns([0.45, 0.55])
+                    with col_prev:
+                        if st.button("👁️ Try On", key=f"btn_prev_{tab_key}_{av_id}", use_container_width=True):
+                            st.session_state["preview_avatar_modal"] = av_id
                             st.rerun()
 
-                st.markdown("<div style='height: 6px;'></div>", unsafe_allow_html=True)
+                    with col_act:
+                        if is_equipped:
+                            st.button("Equipped ✓", key=f"btn_eq_done_{tab_key}_{av_id}", disabled=True, use_container_width=True)
+                        elif is_owned:
+                            if st.button("Equip", key=f"btn_eq_act_{tab_key}_{av_id}", type="primary", use_container_width=True):
+                                ok, msg = RewardsEngine.equip_item(user_id, av_id)
+                                if ok:
+                                    st.toast(f"✨ {msg}", icon="👑")
+                                    st.rerun()
+                                else:
+                                    st.error(msg)
+                        else:
+                            btn_label = f"Buy ({price} 🪙)"
+                            if st.button(
+                                btn_label,
+                                key=f"btn_buy_act_{tab_key}_{av_id}",
+                                type="primary" if can_afford else "secondary",
+                                disabled=not can_afford,
+                                use_container_width=True
+                            ):
+                                st.session_state["confirm_buy_avatar"] = av_id
+                                st.rerun()
+
+                st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
