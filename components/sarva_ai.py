@@ -128,13 +128,12 @@ def _get_curriculum_response(prompt: str, user: dict, course: dict, concept: Opt
             )
 
     return (
-        f"Hello {user.get('full_name', 'Scholar')}! I am **SARVA AI**, your personal learning companion for **{course_name}**.\n\n"
-        f"You are currently working on **{concept_name}**. How can I help you right now?\n"
-        f"• **Explain this concept** in simple language\n"
-        f"• Show me a **practical code example**\n"
-        f"• Explain **why an answer was incorrect**\n"
-        f"• Give me a **practice exercise**\n"
-        f"• **Summarize** key rules and takeaways"
+        f"Here are a few ways I can help you with **{concept_name}** ({course_name}):\n\n"
+        f"• **Explain this concept** step-by-step\n"
+        f"• Provide a **practical code example**\n"
+        f"• Explain **why a quiz answer was incorrect**\n"
+        f"• Give you a **targeted practice challenge**\n\n"
+        f"What would you like to explore?"
     )
 
 

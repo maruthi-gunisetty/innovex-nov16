@@ -104,6 +104,42 @@ def _call_gemini_api(prompt: str, temperature: float = 0.4, max_tokens: int = 80
     return None
 
 
+def _clean_ai_response(text: str) -> str:
+    """Removes annoying repetitive boilerplate greetings and slogans from AI output."""
+    if not text:
+        return text
+
+    cleaned = text.strip()
+
+    # If the response starts with a welcome banner line mentioning SARVAVIDYA or the tagline
+    lines = cleaned.splitlines()
+    if lines:
+        first_line_lower = lines[0].strip().lower()
+        if (
+            "welcome to sarvavidya" in first_line_lower
+            or "hello! welcome" in first_line_lower
+            or "one platform. every subject" in first_line_lower
+            or ("sarvavidya" in first_line_lower and "infinite knowledge" in first_line_lower)
+        ):
+            lines = lines[1:]
+            while lines and (not lines[0].strip() or "one platform" in lines[0].lower()):
+                lines = lines[1:]
+            cleaned = "\n".join(lines).strip()
+
+    # Check if the very last line is just the brand tagline
+    lines = cleaned.splitlines()
+    if lines:
+        last_line_lower = lines[-1].strip().lower().strip("'\"")
+        if (
+            "one platform. every subject. infinite knowledge" in last_line_lower
+            or "one platform. every subject" in last_line_lower
+        ):
+            lines = lines[:-1]
+            cleaned = "\n".join(lines).strip()
+
+    return cleaned
+
+
 def query_gemini_ai(
     prompt: str,
     course_name: str = "General Studies",
@@ -115,8 +151,7 @@ def query_gemini_ai(
     Sends request to Gemini API. Returns generated markdown string or None if failed.
     """
     context_prefix = (
-        "You are SARVA AI, the intelligent personalized learning companion for the SARVAVIDYA educational ecosystem.\n"
-        "Brand tagline: 'One Platform. Every Subject. Infinite Knowledge.'\n"
+        "You are SARVA AI, a helpful, clear, and direct pedagogical learning companion.\n"
         f"Active Subject/Course: '{course_name}'\n"
         f"Active Concept/Module: '{concept_name}'\n"
     )
@@ -127,7 +162,10 @@ def query_gemini_ai(
 
     instructions = (
         "\nPedagogical & Conversational Guidelines:\n"
-        "- If the student is greeting (e.g., 'hi', 'hello', 'hey', 'hiiiiiiii') or asking general questions, greet them warmly and ask how you can help them with this course today. Do NOT bring up past quiz mistakes unless they ask.\n"
+        "- CRITICAL DIRECTIVE: DO NOT begin responses with generic welcome greetings or platform slogans (DO NOT say 'Hello! Welcome to SARVAVIDYA — One Platform. Every Subject. Infinite Knowledge' or repeat taglines).\n"
+        "- Jump DIRECTLY into answering the student's question clearly, helpfully, and concisely.\n"
+        "- If the student is asking a direct question, answer it immediately without introductory filler.\n"
+        "- If the student says a bare greeting like 'hi' or 'hello', reply with a warm, natural 1-sentence greeting and ask how you can help them with this course today.\n"
         "- Explain step-by-step with encouraging, clear language.\n"
         "- Use markdown formatting, bullet points, and code blocks with syntax highlighting where relevant.\n"
         "- If code is asked, give clean, practical, tested syntax.\n"
@@ -135,7 +173,8 @@ def query_gemini_ai(
     )
 
     full_prompt = f"{context_prefix}{instructions}\nStudent Question: {prompt}"
-    return _call_gemini_api(full_prompt, temperature=0.4, max_tokens=500)
+    raw_res = _call_gemini_api(full_prompt, temperature=0.4, max_tokens=500)
+    return _clean_ai_response(raw_res) if raw_res else None
 
 
 def generate_fallback_why_explanation(
@@ -242,7 +281,7 @@ def generate_ai_why_explanation(
 
     code_block = f"\nCode / Expression:\n```{code_snippet}\n```\n" if code_snippet else ""
 
-    prompt = f"""You are SARVA AI, the intelligent personalized learning companion for SARVAVIDYA ("One Platform. Every Subject. Infinite Knowledge.").
+    prompt = f"""You are SARVA AI, the intelligent personalized learning companion for SARVAVIDYA.
 A student answered a quiz/assessment question incorrectly. Generate a comprehensive, supportive, personalized 'Ask AI Why?' pedagogical diagnosis.
 
 Question Context:
