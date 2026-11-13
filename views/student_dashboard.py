@@ -108,20 +108,42 @@ def render_student_dashboard(user: dict):
             st.session_state.pop("sarva_ai_active_context", None)
             st.rerun()
 
-    # Rewards Action Bar
-    col_rw_bar, col_rw_btn = st.columns([0.78, 0.22])
+    # Rewards & AvatarVerse Action Bar
+    from database.db import get_user_equipped_avatar
+    eq_avatar = get_user_equipped_avatar(user_id)
+
+    av_tag = ""
+    if eq_avatar:
+        from views.avatarverse import _get_svg_data_uri
+        av_uri = _get_svg_data_uri(eq_avatar["asset_rel"])
+        av_tag = f"""
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="{av_uri}" style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D6B56D; object-fit: cover;" alt="Avatar"/>
+            <span style="font-size: 0.725rem; font-weight: 700; color: #1E3A8A;">{eq_avatar['name']}</span>
+        </div>
+        """
+
+    col_rw_bar, col_rw_btn, col_av_btn = st.columns([0.62, 0.19, 0.19])
     with col_rw_bar:
         st.markdown(f"""
-        <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 0.45rem 0.85rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
+        <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: 8px; padding: 0.45rem 0.85rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
             <div style="font-size: 0.775rem; color: #92400E; font-weight: 600;">
-                🎁 <strong>SARVAVIDYA REWARDS:</strong> Earn coins on every verified quiz & streak. Current Tier: <span style="font-weight: 800; color: #B45309;">{u_level}</span>
+                🎁 <strong>SARVAVIDYA REWARDS:</strong> Tier: <span style="font-weight: 800; color: #B45309;">{u_level}</span> &bull; 🪙 <strong>{u_coins:,} Coins</strong>
             </div>
+            {av_tag}
         </div>
         """, unsafe_allow_html=True)
     with col_rw_btn:
         st.markdown("<div style='height: 2px;'></div>", unsafe_allow_html=True)
         if st.button("🎁 Rewards Store", key="dash_open_rewards_btn", use_container_width=True):
             st.session_state["current_page"] = "rewards"
+            st.session_state["_synced_page"] = "rewards"
+            st.rerun()
+    with col_av_btn:
+        st.markdown("<div style='height: 2px;'></div>", unsafe_allow_html=True)
+        if st.button("🎭 AvatarVerse", key="dash_open_avatar_btn", type="primary", use_container_width=True):
+            st.session_state["current_page"] = "avatarverse"
+            st.session_state["_synced_page"] = "avatarverse"
             st.rerun()
 
     # ==========================================================
@@ -569,15 +591,15 @@ def _render_recommendations_section(user, active_course, mastery_data, attempts,
     user_id = user["id"]
     course_id = active_course["id"]
 
-    # Generate live recommendations using pedagogical engine
-    generated_recs = RecommenderEngine.generate_recommendations(user_id, mastery_data, attempts, lesson_progress)
-    if generated_recs:
-        save_recommendations(user_id, course_id, generated_recs)
-
-    # Fetch stored active recommendations from DB
+    # 1. Fetch stored active recommendations from DB first (cached, fast)
     recs = get_student_recommendations(user_id, course_id=course_id, limit=6)
-    if not recs and generated_recs:
-        recs = generated_recs[:6]
+    
+    # 2. Only recompute and write to DB if no active recommendations exist for this track
+    if not recs:
+        generated_recs = RecommenderEngine.generate_recommendations(user_id, mastery_data, attempts, lesson_progress)
+        if generated_recs:
+            save_recommendations(user_id, course_id, generated_recs)
+            recs = get_student_recommendations(user_id, course_id=course_id, limit=6) or generated_recs[:6]
 
     st.markdown("""
     <div class="lm-card" style="margin-top: 0.75rem; margin-bottom: 0.75rem;">

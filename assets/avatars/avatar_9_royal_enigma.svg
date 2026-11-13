@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+    <defs>
+        <!-- Background Radial 3D Sphere Glow -->
+        <radialGradient id="bgSphere_avatar_9_royal_enigma" cx="40%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#9333EA" stop-opacity="0.35"/>
+            <stop offset="50%" stop-color="#6B21A8" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#0B132B" stop-opacity="0"/>
+        </radialGradient>
+
+        <!-- 3D Skin Gradient (Shadow to Highlight) -->
+        <radialGradient id="skinGrad_avatar_9_royal_enigma" cx="40%" cy="38%" r="55%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+            <stop offset="40%" stop-color="#FCE0D2"/>
+            <stop offset="100%" stop-color="#FCE0D2" stop-opacity="0.82"/>
+        </radialGradient>
+
+        <!-- Torso Clothing Gradient -->
+        <linearGradient id="clothGrad_avatar_9_royal_enigma" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#D6B56D"/>
+            <stop offset="35%" stop-color="#3B0764"/>
+            <stop offset="100%" stop-color="#0B132B"/>
+        </linearGradient>
+
+        <!-- Hair Gradients -->
+        <linearGradient id="hairGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4C1D95"/><stop offset="100%" stop-color="#1E1B4B"/>
+        </linearGradient>
+        <linearGradient id="hairGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#334155"/><stop offset="100%" stop-color="#0F172A"/>
+        </linearGradient>
+        <linearGradient id="hairGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0891B2"/><stop offset="100%" stop-color="#0F172A"/>
+        </linearGradient>
+        <linearGradient id="hairGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C2410C"/><stop offset="100%" stop-color="#7C2D12"/>
+        </linearGradient>
+        <linearGradient id="hairGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#27272A"/><stop offset="100%" stop-color="#09090B"/>
+        </linearGradient>
+        <linearGradient id="hairGrad6" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#581C87"/><stop offset="100%" stop-color="#09090B"/>
+        </linearGradient>
+        <linearGradient id="hairGrad7" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#D97706"/><stop offset="100%" stop-color="#451A03"/>
+        </linearGradient>
+        <linearGradient id="hairGrad8" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#0F172A"/>
+        </linearGradient>
+        <linearGradient id="hairGrad9" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7E22CE"/><stop offset="100%" stop-color="#171717"/>
+        </linearGradient>
+        <linearGradient id="hairGrad10" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#EAB308"/><stop offset="100%" stop-color="#1C1917"/>
+        </linearGradient>
+
+        <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.8"/>
+        </linearGradient>
+        <linearGradient id="amberGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#B45309"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Outer Soft Spherical Aura Glow -->
+    <circle cx="200" cy="200" r="190" fill="url(#bgSphere_avatar_9_royal_enigma)"/>
+    <circle cx="200" cy="200" r="185" fill="none" stroke="#9333EA" stroke-width="2" stroke-dasharray="8 6" opacity="0.4"/>
+
+    <!-- Soft Drop Shadow below character -->
+    <ellipse cx="200" cy="385" rx="110" ry="12" fill="#050B18" opacity="0.6"/>
+
+    <!-- ==================== TORSO / CLOTHING ==================== -->
+    <path d="M100 395 C100 310, 140 280, 200 280 C260 280, 300 310, 300 395 Z" fill="url(#clothGrad_avatar_9_royal_enigma)"/>
+    <!-- Collar / Neck Trim -->
+    <path d="M165 280 Q200 310 235 280" fill="none" stroke="#D6B56D" stroke-width="4.5" stroke-linecap="round"/>
+    <!-- Center Placket -->
+    <line x1="200" y1="298" x2="200" y2="395" stroke="#D6B56D" stroke-width="2.5" opacity="0.75"/>
+
+    <!-- ==================== NECK ==================== -->
+    <rect x="180" y="225" width="40" height="65" rx="10" fill="#FCE0D2"/>
+    <path d="M180 245 Q200 260 220 245 L220 280 L180 280 Z" fill="#000000" opacity="0.12"/>
+
+    <!-- ==================== EARS ==================== -->
+    <circle cx="125" cy="185" r="16" fill="#FCE0D2"/>
+    <circle cx="125" cy="185" r="9" fill="#000000" opacity="0.08"/>
+    <circle cx="275" cy="185" r="16" fill="#FCE0D2"/>
+    <circle cx="275" cy="185" r="9" fill="#000000" opacity="0.08"/>
+
+    <!-- ==================== 3D HEAD ==================== -->
+    <ellipse cx="200" cy="180" rx="72" ry="82" fill="url(#skinGrad_avatar_9_royal_enigma)"/>
+
+    <!-- Cheeks (Friendly Student Blush) -->
+    <circle cx="150" cy="205" r="12" fill="#FF7B90" opacity="0.25"/>
+    <circle cx="250" cy="205" r="12" fill="#FF7B90" opacity="0.25"/>
+
+    <!-- ==================== FACIAL FEATURES ==================== -->
+    <!-- Eyebrows -->
+    <path d="M142 152 Q160 144 178 152" fill="none" stroke="#171717" stroke-width="3.8" stroke-linecap="round"/>
+    <path d="M222 152 Q240 144 258 152" fill="none" stroke="#171717" stroke-width="3.8" stroke-linecap="round"/>
+
+    <!-- Big Expressive Cartoon Eyes -->
+    <ellipse cx="160" cy="178" rx="13" ry="16" fill="#FFFFFF"/>
+    <ellipse cx="240" cy="178" rx="13" ry="16" fill="#FFFFFF"/>
+    <!-- Irises -->
+    <circle cx="162" cy="178" r="9.5" fill="#1E293B"/>
+    <circle cx="242" cy="178" r="9.5" fill="#1E293B"/>
+    <!-- Colored Ring -->
+    <circle cx="162" cy="178" r="9.5" fill="none" stroke="#9333EA" stroke-width="2.2"/>
+    <circle cx="242" cy="178" r="9.5" fill="none" stroke="#9333EA" stroke-width="2.2"/>
+    <!-- Catchlights -->
+    <circle cx="159" cy="174" r="3.5" fill="#FFFFFF"/>
+    <circle cx="165" cy="181" r="1.8" fill="#FFFFFF"/>
+    <circle cx="239" cy="174" r="3.5" fill="#FFFFFF"/>
+    <circle cx="245" cy="181" r="1.8" fill="#FFFFFF"/>
+
+    <!-- Cute Stylized Nose -->
+    <path d="M196 195 Q200 200 204 195" fill="none" stroke="#C2886A" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Friendly Student Smile -->
+    <path d="M182 216 Q200 230 218 216" fill="none" stroke="#A84E32" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M186 217 Q200 225 214 217" fill="#FFFFFF" opacity="0.9"/>
+
+    <!-- ==================== DISTINCT HAIR ==================== -->
+    
+            <!-- Sleek Center Part & Royal Braids -->
+            <path d="M120 155 Q120 78 200 78 Q280 78 280 155 Q285 240 270 260 Q258 180 250 155 Q200 135 150 155 Q142 180 130 260 Q115 240 120 155 Z" fill="url(#hairGrad9)"/>
+            <circle cx="132" cy="235" r="4" fill="#D6B56D"/>
+            <circle cx="268" cy="235" r="4" fill="#D6B56D"/>
+        
+
+    <!-- ==================== DISTINCT ACCESSORY ==================== -->
+    
+            <!-- Imperial Purple Collar with Gold Filigree -->
+            <path d="M150 280 L200 345 L250 280" fill="none" stroke="#D6B56D" stroke-width="3" stroke-linecap="round"/>
+            <polygon points="200,335 203,342 210,343 205,348 206,355 200,351 194,355 195,348 190,343 197,342" fill="#FDE047"/>
+            <!-- Gold Earring Hoops -->
+            <circle cx="120" cy="190" r="7" fill="none" stroke="#FDE047" stroke-width="2.5"/>
+            <circle cx="280" cy="190" r="7" fill="none" stroke="#FDE047" stroke-width="2.5"/>
+            <!-- Elegant Eyebrow Arch -->
+            <path d="M140 152 Q158 142 176 150" fill="none" stroke="#262626" stroke-width="3" stroke-linecap="round"/>
+            <path d="M224 150 Q242 142 260 152" fill="none" stroke="#262626" stroke-width="3" stroke-linecap="round"/>
+        
+
+    <!-- Rarity Level Badge Bottom Indicator -->
+    <rect x="150" y="360" width="100" height="24" rx="12" fill="#0F172A" stroke="#9333EA" stroke-width="1.8"/>
+    <text x="200" y="376" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" fill="#9333EA" text-anchor="middle" letter-spacing="0.5">LEVEL 9</text>
+</svg>

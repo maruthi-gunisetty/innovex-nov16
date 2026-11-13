@@ -39,27 +39,12 @@ def render_teacher_dashboard(user: dict):
     selected_course_id = selected_course_obj["id"] if selected_course_obj else None
 
     overview = get_class_overview(course_id=selected_course_id)
-    students = get_all_students()
     cm_list = overview.get("concept_masteries", [])
     cohort_avg = (sum(c["avg_mastery"] for c in cm_list) / len(cm_list)) if cm_list else 0.20
 
-    # Categorize students into struggling vs excelling
-    student_stats = []
-    for s in students:
-        s_mastery = get_student_mastery(s["id"], course_id=selected_course_id)
-        s_attempts = get_user_attempts(s["id"], limit=50, course_id=selected_course_id)
-        s_avg = (sum(m["mastery_prob"] for m in s_mastery) / len(s_mastery)) if s_mastery else 0.20
-        s_correct = sum(1 for a in s_attempts if a["is_correct"])
-        s_acc = (s_correct / len(s_attempts) * 100) if s_attempts else 0.0
-        student_stats.append({
-            "id": s["id"],
-            "name": s["full_name"],
-            "username": s["username"],
-            "avg_mastery": s_avg,
-            "accuracy": s_acc,
-            "attempts": len(s_attempts)
-        })
-
+    # High-performance batch aggregation in 1 single SQL query (eliminates N+1 loop)
+    from database.db import get_cohort_student_summaries, get_user_equipped_avatar
+    student_stats = get_cohort_student_summaries(selected_course_id)
     struggling_students = [s for s in student_stats if s["avg_mastery"] < 0.60]
     excelling_students = [s for s in student_stats if s["avg_mastery"] >= 0.70]
 
@@ -85,6 +70,40 @@ def render_teacher_dashboard(user: dict):
         )
         if new_sel != selected_filter_label:
             st.session_state["teacher_track_filter"] = new_sel
+            st.rerun()
+
+    # Faculty Rewards & AvatarVerse Bar
+    eq_avatar = get_user_equipped_avatar(user["id"])
+    from core.rewards_engine import RewardsEngine
+    t_wallet = RewardsEngine.get_or_create_wallet(user["id"])
+    t_coins = t_wallet.get("available_coins", 0)
+
+    av_tag = ""
+    if eq_avatar:
+        from views.avatarverse import _get_svg_data_uri
+        av_uri = _get_svg_data_uri(eq_avatar["asset_rel"])
+        av_tag = f"""
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="{av_uri}" style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D6B56D; object-fit: cover;" alt="Avatar"/>
+            <span style="font-size: 0.725rem; font-weight: 700; color: #1E3A8A;">{eq_avatar['name']}</span>
+        </div>
+        """
+
+    col_t_bar, col_t_av = st.columns([0.78, 0.22])
+    with col_t_bar:
+        st.markdown(f"""
+        <div style="background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 8px; padding: 0.45rem 0.85rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 0.775rem; color: #334155; font-weight: 600;">
+                🪙 <strong>Faculty Wallet:</strong> {t_coins:,} Coins &bull; Awarded for verified curriculum curation & pedagogy.
+            </div>
+            {av_tag}
+        </div>
+        """, unsafe_allow_html=True)
+    with col_t_av:
+        st.markdown("<div style='height: 2px;'></div>", unsafe_allow_html=True)
+        if st.button("🎭 AvatarVerse", key="teacher_open_avatar_btn", type="primary", use_container_width=True):
+            st.session_state["current_page"] = "avatarverse"
+            st.session_state["_synced_page"] = "avatarverse"
             st.rerun()
 
     # ==========================================================

@@ -80,9 +80,20 @@ def render_navigation():
         with col_u_profile:
             role_title = "K-12 Faculty" if user.get("role") == "teacher" else "Student &bull; Level 3"
             initials = "".join([part[0].upper() for part in user.get("full_name", "User").split()[:2]])
+
+            # Check if user has an equipped 3D cartoon avatar
+            from database.db import get_user_equipped_avatar
+            eq_avatar = get_user_equipped_avatar(user["id"])
+            if eq_avatar:
+                from views.avatarverse import _get_svg_data_uri
+                av_uri = _get_svg_data_uri(eq_avatar["asset_rel"])
+                avatar_display_html = f'<img src="{av_uri}" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #D6B56D; object-fit: cover;" title="{eq_avatar["name"]} (Level {eq_avatar["level"]})"/>'
+            else:
+                avatar_display_html = f'<div class="lm-avatar">{initials}</div>'
+
             st.markdown(f"""
             <div class="lm-user-pill" style="justify-content: flex-end; padding-top: 0.2rem;">
-                <div class="lm-avatar">{initials}</div>
+                {avatar_display_html}
                 <div style="text-align: left; line-height: 1.2;">
                     <div style="font-weight: 600; font-size: 0.825rem; color: #243B64; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;">{user.get('full_name', 'Scholar')}</div>
                     <div style="font-size: 0.7rem; color: #718096;">{role_title}</div>
@@ -131,6 +142,7 @@ def render_navigation():
         if user.get("role") == "teacher":
             nav_map = {
                 "Dashboard": "teacher_dashboard",
+                "Avatar Store (AvatarVerse)": "avatarverse",
                 "SARVAVIDYA Rewards": "rewards",
                 "Subjects Hub": "subjects",
                 "Assessments": "assessment",
@@ -148,6 +160,7 @@ def render_navigation():
         else:
             nav_map = {
                 "Dashboard": "student_dashboard",
+                "Avatar Store (AvatarVerse)": "avatarverse",
                 "SARVAVIDYA Rewards": "rewards",
                 "Subjects Hub": "subjects",
                 "Assessments": "assessment",

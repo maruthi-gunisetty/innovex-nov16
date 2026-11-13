@@ -26,16 +26,22 @@ LEVEL_THRESHOLDS = [
 
 # Configurable Reward Values
 REWARD_RULES = {
-    "DAILY_GOAL": 5,
+    "DAILY_GOAL": 15,
+    "LESSON_COMPLETE": 10,
     "ASSIGNMENT_COMPLETE": 10,
+    "QUIZ_CORRECT": 5,
     "ASSESSMENT_PRACTICE": 5,
+    "ASSESSMENT_COMPLETE": 20,
     "PERFECT_SCORE_BONUS": 15,
     "STREAK_3_DAY": 10,
-    "STREAK_7_DAY": 30,
+    "STREAK_7_DAY": 50,
     "WEEKLY_GOAL": 50,
+    "COMPLETED_SUBJECT": 100,
     "WEAK_TOPIC_REVISION": 10,
     "BKT_MASTERY_MILESTONE": 25,
-    "ASK_AI_WHY_ENGAGEMENT": 5
+    "ASK_AI_WHY_ENGAGEMENT": 5,
+    "TEACHER_RESOURCE_PUBLISH": 25,
+    "TEACHER_MILESTONE": 50
 }
 
 DEFAULT_STORE_ITEMS = [
@@ -64,6 +70,12 @@ DEFAULT_DAILY_MISSIONS = [
 
 def init_rewards_tables() -> None:
     """Ensures tables are created and seeds default store items and missions."""
+    try:
+        from core.avatarverse_data import seed_avatarverse_items
+        seed_avatarverse_items()
+    except Exception:
+        pass
+
     with get_db_connection() as conn:
         with conn:
             # Seed store items if empty
@@ -432,17 +444,17 @@ class RewardsEngine:
                 price = item["coin_price"]
                 is_consumable = bool(item["is_consumable"])
 
-                # 2. Check Wallet
-                cur.execute("SELECT available_coins, lifetime_spent_coins, streak_freeze_tokens FROM student_wallets WHERE user_id = ?", (user_id,))
-                w = cur.fetchone()
-                if not w or w["available_coins"] < price:
-                    return False, f"Insufficient coins. You have {w['available_coins'] if w else 0} coins, but this item costs {price} coins."
-
-                # 3. Check Duplicate for non-consumables
+                # 2. Check Duplicate for non-consumables first
                 if not is_consumable:
                     cur.execute("SELECT id FROM student_inventory WHERE user_id = ? AND item_id = ?", (user_id, item_id))
                     if cur.fetchone():
                         return False, "You already own this reward item."
+
+                # 3. Check Wallet balance
+                cur.execute("SELECT available_coins, lifetime_spent_coins, streak_freeze_tokens FROM student_wallets WHERE user_id = ?", (user_id,))
+                w = cur.fetchone()
+                if not w or w["available_coins"] < price:
+                    return False, f"Insufficient coins. You have {w['available_coins'] if w else 0} coins, but this item costs {price} coins."
 
                 # 4. Atomic Deduct Coins
                 new_bal = w["available_coins"] - price

@@ -47,9 +47,14 @@ def set_active_course_by_id(course_id: int) -> Optional[Dict[str, Any]]:
     return None
 
 
-def get_available_tracks() -> List[Dict[str, Any]]:
-    """Returns list of active courses."""
+@st.cache_data(ttl=3600)
+def _get_cached_courses_list() -> List[Dict[str, Any]]:
     return get_all_courses(active_only=True)
+
+
+def get_available_tracks() -> List[Dict[str, Any]]:
+    """Returns cached list of active courses for sub-millisecond selector rendering."""
+    return _get_cached_courses_list()
 
 
 def render_course_selector(key: str = "track_selector", label: str = "Curriculum Track", on_change_rerun: bool = True) -> Dict[str, Any]:

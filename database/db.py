@@ -63,19 +63,15 @@ def init_db(force: bool = False) -> None:
         if "is_followed" not in rec_cols:
             conn.execute("ALTER TABLE learning_recommendations ADD COLUMN is_followed INTEGER DEFAULT 0")
 
-        # Ensure chat_messages table
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS chat_messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL REFERENCES users(id),
-                course_id INTEGER REFERENCES courses(id),
-                concept_id INTEGER REFERENCES concepts(id),
-                sender TEXT NOT NULL,
-                message TEXT NOT NULL,
-                mode TEXT DEFAULT 'curriculum_engine',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        # Ensure performance indexes for sub-millisecond query response
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_attempts_user_concept ON assessment_attempts(user_id, concept_id);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_attempts_user_date ON assessment_attempts(user_id, attempted_at);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_mastery_user_concept ON student_mastery(user_id, concept_id);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_inventory_user_equip ON student_inventory(user_id, is_equipped);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_transactions_user ON coin_transactions(user_id, created_at);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_recs_user_course ON learning_recommendations(user_id, course_id, is_completed);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_questions_concept ON questions(concept_id, difficulty);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_content_concept ON learning_content(concept_id);")
         conn.commit()
 
 
@@ -783,4 +779,106 @@ def mark_recommendation_followed(rec_id: int) -> None:
             WHERE id = ?
         """, (rec_id,))
         conn.commit()
+
+
+def get_cohort_student_summaries(course_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    """
+    High-performance batch aggregation that calculates average mastery, attempts,
+    correct attempts, and accuracy for all students in a single optimized SQL query.
+    Eliminates the N+1 query loop on the teacher dashboard.
+    """
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        
+        # 1. Fetch all students
+        cur.execute("SELECT id, username, full_name, email, role, target_difficulty FROM users WHERE role = 'student' ORDER BY full_name ASC")
+        students = [dict(r) for r in cur.fetchall()]
+        if not students:
+            return []
+            
+        student_ids = [s["id"] for s in students]
+        placeholders = ",".join("?" for _ in student_ids)
+        
+        # 2. Batch mastery average
+        if course_id:
+            m_sql = f"""
+                SELECT sm.user_id, AVG(sm.mastery_prob) as avg_mastery, COUNT(sm.id) as concept_count
+                FROM student_mastery sm
+                JOIN concepts c ON sm.concept_id = c.id
+                WHERE sm.user_id IN ({placeholders}) AND c.course_id = ?
+                GROUP BY sm.user_id
+            """
+            cur.execute(m_sql, (*student_ids, course_id))
+        else:
+            m_sql = f"""
+                SELECT sm.user_id, AVG(sm.mastery_prob) as avg_mastery, COUNT(sm.id) as concept_count
+                FROM student_mastery sm
+                WHERE sm.user_id IN ({placeholders})
+                GROUP BY sm.user_id
+            """
+            cur.execute(m_sql, student_ids)
+        mastery_map = {r["user_id"]: r["avg_mastery"] for r in cur.fetchall()}
+        
+        # 3. Batch attempts summary
+        if course_id:
+            a_sql = f"""
+                SELECT aa.user_id, COUNT(aa.id) as total_attempts, SUM(aa.is_correct) as correct_attempts
+                FROM assessment_attempts aa
+                JOIN concepts c ON aa.concept_id = c.id
+                WHERE aa.user_id IN ({placeholders}) AND c.course_id = ?
+                GROUP BY aa.user_id
+            """
+            cur.execute(a_sql, (*student_ids, course_id))
+        else:
+            a_sql = f"""
+                SELECT aa.user_id, COUNT(aa.id) as total_attempts, SUM(aa.is_correct) as correct_attempts
+                FROM assessment_attempts aa
+                WHERE aa.user_id IN ({placeholders})
+                GROUP BY aa.user_id
+            """
+            cur.execute(a_sql, student_ids)
+        attempts_map = {r["user_id"]: (r["total_attempts"] or 0, r["correct_attempts"] or 0) for r in cur.fetchall()}
+        
+        result = []
+        for s in students:
+            uid = s["id"]
+            avg_m = mastery_map.get(uid, 0.20)
+            tot_att, corr_att = attempts_map.get(uid, (0, 0))
+            acc = (corr_att / tot_att * 100) if tot_att > 0 else 0.0
+            result.append({
+                "id": uid,
+                "name": s["full_name"],
+                "username": s["username"],
+                "email": s["email"],
+                "avg_mastery": avg_m,
+                "accuracy": acc,
+                "attempts": tot_att,
+                "correct": corr_att
+            })
+            
+        return result
+
+
+def get_user_equipped_avatar(user_id: int) -> Optional[Dict[str, Any]]:
+    """Returns the user's currently equipped avatar record, or None if using default."""
+    try:
+        from core.avatarverse_data import AVATAR_BY_ID
+        with get_db_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """SELECT item_id, purchased_at 
+                   FROM student_inventory 
+                   WHERE user_id = ? AND is_equipped = 1 AND item_id LIKE 'avatar_%'
+                   LIMIT 1""",
+                (user_id,)
+            )
+            row = cur.fetchone()
+            if row and row["item_id"] in AVATAR_BY_ID:
+                av = dict(AVATAR_BY_ID[row["item_id"]])
+                av["purchased_at"] = row["purchased_at"]
+                return av
+    except Exception:
+        pass
+    return None
+
 

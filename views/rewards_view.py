@@ -299,7 +299,23 @@ def render_rewards_page(user: dict):
             <h3 style="font-size: 1.1rem; font-weight: 700; color: #172943; margin-bottom: 0.2rem;">SARVAVIDYA Reward Store</h3>
             <p style="font-size: 0.775rem; color: #64748B; margin: 0;">Redeem your hard-earned academic coins for exclusive avatars, themes, badges, and learning powerups.</p>
         </div>
+        <div style="background: linear-gradient(135deg, #0B132B 0%, #172943 100%); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 0.95rem 1.25rem; color: #FFFFFF; margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <div style="font-size: 0.675rem; color: #D6B56D; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Featured Destination</div>
+                    <div style="font-weight: 800; font-size: 1.05rem; color: #FFFFFF;">🎭 SARVAVIDYA AvatarVerse: 10-Level 3D Cartoon Store</div>
+                    <div style="font-size: 0.75rem; color: #94A3B8;">Bitmoji-inspired 3D digital identities with interactive 'Try Before Buying' previews.</div>
+                </div>
+            </div>
+        </div>
         """, unsafe_allow_html=True)
+
+        if st.button("🚀 Launch Full 10-Level AvatarVerse Store →", key="btn_rewards_go_avatarverse", type="primary", use_container_width=True):
+            st.session_state["current_page"] = "avatarverse"
+            st.session_state["_synced_page"] = "avatarverse"
+            st.rerun()
+
+        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
         store_filter = st.radio(
             "Category Filter",
