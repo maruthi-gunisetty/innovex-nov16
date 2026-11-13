@@ -6,6 +6,7 @@ Enterprise educational management aesthetic.
 """
 
 import streamlit as st
+import os
 from core.auth_service import AuthService
 from database.db import (
     get_user_by_id, update_user_preferences, update_user_password
@@ -146,5 +147,54 @@ def render_settings_page(user: dict):
             st.session_state.clear()
             st.success("Demonstration environment reset to pristine baseline.")
             st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # ==========================================================
+        # 3. Firebase Cloud Firestore Integration
+        # ==========================================================
+        from database.firebase_db import is_firebase_connected, sync_sqlite_to_firestore, get_credentials_path
+
+        fb_connected = is_firebase_connected()
+        status_color = "#36A879" if fb_connected else "#D97706"
+        status_text = "Connected & Active" if fb_connected else "Setup Required"
+        status_bg = "#ECFDF5" if fb_connected else "#FFFBEB"
+
+        st.markdown(f"""
+        <div class="lm-card" style="border-left: 4px solid {status_color}; margin-top: 1rem;">
+            <div class="lm-card-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.1rem;">🔥</span>
+                    <span class="lm-card-title">Firebase Cloud Database</span>
+                </div>
+                <span style="background: {status_bg}; color: {status_color}; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px;">
+                    {status_text}
+                </span>
+            </div>
+            <p style="color: #718096; font-size: 0.775rem; line-height: 1.45; margin-bottom: 0.65rem;">
+                Connect your Google Firebase Cloud Firestore database to sync student progress, avatars, and coin wallets to the cloud in real time.
+            </p>
+        """, unsafe_allow_html=True)
+
+        if fb_connected:
+            cred_file = os.path.basename(get_credentials_path() or "firebase_credentials.json")
+            st.success(f"✓ Connected to Cloud Firestore via `{cred_file}`")
+            if st.button("🔄 Sync Local Database to Cloud Firestore", key="btn_sync_firebase", type="primary", use_container_width=True):
+                res = sync_sqlite_to_firestore()
+                st.toast(f"Synced {res.get('synced_users', 0)} users and {res.get('synced_wallets', 0)} wallets to Firebase Firestore!", icon="🔥")
+        else:
+            st.info("To connect: Download your service account private key from **Firebase Console > Project Settings > Service Accounts**, then upload it below:")
+            uploaded_cred = st.file_uploader("Upload Firebase Service Account Key (JSON)", type=["json"], key="fb_cred_upload")
+            if uploaded_cred is not None:
+                try:
+                    import os
+                    content = uploaded_cred.read()
+                    cred_target = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "firebase_credentials.json")
+                    with open(cred_target, "wb") as f:
+                        f.write(content)
+                    st.success("Firebase credentials saved! Initializing connection...")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed to save credentials: {e}")
 
         st.markdown("</div>", unsafe_allow_html=True)
