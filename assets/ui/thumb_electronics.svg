@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 110" width="100%" height="100%">
+  <!-- Rounded Card Base with Coral/Warm Background -->
+  <rect x="0" y="0" width="160" height="110" rx="14" fill="#FF5238"/>
+  
+  <!-- Subtle Retro Collage Confetti Elements -->
+  <rect x="18" y="14" width="4" height="14" rx="2" transform="rotate(30 18 14)" fill="#FFB800"/>
+  <rect x="135" y="16" width="5" height="16" rx="2" transform="rotate(-25 135 16)" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="140" y="75" width="4" height="14" rx="2" transform="rotate(18 140 75)" fill="#111111" opacity="0.7"/>
+  <circle cx="24" cy="85" r="3" fill="#FFB800"/>
+  <circle cx="125" cy="88" r="2.5" fill="#FFFFFF"/>
+
+  
+          <!-- Microchip & Circuit Lines -->
+          <rect x="45" y="38" width="46" height="46" rx="6" fill="#18181B" stroke="#FFFFFF" stroke-width="2.5"/>
+          <circle cx="68" cy="61" r="10" fill="#3B82F6"/>
+          <!-- Chip Pins -->
+          <line x1="38" y1="46" x2="45" y2="46" stroke="#FFB800" stroke-width="3" stroke-linecap="round"/>
+          <line x1="38" y1="56" x2="45" y2="56" stroke="#FFB800" stroke-width="3" stroke-linecap="round"/>
+          <line x1="38" y1="66" x2="45" y2="66" stroke="#FFB800" stroke-width="3" stroke-linecap="round"/>
+          <line x1="91" y1="46" x2="98" y2="46" stroke="#FFB800" stroke-width="3" stroke-linecap="round"/>
+          <line x1="91" y1="56" x2="98" y2="56" stroke="#FFB800" stroke-width="3" stroke-linecap="round"/>
+          <line x1="91" y1="66" x2="98" y2="66" stroke="#FFB800" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="112" cy="40" r="5" fill="#FF5238" stroke="#111" stroke-width="1.5"/>
+          <line x1="98" y1="56" x2="110" y2="56" stroke="#FFFFFF" stroke-width="2"/>
+        
+</svg>

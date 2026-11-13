@@ -42,7 +42,7 @@ def main():
     # 1. Page Configuration (Strictly no emojis)
     # Automatically collapse sidebar for unauthenticated visitors
     user = st.session_state.get("user")
-    initial_sidebar = "expanded" if user else "collapsed"
+    initial_sidebar = "collapsed"
 
     favicon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "brand", "favicon.png")
     st.set_page_config(
