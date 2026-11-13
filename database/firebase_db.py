@@ -160,3 +160,4 @@ def sync_sqlite_to_firestore() -> Dict[str, int]:
         "synced_users": synced_users,
         "synced_wallets": synced_wallets
     }
+
