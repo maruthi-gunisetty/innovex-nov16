@@ -33,24 +33,18 @@ ICONS = {
 
 CUSTOM_CSS = """
 <style>
-/* Modern Typography - Anton, Oswald & Plus Jakarta Sans */
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&display=swap');
+/* Modern Typography - Roboto & Material Symbols */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400;1,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
-html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], button, input, textarea, select, div, span, p {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #18181B;
-    background-color: #F6F3EB;
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #172943;
+    background-color: #F5F6F8;
 }
 
-h1, h2, h3, .retro-title, .quiz-title {
-    font-family: 'Anton', 'Oswald', sans-serif !important;
-    letter-spacing: 0.01em !important;
-    color: #18181B !important;
-}
-
-*:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not([class*="material-symbols"]):not(h1):not(h2):not(h3):not(.retro-title):not(.quiz-title) {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+*:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not([class*="material-symbols"]) {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 [data-testid="stIconMaterial"], .material-symbols-rounded, [class*="material-symbols"] {
@@ -88,19 +82,17 @@ footer {
 [data-testid="stAppViewContainer"] {
     padding-top: 0 !important;
     margin-top: 0 !important;
-    background-color: #F6F3EB !important;
 }
 
-/* Page Container Density - Zero Top Gap & Generous Canvas */
+/* Page Container Density - Zero Top Gap */
 .block-container,
 [data-testid="stAppViewBlockContainer"],
 .main .block-container {
-    padding-top: 0.5rem !important;
+    padding-top: 0.35rem !important;
     padding-bottom: 2rem !important;
     padding-left: 1.5rem !important;
     padding-right: 1.5rem !important;
-    max-width: 1440px !important;
-    background-color: #F6F3EB !important;
+    max-width: 1320px !important;
 }
 
 /* Sidebar display is managed dynamically via SIDEBAR_CSS (authenticated) and AUTH_PAGE_CSS (login portal) */
@@ -473,124 +465,38 @@ button[key="top_search_clear_btn"]:hover {
     margin-bottom: 0.4rem;
 }
 
-/* Primary Button Styling - Vibrant Coral Pill */
-button[kind="primary"],
-.stButton > button[kind="primary"],
-button[data-testid="baseButton-primary"] {
-    background-color: #FF5238 !important;
-    border: none !important;
+/* Primary Button Styling */
+button[kind="primary"] {
+    background-color: #172943 !important;
+    border: 1px solid #D6B56D !important;
     color: #FFFFFF !important;
-    border-radius: 9999px !important;
-    font-size: 0.825rem !important;
-    font-weight: 700 !important;
-    padding: 0.45rem 1.25rem !important;
-    box-shadow: 0 2px 8px rgba(255, 82, 56, 0.25) !important;
-    transition: all 0.2s ease !important;
-}
-
-button[kind="primary"]:hover,
-.stButton > button[kind="primary"]:hover,
-button[data-testid="baseButton-primary"]:hover {
-    background-color: #E64229 !important;
-    border-color: #E64229 !important;
-    color: #FFFFFF !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 14px rgba(255, 82, 56, 0.35) !important;
-}
-
-button[kind="secondary"],
-.stButton > button[kind="secondary"],
-button[data-testid="baseButton-secondary"] {
-    background-color: #FFFFFF !important;
-    color: #18181B !important;
-    border: 1.5px solid #E5DFD5 !important;
-    border-radius: 9999px !important;
+    border-radius: 8px !important;
     font-size: 0.825rem !important;
     font-weight: 600 !important;
-    padding: 0.45rem 1.15rem !important;
-    transition: all 0.2s ease !important;
+    padding: 0.45rem 1rem !important;
+    box-shadow: 0 1px 3px rgba(23, 41, 67, 0.15) !important;
 }
 
-button[kind="secondary"]:hover,
-.stButton > button[kind="secondary"]:hover,
-button[data-testid="baseButton-secondary"]:hover {
-    background-color: #FAF8F2 !important;
-    border-color: #CBD5E1 !important;
-    color: #111111 !important;
-}
-
-/* Quiz Specific Classes */
-.quiz-display-title {
-    font-family: 'Anton', 'Oswald', sans-serif !important;
-    font-size: 1.75rem !important;
-    letter-spacing: 0.02em !important;
-    color: #111111 !important;
-    margin: 0 !important;
-}
-
-.quiz-card {
-    background-color: #FFFFFF;
-    border-radius: 20px;
-    padding: 1rem;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.quiz-card:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-}
-
-.quiz-hero-card {
-    background-color: #FFFFFF;
-    border-radius: 24px;
-    padding: 1.5rem 1.75rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(0, 0, 0, 0.03);
-}
-
-.quiz-pill-btn {
-    display: block;
-    width: 100%;
-    background-color: #FF5238;
+button[kind="primary"]:hover {
+    background-color: #243B64 !important;
+    border-color: #E8C879 !important;
     color: #FFFFFF !important;
-    border-radius: 9999px;
-    font-weight: 700;
-    font-size: 0.775rem;
-    padding: 0.4rem 0.85rem;
-    text-align: center;
-    text-decoration: none !important;
-    border: none;
-    box-shadow: 0 2px 6px rgba(255, 82, 56, 0.25);
-    transition: all 0.2s ease;
-    cursor: pointer;
 }
 
-.quiz-pill-btn:hover {
-    background-color: #E64229;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(255, 82, 56, 0.35);
+button[kind="secondary"] {
+    background-color: #FFFFFF !important;
+    color: #172943 !important;
+    border: 1px solid #E4E8ED !important;
+    border-radius: 8px !important;
+    font-size: 0.825rem !important;
+    font-weight: 500 !important;
+    padding: 0.45rem 1rem !important;
 }
 
-.quiz-black-btn {
-    display: inline-block;
-    background-color: #111111;
-    color: #FFFFFF !important;
-    border-radius: 9999px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    padding: 0.6rem 1.8rem;
-    text-align: center;
-    text-decoration: none !important;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.quiz-black-btn:hover {
-    background-color: #27272A;
-    transform: translateY(-1px);
+button[kind="secondary"]:hover {
+    background-color: #FAF5EA !important;
+    border-color: #D6B56D !important;
+    color: #172943 !important;
 }
 
 /* Tables */
@@ -895,38 +801,91 @@ def get_icon(name: str) -> str:
 
 SIDEBAR_CSS = """
 <style>
-/* Clean Responsive Sidebar with Warm Ivory Theme */
-section[data-testid="stSidebar"],
-[data-testid="stSidebar"] {
-    background-color: #FAF8F2 !important;
-    border-right: 1.5px solid #EBE5D8 !important;
+/* Laptop & Desktop (min-width: 769px): Compact docked sidebar */
+@media (min-width: 769px) {
+    section[data-testid="stSidebar"],
+    [data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
+        transform: none !important;
+        margin-left: 0 !important;
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E4E8ED !important;
+        width: 225px !important;
+        min-width: 210px !important;
+        max-width: 240px !important;
+        z-index: 100 !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    /* Strictly eliminate the << sidebar collapse chevron button */
+    [data-testid="stSidebarCollapseButton"],
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarHeader"] button,
+    [data-testid="stSidebarHeader"],
+    div[data-testid="stSidebarHeader"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        pointer-events: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    [data-testid="stSidebarCollapsedControl"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
 }
 
-/* Sidebar header and title typography */
-[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-    font-family: 'Anton', 'Oswald', sans-serif !important;
-    color: #18181B !important;
-}
+/* Mobile Devices (max-width: 768px): Slide-over drawer with accessible toggle */
+@media (max-width: 768px) {
+    section[data-testid="stSidebar"],
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        width: 82vw !important;
+        max-width: 290px !important;
+        z-index: 99999 !important;
+        box-shadow: 4px 0 24px rgba(23, 41, 67, 0.25) !important;
+    }
 
-/* Accessible Hamburger Drawer Toggle when collapsed */
-[data-testid="stSidebarCollapsedControl"] {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: fixed !important;
-    top: 12px !important;
-    left: 14px !important;
-    background: #FFFFFF !important;
-    border: 1px solid #E5DFD5 !important;
-    border-radius: 9999px !important;
-    padding: 4px 6px !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-    z-index: 99999 !important;
-}
+    /* Keep << collapse button hidden even on mobile */
+    [data-testid="stSidebarCollapseButton"],
+    button[data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarHeader"] button,
+    [data-testid="stSidebarHeader"],
+    div[data-testid="stSidebarHeader"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+    }
 
-[data-testid="stSidebarCollapsedControl"]:hover {
-    background: #F6F3EB !important;
-    border-color: #CBD5E1 !important;
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        z-index: 999999 !important;
+        position: fixed !important;
+        top: 8px !important;
+        left: 8px !important;
+        background: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    }
 }
 </style>
 """
