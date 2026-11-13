@@ -31,40 +31,11 @@ def render_settings_page(user: dict):
 
     # 1. Profile Overview & Learning Preferences
     with col1:
-        from database.db import get_user_equipped_avatar
-        eq_avatar = get_user_equipped_avatar(user_id)
-        if eq_avatar:
-            from views.avatarverse import _get_svg_data_uri
-            av_uri = _get_svg_data_uri(eq_avatar["asset_rel"])
-            av_badge_html = f"""
-            <div style="display: flex; align-items: center; gap: 14px; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0.85rem 1.15rem; margin-bottom: 0.85rem;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid #D6B56D; overflow: hidden; background: #F8FAFC;">
-                    <img src="{av_uri}" style="width: 100%; height: 100%; object-fit: cover;" alt="{eq_avatar['name']}"/>
-                </div>
-                <div>
-                    <div style="font-size: 0.65rem; color: #D97706; font-weight: 800; text-transform: uppercase;">Equipped 3D Avatar &bull; Level {eq_avatar['level']}</div>
-                    <div style="font-size: 1.05rem; font-weight: 800; color: #172943;">{eq_avatar['name']}</div>
-                    <div style="font-size: 0.725rem; color: #64748B;">{eq_avatar['tier']} Digital Identity</div>
-                </div>
-            </div>
-            """
-        else:
-            av_badge_html = """
-            <div style="display: flex; align-items: center; gap: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 0.75rem;">
-                <div style="width: 44px; height: 44px; border-radius: 50%; background: #E2E8F0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">🎓</div>
-                <div>
-                    <div style="font-size: 0.8rem; font-weight: 700; color: #172943;">Default Scholar Avatar</div>
-                    <div style="font-size: 0.7rem; color: #64748B;">Visit the 10-Level AvatarVerse to unlock custom 3D cartoon avatars.</div>
-                </div>
-            </div>
-            """
-
-        st.markdown(f"""
+        st.markdown("""
         <div class="lm-card">
             <div class="lm-card-header">
                 <span class="lm-card-title">Learner Profile Details</span>
             </div>
-            {av_badge_html}
         """, unsafe_allow_html=True)
 
         st.text_input("Full Name", value=current_user["full_name"], disabled=True)
