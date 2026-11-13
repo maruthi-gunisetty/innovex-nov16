@@ -67,9 +67,14 @@ DEFAULT_DAILY_MISSIONS = [
     ("mission_ask_ai_why", "Deep Inquiry", "Consult SARVA AI Diagnostic Coach to inspect why an answer works.", 5, 1, "ai_activity"),
 ]
 
+_REWARDS_SEEDED = False
+
 
 def init_rewards_tables() -> None:
     """Ensures tables are created and seeds default store items and missions."""
+    global _REWARDS_SEEDED
+    if _REWARDS_SEEDED:
+        return
     try:
         from core.avatarverse_data import seed_avatarverse_items
         seed_avatarverse_items()
@@ -100,6 +105,7 @@ def init_rewards_tables() -> None:
                            VALUES (?, ?, ?, ?, ?, ?, 1)""",
                         m
                     )
+    _REWARDS_SEEDED = True
 
 
 class RewardsEngine:

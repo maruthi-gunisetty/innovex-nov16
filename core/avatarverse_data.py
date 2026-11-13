@@ -165,9 +165,14 @@ AVATAR_CATALOG: List[Dict[str, Any]] = [
 
 AVATAR_BY_ID = {a["id"]: a for a in AVATAR_CATALOG}
 
+_AVATARVERSE_SEEDED = False
+
 
 def seed_avatarverse_items() -> None:
     """Synchronizes the 10 official avatars into reward_store_items in SQLite."""
+    global _AVATARVERSE_SEEDED
+    if _AVATARVERSE_SEEDED:
+        return
     with get_db_connection() as conn:
         with conn:
             cur = conn.cursor()
@@ -183,6 +188,7 @@ def seed_avatarverse_items() -> None:
                            is_active = 1""",
                     (av["id"], av["name"], av["description"], av["coin_price"], av["icon"])
                 )
+    _AVATARVERSE_SEEDED = True
 
 
 def get_user_avatar_state(user_id: int) -> Dict[str, Any]:

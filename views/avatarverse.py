@@ -28,6 +28,7 @@ def _get_asset_abs_path(rel_path: str) -> str:
     return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), rel_path)
 
 
+@st.cache_data
 def _get_svg_data_uri(rel_path: str) -> str:
     """Reads local SVG asset and encodes into a fast base64 data URI."""
     abs_path = _get_asset_abs_path(rel_path)
@@ -298,6 +299,7 @@ def _render_avatar_grid(avatars: List[Dict[str, Any]], user: dict, wallet: dict,
                             if st.button("Equip", key=f"btn_eq_act_{tab_key}_{av_id}", type="primary", use_container_width=True):
                                 ok, msg = RewardsEngine.equip_item(user_id, av_id)
                                 if ok:
+                                    st.session_state.pop("_equipped_avatar", None)
                                     st.toast(f"✨ {msg}", icon="👑")
                                     st.rerun()
                                 else:

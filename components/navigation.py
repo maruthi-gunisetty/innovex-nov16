@@ -81,9 +81,15 @@ def render_navigation():
             role_title = "K-12 Faculty" if user.get("role") == "teacher" else "Student &bull; Level 3"
             initials = "".join([part[0].upper() for part in user.get("full_name", "User").split()[:2]])
 
-            # Check if user has an equipped 3D cartoon avatar
-            from database.db import get_user_equipped_avatar
-            eq_avatar = get_user_equipped_avatar(user["id"])
+            # Check if user has an equipped 3D cartoon avatar (cached in session to avoid SQL queries on every page switch)
+            eq_avatar = st.session_state.get("_equipped_avatar")
+            if eq_avatar is None:
+                from database.db import get_user_equipped_avatar
+                eq_avatar = get_user_equipped_avatar(user["id"])
+                st.session_state["_equipped_avatar"] = eq_avatar or False
+            elif eq_avatar is False:
+                eq_avatar = None
+
             if eq_avatar:
                 from views.avatarverse import _get_svg_data_uri
                 av_uri = _get_svg_data_uri(eq_avatar["asset_rel"])

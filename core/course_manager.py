@@ -15,6 +15,12 @@ def get_active_course() -> Dict[str, Any]:
         st.session_state["active_course_code"] = query_track
 
     code = st.session_state.get("active_course_code", "python")
+    
+    # Fast in-memory session cache to avoid repeated SQLite hits
+    cached = st.session_state.get("_cached_active_course_obj")
+    if cached and cached.get("code") == code:
+        return cached
+
     course = get_course_by_code(code)
     if not course:
         all_courses = get_all_courses(active_only=True)
@@ -30,12 +36,15 @@ def get_active_course() -> Dict[str, Any]:
                 "subject_code": "programming",
                 "description": "Core algorithmic thinking and procedural syntax."
             }
+    if course:
+        st.session_state["_cached_active_course_obj"] = course
     return course
 
 
 def set_active_course(code: str) -> None:
     """Updates the active course in session state."""
     st.session_state["active_course_code"] = code
+    st.session_state.pop("_cached_active_course_obj", None)
 
 
 def set_active_course_by_id(course_id: int) -> Optional[Dict[str, Any]]:
@@ -43,6 +52,7 @@ def set_active_course_by_id(course_id: int) -> Optional[Dict[str, Any]]:
     course = get_course_by_id(course_id)
     if course:
         st.session_state["active_course_code"] = course["code"]
+        st.session_state.pop("_cached_active_course_obj", None)
         return course
     return None
 
