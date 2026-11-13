@@ -169,3 +169,30 @@ def render_settings_page(user: dict):
                     st.error(f"Failed to save credentials: {e}")
 
         st.markdown("</div>", unsafe_allow_html=True)
+
+        # ==========================================================
+        # 4. Interactive Database Logins & Records Viewer
+        # ==========================================================
+        from database.db import get_db_connection
+
+        with get_db_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT id, username, email, full_name, role, school_name, created_at FROM users ORDER BY id ASC")
+            db_users = [dict(r) for r in cur.fetchall()]
+
+        st.markdown(f"""
+        <div class="lm-card" style="margin-top: 1rem;">
+            <div class="lm-card-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.1rem;">🗄️</span>
+                    <span class="lm-card-title">Database Accounts & Telemetry Viewer</span>
+                </div>
+                <span class="lm-pill pill-ahead">{len(db_users)} Logins Stored</span>
+            </div>
+            <p style="color: #718096; font-size: 0.775rem; line-height: 1.45; margin-bottom: 0.65rem;">
+                Inspect all registered student and faculty accounts, roles, and created dates directly from <code>database/learnsphere.db</code>.
+            </p>
+        """, unsafe_allow_html=True)
+
+        st.dataframe(db_users, use_container_width=True, height=240)
+        st.markdown("</div>", unsafe_allow_html=True)
