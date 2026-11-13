@@ -143,14 +143,14 @@ def render_navigation():
         if user.get("role") == "teacher":
             nav_map = {
                 "Dashboard": "teacher_dashboard",
-                "Avatar Store (AvatarVerse)": "avatarverse",
-                "SARVAVIDYA Rewards": "rewards",
                 "Subjects Hub": "subjects",
                 "Assessments": "assessment",
                 "SARVA AI Companion": "sarva_ai_page",
                 "Learning Path": "learning_path",
                 "Student Progress": "analytics",
                 "Manage Students": "teacher_dashboard",
+                "Avatar Store (AvatarVerse)": "avatarverse",
+                "SARVAVIDYA Rewards": "rewards",
                 "My Profile": "settings",
                 "Settings": "settings",
                 "Sign Out": "auth"
@@ -158,13 +158,13 @@ def render_navigation():
         else:
             nav_map = {
                 "Dashboard": "student_dashboard",
-                "Avatar Store (AvatarVerse)": "avatarverse",
-                "SARVAVIDYA Rewards": "rewards",
                 "Subjects Hub": "subjects",
                 "Assessments": "assessment",
                 "SARVA AI Companion": "sarva_ai_page",
                 "Learning Path": "learning_path",
                 "Student Progress": "analytics",
+                "Avatar Store (AvatarVerse)": "avatarverse",
+                "SARVAVIDYA Rewards": "rewards",
                 "My Profile": "settings",
                 "Settings": "settings",
                 "Sign Out": "auth"
