@@ -95,7 +95,12 @@ def main():
         render_search_results_view(active_search)
         return
 
-    # 7. Authenticated Route Rendering
+    # 7. Authenticated Route Rendering (Re-read current_page in case navigation callback updated it)
+    current_page = st.session_state.get("current_page", "student_dashboard")
+    if current_page == "teacher_dashboard" and user.get("role") != "teacher":
+        current_page = "student_dashboard"
+        st.session_state["current_page"] = "student_dashboard"
+
     if current_page == "student_dashboard":
         render_student_dashboard(user)
     elif current_page == "teacher_dashboard":
