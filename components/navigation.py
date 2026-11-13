@@ -91,15 +91,16 @@ def render_navigation():
             else:
                 avatar_display_html = f'<div class="lm-avatar">{initials}</div>'
 
-            st.markdown(f"""
-            <div class="lm-user-pill" style="justify-content: flex-end; padding-top: 0.2rem;">
-                {avatar_display_html}
-                <div style="text-align: left; line-height: 1.2;">
-                    <div style="font-weight: 600; font-size: 0.825rem; color: #243B64; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;">{user.get('full_name', 'Scholar')}</div>
-                    <div style="font-size: 0.7rem; color: #718096;">{role_title}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            user_pill_html = f"""
+<div class="lm-user-pill" style="justify-content: flex-end; padding-top: 0.2rem;">
+    {avatar_display_html}
+    <div style="text-align: left; line-height: 1.2;">
+        <div style="font-weight: 600; font-size: 0.825rem; color: #243B64; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;">{user.get('full_name', 'Scholar')}</div>
+        <div style="font-size: 0.7rem; color: #718096;">{role_title}</div>
+    </div>
+</div>
+"""
+            st.markdown("\n".join(l.strip() for l in user_pill_html.splitlines() if l.strip()), unsafe_allow_html=True)
         with col_signout:
             if st.button("Sign Out", key="top_signout_btn", use_container_width=True):
                 st.session_state.pop("user", None)
@@ -147,12 +148,9 @@ def render_navigation():
                 "Subjects Hub": "subjects",
                 "Assessments": "assessment",
                 "SARVA AI Companion": "sarva_ai_page",
-                "AI Intelligence": "misconceptions",
                 "Learning Path": "learning_path",
-                "Learning Library": "learning_library",
                 "Student Progress": "analytics",
                 "Manage Students": "teacher_dashboard",
-                "Analytics": "analytics",
                 "My Profile": "settings",
                 "Settings": "settings",
                 "Sign Out": "auth"
@@ -165,11 +163,8 @@ def render_navigation():
                 "Subjects Hub": "subjects",
                 "Assessments": "assessment",
                 "SARVA AI Companion": "sarva_ai_page",
-                "AI Intelligence": "misconceptions",
                 "Learning Path": "learning_path",
-                "Learning Library": "learning_library",
                 "Student Progress": "analytics",
-                "Analytics": "analytics",
                 "My Profile": "settings",
                 "Settings": "settings",
                 "Sign Out": "auth"

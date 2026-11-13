@@ -116,23 +116,19 @@ def render_student_dashboard(user: dict):
     if eq_avatar:
         from views.avatarverse import _get_svg_data_uri
         av_uri = _get_svg_data_uri(eq_avatar["asset_rel"])
-        av_tag = f"""
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="{av_uri}" style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D6B56D; object-fit: cover;" alt="Avatar"/>
-            <span style="font-size: 0.725rem; font-weight: 700; color: #1E3A8A;">{eq_avatar['name']}</span>
-        </div>
-        """
+        av_tag = f'<div style="display: flex; align-items: center; gap: 8px;"><img src="{av_uri}" style="width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #D6B56D; object-fit: cover;" alt="Avatar"/><span style="font-size: 0.725rem; font-weight: 700; color: #1E3A8A;">{eq_avatar["name"]}</span></div>'
 
     col_rw_bar, col_rw_btn, col_av_btn = st.columns([0.62, 0.19, 0.19])
     with col_rw_bar:
-        st.markdown(f"""
-        <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: 8px; padding: 0.45rem 0.85rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
-            <div style="font-size: 0.775rem; color: #92400E; font-weight: 600;">
-                🎁 <strong>SARVAVIDYA REWARDS:</strong> Tier: <span style="font-weight: 800; color: #B45309;">{u_level}</span> &bull; 🪙 <strong>{u_coins:,} Coins</strong>
-            </div>
-            {av_tag}
-        </div>
-        """, unsafe_allow_html=True)
+        rw_bar_html = f"""
+<div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: 8px; padding: 0.45rem 0.85rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
+    <div style="font-size: 0.775rem; color: #92400E; font-weight: 600;">
+        🎁 <strong>SARVAVIDYA REWARDS:</strong> Tier: <span style="font-weight: 800; color: #B45309;">{u_level}</span> &bull; 🪙 <strong>{u_coins:,} Coins</strong>
+    </div>
+    {av_tag}
+</div>
+"""
+        st.markdown("\n".join(l.strip() for l in rw_bar_html.splitlines() if l.strip()), unsafe_allow_html=True)
     with col_rw_btn:
         st.markdown("<div style='height: 2px;'></div>", unsafe_allow_html=True)
         if st.button("🎁 Rewards Store", key="dash_open_rewards_btn", use_container_width=True):

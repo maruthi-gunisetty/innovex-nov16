@@ -23,6 +23,11 @@ from core.avatarverse_data import (
 from core.rewards_engine import RewardsEngine
 
 
+def _clean_html(html_str: str) -> str:
+    """Strips all leading and trailing whitespace per line to strictly prevent CommonMark from rendering HTML as indented code blocks."""
+    return "\n".join(line.strip() for line in html_str.strip().splitlines() if line.strip())
+
+
 def _get_svg_data_uri(rel_path: str) -> str:
     """Reads local SVG asset and encodes into a fast, self-contained base64 data URI."""
     abs_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), rel_path)
@@ -42,9 +47,8 @@ def _show_try_before_buying_modal(avatar: dict, user: dict, wallet: dict):
     """Interactive preview dialog showing how the avatar appears when equipped on user's profile."""
     data_uri = _get_svg_data_uri(avatar["asset_rel"])
     tier_color = "#EAB308" if avatar["tier"] == "Legendary" else "#818CF8"
-    tier_bg = "rgba(234, 179, 8, 0.15)" if avatar["tier"] == "Legendary" else "rgba(129, 140, 248, 0.15)"
 
-    st.markdown(f"""
+    modal_html = f"""
     <div style="background: #0B132B; border: 1.5px solid {tier_color}; border-radius: 14px; padding: 1.25rem; color: #FFFFFF; text-align: center; margin-bottom: 1rem;">
         <div style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
             <div style="width: 130px; height: 130px; border-radius: 50%; border: 3px solid {tier_color}; box-shadow: 0 0 20px {tier_color}40; overflow: hidden; background: #0F172A;">
@@ -60,8 +64,6 @@ def _show_try_before_buying_modal(avatar: dict, user: dict, wallet: dict):
         <p style="font-size: 0.825rem; color: #94A3B8; max-width: 360px; margin: 0 auto 0.75rem auto; line-height: 1.45;">
             {avatar['description']}
         </p>
-        
-        <!-- Profile Integration Simulation -->
         <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 0.75rem; margin-top: 0.75rem; text-align: left;">
             <div style="font-size: 0.675rem; color: #D6B56D; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Dashboard Profile Badge Simulation</div>
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -73,7 +75,8 @@ def _show_try_before_buying_modal(avatar: dict, user: dict, wallet: dict):
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(_clean_html(modal_html), unsafe_allow_html=True)
 
     can_afford = wallet["available_coins"] >= avatar["coin_price"]
     if avatar.get("is_owned"):
@@ -111,7 +114,7 @@ def _show_purchase_confirmation_modal(avatar: dict, user: dict, wallet: dict):
     data_uri = _get_svg_data_uri(avatar["asset_rel"])
     tier_color = "#EAB308" if avatar["tier"] == "Legendary" else "#818CF8"
 
-    st.markdown(f"""
+    confirm_html = f"""
     <div style="text-align: center; padding: 0.5rem 0 1rem 0;">
         <div style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
             <div style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid {tier_color}; overflow: hidden; background: #0F172A;">
@@ -142,7 +145,8 @@ def _show_purchase_confirmation_modal(avatar: dict, user: dict, wallet: dict):
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(_clean_html(confirm_html), unsafe_allow_html=True)
 
     if curr_bal < price:
         st.error(f"Insufficient coins. You need {price - curr_bal} more coins to unlock this avatar.")
@@ -196,30 +200,29 @@ def render_avatarverse_page(user: dict):
     # ==========================================================
     # 1. HERO HEADER: DEEP NAVY, GOLD ACCENTS, ROYAL BLUE BUTTONS
     # ==========================================================
-    equipped_img_html = ""
     if equipped_avatar:
         eq_uri = _get_svg_data_uri(equipped_avatar["asset_rel"])
-        equipped_img_html = f"""
-        <div style="display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.65); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 6px 14px;">
-            <img src="{eq_uri}" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid #D6B56D;" alt="Equipped"/>
-            <div>
-                <div style="font-size: 0.65rem; color: #D6B56D; font-weight: 700; text-transform: uppercase;">Equipped Avatar</div>
-                <div style="font-size: 0.85rem; font-weight: 800; color: #FFFFFF;">{equipped_avatar['name']}</div>
-            </div>
-        </div>
-        """
+        equipped_img_html = (
+            f'<div style="display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.65); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 6px 14px;">'
+            f'<img src="{eq_uri}" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid #D6B56D; object-fit: cover;" alt="Equipped"/>'
+            f'<div>'
+            f'<div style="font-size: 0.65rem; color: #D6B56D; font-weight: 700; text-transform: uppercase;">Equipped Avatar</div>'
+            f'<div style="font-size: 0.85rem; font-weight: 800; color: #FFFFFF;">{equipped_avatar["name"]}</div>'
+            f'</div>'
+            f'</div>'
+        )
     else:
-        equipped_img_html = """
-        <div style="display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.65); border: 1.5px solid #475569; border-radius: 12px; padding: 6px 14px;">
-            <div style="width: 32px; height: 32px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #94A3B8;">🎓</div>
-            <div>
-                <div style="font-size: 0.65rem; color: #94A3B8; font-weight: 700; text-transform: uppercase;">Equipped Avatar</div>
-                <div style="font-size: 0.825rem; font-weight: 700; color: #CBD5E1;">Default Scholar</div>
-            </div>
-        </div>
-        """
+        equipped_img_html = (
+            f'<div style="display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.65); border: 1.5px solid #475569; border-radius: 12px; padding: 6px 14px;">'
+            f'<div style="width: 32px; height: 32px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #94A3B8;">🎓</div>'
+            f'<div>'
+            f'<div style="font-size: 0.65rem; color: #94A3B8; font-weight: 700; text-transform: uppercase;">Equipped Avatar</div>'
+            f'<div style="font-size: 0.825rem; font-weight: 700; color: #CBD5E1;">Default Scholar</div>'
+            f'</div>'
+            f'</div>'
+        )
 
-    st.markdown(f"""
+    hero_html = f"""
     <div style="background: linear-gradient(135deg, #0B132B 0%, #172943 50%, #0F172A 100%); border: 2px solid #D6B56D; border-radius: 16px; padding: 1.35rem 1.75rem; color: #FFFFFF; margin-bottom: 1.25rem; box-shadow: 0 10px 30px rgba(11, 19, 43, 0.25);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
             <div>
@@ -248,7 +251,8 @@ def render_avatarverse_page(user: dict):
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(_clean_html(hero_html), unsafe_allow_html=True)
 
     # ==========================================================
     # 2. FILTER TABS (All, Epic, Legendary, My Collection)
@@ -306,7 +310,6 @@ def _render_avatar_grid(avatars: List[Dict[str, Any]], user: dict, wallet: dict,
                 tier_badge_color = "#EAB308" if is_legendary else "#818CF8"
 
                 # Status pill in top right
-                status_html = ""
                 if is_equipped:
                     status_html = '<span style="background: #10B981; color: #FFFFFF; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px;">Equipped ✓</span>'
                 elif is_owned:
@@ -315,10 +318,9 @@ def _render_avatar_grid(avatars: List[Dict[str, Any]], user: dict, wallet: dict,
                     status_html = f'<span style="background: rgba(245, 158, 11, 0.2); border: 1px solid #F59E0B; color: #F59E0B; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 10px;">🪙 {price:,}</span>'
 
                 # Card HTML container (Deep navy background, minimal interface)
-                st.markdown(f"""
+                card_html = f"""
                 <div style="background: #0F172A; border: 1.5px solid {card_border}; border-radius: 14px; padding: 1.1rem; margin-bottom: 0.85rem; box-shadow: 0 4px 16px rgba(0,0,0,0.25); display: flex; flex-direction: column; justify-content: space-between; min-height: 380px;">
                     <div>
-                        <!-- Top Header: Level & Rarity & Status -->
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
                             <div style="display: flex; gap: 6px; align-items: center;">
                                 <span style="background: {tier_badge_bg}; color: {tier_badge_color}; border: 1px solid {tier_badge_color}; font-size: 0.625rem; font-weight: 800; padding: 1px 7px; border-radius: 6px; text-transform: uppercase;">
@@ -330,27 +332,22 @@ def _render_avatar_grid(avatars: List[Dict[str, Any]], user: dict, wallet: dict,
                             </div>
                             {status_html}
                         </div>
-
-                        <!-- 3D Avatar Image Display -->
                         <div style="display: flex; justify-content: center; margin: 0.5rem 0 0.75rem 0;">
-                            <div style="width: 140px; height: 140px; border-radius: 50%; border: 2.5px solid {card_border}; overflow: hidden; background: #0B132B; box-shadow: 0 6px 18px rgba(0,0,0,0.35);">
+                            <div style="width: 140px; height: 140px; border-radius: 50%; border: 2.5px solid {card_border}; overflow: hidden; background: #0B132B; box-shadow: 0 6px 18px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;">
                                 <img src="{data_uri}" style="width: 100%; height: 100%; object-fit: cover;" alt="{av['name']}"/>
                             </div>
                         </div>
-
-                        <!-- Name & Title -->
                         <div style="text-align: center; margin-bottom: 0.5rem;">
                             <h4 style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin: 0 0 2px 0;">{av['name']}</h4>
                             <div style="font-size: 0.7rem; color: #D6B56D; font-weight: 600;">{av['title']}</div>
                         </div>
-
-                        <!-- Description -->
                         <p style="font-size: 0.75rem; color: #94A3B8; line-height: 1.45; text-align: center; margin: 0 0 0.75rem 0; min-height: 48px;">
                             {av['description']}
                         </p>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+                """
+                st.markdown(_clean_html(card_html), unsafe_allow_html=True)
 
                 # Action Controls Row
                 col_prev, col_act = st.columns([0.45, 0.55])
