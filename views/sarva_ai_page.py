@@ -32,33 +32,30 @@ def render_sarva_ai_page(user: dict):
     </span>
     """
 
-    st.markdown(f"""
-    <div style="background: #FFFFFF; border: 1px solid #E4E8ED; border-radius: 16px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; box-shadow: 0 4px 16px rgba(23, 41, 67, 0.04);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    header_html = f"""
+<div style="background: #FFFFFF; border: 1px solid #E4E8ED; border-radius: 16px; padding: 1.25rem 1.65rem; margin-bottom: 1.25rem; box-shadow: 0 4px 16px rgba(23, 41, 67, 0.04);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: #172943; color: #D6B56D; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; border: 1.5px solid #D6B56D;">SA</div>
             <div>
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
-                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #172943; color: #D6B56D; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; border: 1.5px solid #D6B56D;">
-                        SA
-                    </div>
-                    <div>
-                        <h1 style="font-size: 1.5rem; font-weight: 800; color: #172943; margin: 0; line-height: 1.2;">SARVA AI Companion</h1>
-                        <p style="font-size: 0.775rem; color: #718096; margin: 0;">Your Intelligent Pedagogical Learning Assistant &bull; <em>One Platform. Every Subject. Infinite Knowledge.</em></p>
-                    </div>
-                </div>
-            </div>
-            <div>
-                {badge_html}
+                <h1 style="font-size: 1.5rem; font-weight: 800; color: #172943; margin: 0; line-height: 1.2;">SARVA AI Companion</h1>
+                <p style="font-size: 0.775rem; color: #718096; margin: 0;">Your Intelligent Pedagogical Learning Assistant &bull; <em>One Platform. Every Subject. Infinite Knowledge.</em></p>
             </div>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid #F1F5F9; font-size: 0.75rem; color: #64748B;">
-            <span>Current Track: <strong style="color: #243B64;">{active_course['name']}</strong> ({active_course.get('subject_name', '')})</span>
-            <span>&bull;</span>
-            <span>Engine: <strong style="color: #6366F1;">Google Gemini 3.1 Flash</strong></span>
-            <span>&bull;</span>
-            <span>Status: <strong style="color: #10B981;">Online & Connected</strong></span>
+        <div>
+            {badge_html}
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    <div style="display: flex; gap: 8px; align-items: center; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid #F1F5F9; font-size: 0.75rem; color: #64748B;">
+        <span>Current Track: <strong style="color: #243B64;">{active_course['name']}</strong> ({active_course.get('subject_name', '')})</span>
+        <span>&bull;</span>
+        <span>Engine: <strong style="color: #6366F1;">Google Gemini 3.1 Flash</strong></span>
+        <span>&bull;</span>
+        <span>Status: <strong style="color: #10B981;">Online & Connected</strong></span>
+    </div>
+</div>
+"""
+    st.markdown("\n".join(l.strip() for l in header_html.splitlines() if l.strip()), unsafe_allow_html=True)
 
     # Active concept lookup
     active_concepts = get_concepts_by_course(active_course["id"])
@@ -93,15 +90,16 @@ def render_sarva_ai_page(user: dict):
     chat_container = st.container(height=480)
     with chat_container:
         if not st.session_state["sarva_ai_page_history"] and not st.session_state.get("sarva_ai_page_pending"):
-            st.markdown(f"""
-            <div style="text-align: center; padding: 3.5rem 1rem; color: #94A3B8;">
-                <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">🎓</div>
-                <h3 style="color: #172943; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.35rem;">Ask SARVA AI Anything</h3>
-                <p style="font-size: 0.85rem; max-width: 520px; margin: 0 auto; line-height: 1.5; color: #64748B;">
-                    Live integration active with <strong>Google Gemini 3.1 Flash AI</strong>. Ask for mathematical derivations, code syntax breakdowns, debugging help, or deep conceptual intuition.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            empty_html = f"""
+<div style="text-align: center; padding: 3.5rem 1rem; color: #94A3B8;">
+    <div style="font-size: 2.8rem; margin-bottom: 0.75rem;">🎓</div>
+    <h3 style="color: #172943; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.35rem;">Ask SARVA AI Anything</h3>
+    <p style="font-size: 0.85rem; max-width: 520px; margin: 0 auto; line-height: 1.5; color: #64748B;">
+        Live integration active with <strong>Google Gemini 3.1 Flash AI</strong>. Ask for mathematical derivations, code syntax breakdowns, debugging help, or deep conceptual intuition.
+    </p>
+</div>
+"""
+            st.markdown("\n".join(l.strip() for l in empty_html.splitlines() if l.strip()), unsafe_allow_html=True)
         else:
             for msg in st.session_state["sarva_ai_page_history"]:
                 if msg["sender"] == "user":
