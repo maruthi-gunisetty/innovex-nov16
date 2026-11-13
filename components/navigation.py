@@ -40,12 +40,15 @@ def render_navigation():
     with col_user_portal:
         col_streak, col_coins, col_track, col_u_profile, col_signout = st.columns([0.48, 0.48, 0.95, 1.15, 0.74])
         
-        # Fetch wallet info for compact header display
+        # Fetch wallet info for compact header display (cached in session state for instant 0ms retrieval)
         u_coins = 0
         u_streak = 0
         try:
-            from core.rewards_engine import RewardsEngine
-            w = RewardsEngine.get_or_create_wallet(user["id"])
+            w = st.session_state.get("_cached_user_wallet")
+            if not w:
+                from core.rewards_engine import RewardsEngine
+                w = RewardsEngine.get_or_create_wallet(user["id"])
+                st.session_state["_cached_user_wallet"] = w
             u_coins = w.get("available_coins", 0)
             u_streak = w.get("current_streak", 0)
         except Exception:

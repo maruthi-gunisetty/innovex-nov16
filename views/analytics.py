@@ -16,6 +16,14 @@ from database.db import get_student_mastery, get_user_attempts
 from core.course_manager import get_active_course, render_course_selector
 
 
+@st.cache_resource
+def _get_trained_ml_engine():
+    from core.ml_predictor import PredictiveLearningEngine
+    engine = PredictiveLearningEngine()
+    meta = engine.train()
+    return engine, meta
+
+
 def render_analytics_page(user: dict):
     user_id = user["id"]
     active_course = get_active_course()
@@ -178,9 +186,7 @@ def render_analytics_page(user: dict):
         </div>
     """, unsafe_allow_html=True)
 
-    from core.ml_predictor import PredictiveLearningEngine
-    ml_engine = PredictiveLearningEngine()
-    train_meta = ml_engine.train()
+    ml_engine, train_meta = _get_trained_ml_engine()
 
     col_ml_meta, col_ml_sim = st.columns(2)
     with col_ml_meta:
@@ -248,8 +254,17 @@ def render_analytics_page(user: dict):
         """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 4. Export Telemetry Dataset
-    csv_bytes = df_att.to_csv(index=False).encode("utf-8")
+    # 4. Export Telemetry Dataset (Pure standard library, zero C-extension DLL overhead)
+    import csv
+    import io
+    csv_buf = io.StringIO()
+    if attempts:
+        fieldnames = list(attempts[0].keys())
+        writer = csv.DictWriter(csv_buf, fieldnames=fieldnames)
+        writer.writeheader()
+        for a in attempts:
+            writer.writerow(dict(a))
+    csv_bytes = csv_buf.getvalue().encode("utf-8")
     st.download_button(
         label="Export Learning Telemetry to CSV",
         data=csv_bytes,

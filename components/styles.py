@@ -33,22 +33,25 @@ ICONS = {
 
 CUSTOM_CSS = """
 <style>
-/* Modern Typography - Roboto & Material Symbols */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400;1,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-
+/* Modern System Typography Stack - Instant Local Rendering Without Blocking Network Fonts */
 html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], button, input, textarea, select, div, span, p, h1, h2, h3, h4, h5, h6 {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #172943;
     background-color: #F5F6F8;
 }
 
 *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not([class*="material-symbols"]) {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-[data-testid="stIconMaterial"], .material-symbols-rounded, [class*="material-symbols"] {
-    font-family: 'Material Symbols Rounded' !important;
+/* Eliminate Streamlit Stale Element Fading/Dimming Lag */
+[data-testid="stMain"] div[data-stale="true"],
+.stApp [data-stale="true"],
+div.element-container[data-stale="true"],
+div[data-testid="stVerticalBlock"] [data-stale="true"] {
+    opacity: 1 !important;
+    filter: none !important;
+    transition: none !important;
 }
 
 /* Completely eliminate Streamlit default header, decoration, and rerun toolbar overlay */

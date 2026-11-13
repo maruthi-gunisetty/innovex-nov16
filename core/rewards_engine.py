@@ -70,6 +70,15 @@ DEFAULT_DAILY_MISSIONS = [
 _REWARDS_SEEDED = False
 
 
+def _invalidate_session_wallet():
+    """Clears in-memory wallet cache on balance changes."""
+    try:
+        import streamlit as st
+        st.session_state.pop("_cached_user_wallet", None)
+    except Exception:
+        pass
+
+
 def init_rewards_tables() -> None:
     """Ensures tables are created and seeds default store items and missions."""
     global _REWARDS_SEEDED
@@ -223,6 +232,7 @@ class RewardsEngine:
                     (user_id, amount, new_bal, source_activity, entity_id, description, idem_key)
                 )
 
+                _invalidate_session_wallet()
                 return True, "Coins awarded successfully", new_bal
 
     @classmethod
@@ -500,6 +510,7 @@ class RewardsEngine:
                     (user_id, price, new_bal, item_id, f"Redeemed {item['name']} from Reward Store", idem)
                 )
 
+                _invalidate_session_wallet()
                 return True, f"Successfully redeemed '{item['name']}'! Your new coin balance is {new_bal}."
 
     @classmethod
