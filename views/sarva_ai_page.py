@@ -46,13 +46,6 @@ def render_sarva_ai_page(user: dict):
             {badge_html}
         </div>
     </div>
-    <div style="display: flex; gap: 8px; align-items: center; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid #F1F5F9; font-size: 0.75rem; color: #64748B;">
-        <span>Current Track: <strong style="color: #243B64;">{active_course['name']}</strong> ({active_course.get('subject_name', '')})</span>
-        <span>&bull;</span>
-        <span>Engine: <strong style="color: #6366F1;">Google Gemini 3.1 Flash</strong></span>
-        <span>&bull;</span>
-        <span>Status: <strong style="color: #10B981;">Online & Connected</strong></span>
-    </div>
 </div>
 """
     st.markdown("\n".join(l.strip() for l in header_html.splitlines() if l.strip()), unsafe_allow_html=True)
