@@ -40,19 +40,19 @@ def render_rewards_page(user: dict):
     lvl_color, lvl_bg, lvl_icon = level_color_map.get(wallet["current_level"], ("#4338CA", "#EEF2FF", "🎓"))
 
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #172943 0%, #243B64 50%, #1E1B4B 100%); border: 2px solid #D6B56D; border-radius: 16px; padding: 1.35rem 1.75rem; color: #FFFFFF; margin-bottom: 1.25rem; box-shadow: 0 8px 24px rgba(23, 41, 67, 0.15);">
+    <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 16px; padding: 1.25rem 1.65rem; color: #172943; margin-bottom: 1.25rem; box-shadow: 0 2px 12px rgba(23, 41, 67, 0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
             <div>
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                     <span style="font-size: 1.6rem;">🪙</span>
-                    <h1 style="font-size: 1.65rem; font-weight: 800; color: #FFFFFF; margin: 0; letter-spacing: -0.02em;">
+                    <h1 style="font-size: 1.65rem; font-weight: 800; color: #172943; margin: 0; letter-spacing: -0.02em;">
                         SARVAVIDYA REWARDS
                     </h1>
                 </div>
-                <div style="font-size: 0.85rem; color: #D6B56D; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;">
+                <div style="font-size: 0.85rem; color: #D97706; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;">
                     Learn. Achieve. Earn. Redeem.
                 </div>
-                <div style="font-size: 0.775rem; color: #94A3B8; margin-top: 4px;">
+                <div style="font-size: 0.8rem; color: #64748B; margin-top: 4px;">
                     Academic mastery unlocks spendable virtual coins. Redeem for custom avatars, profile frames, themes, and study shields.
                 </div>
             </div>
@@ -299,12 +299,12 @@ def render_rewards_page(user: dict):
             <h3 style="font-size: 1.1rem; font-weight: 700; color: #172943; margin-bottom: 0.2rem;">SARVAVIDYA Reward Store</h3>
             <p style="font-size: 0.775rem; color: #64748B; margin: 0;">Redeem your hard-earned academic coins for exclusive avatars, themes, badges, and learning powerups.</p>
         </div>
-        <div style="background: linear-gradient(135deg, #0B132B 0%, #172943 100%); border: 1.5px solid #D6B56D; border-radius: 12px; padding: 0.95rem 1.25rem; color: #FFFFFF; margin-bottom: 0.75rem;">
+        <div style="background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0.95rem 1.25rem; color: #172943; margin-bottom: 0.75rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div>
-                    <div style="font-size: 0.675rem; color: #D6B56D; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Featured Destination</div>
-                    <div style="font-weight: 800; font-size: 1.05rem; color: #FFFFFF;">🎭 SARVAVIDYA AvatarVerse: 10-Level 3D Cartoon Store</div>
-                    <div style="font-size: 0.75rem; color: #94A3B8;">Bitmoji-inspired 3D digital identities with interactive 'Try Before Buying' previews.</div>
+                    <div style="font-size: 0.675rem; color: #D97706; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Featured Destination</div>
+                    <div style="font-weight: 800; font-size: 1.05rem; color: #172943;">🎭 SARVAVIDYA AvatarVerse: 10-Level 3D Cartoon Store</div>
+                    <div style="font-size: 0.75rem; color: #64748B;">Bitmoji-inspired 3D digital identities with interactive 'Try Before Buying' previews.</div>
                 </div>
             </div>
         </div>

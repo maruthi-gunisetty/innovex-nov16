@@ -36,14 +36,14 @@ def render_settings_page(user: dict):
             from views.avatarverse import _get_svg_data_uri
             av_uri = _get_svg_data_uri(eq_avatar["asset_rel"])
             av_badge_html = f"""
-            <div style="display: flex; align-items: center; gap: 14px; background: #0B132B; border: 1.5px solid #D6B56D; border-radius: 12px; padding: 0.85rem 1.15rem; margin-bottom: 0.85rem;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid #D6B56D; overflow: hidden; background: #0F172A;">
+            <div style="display: flex; align-items: center; gap: 14px; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 0.85rem 1.15rem; margin-bottom: 0.85rem;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid #D6B56D; overflow: hidden; background: #F8FAFC;">
                     <img src="{av_uri}" style="width: 100%; height: 100%; object-fit: cover;" alt="{eq_avatar['name']}"/>
                 </div>
                 <div>
-                    <div style="font-size: 0.65rem; color: #D6B56D; font-weight: 800; text-transform: uppercase;">Equipped 3D Avatar &bull; Level {eq_avatar['level']}</div>
-                    <div style="font-size: 1.05rem; font-weight: 800; color: #FFFFFF;">{eq_avatar['name']}</div>
-                    <div style="font-size: 0.725rem; color: #94A3B8;">{eq_avatar['tier']} Digital Identity</div>
+                    <div style="font-size: 0.65rem; color: #D97706; font-weight: 800; text-transform: uppercase;">Equipped 3D Avatar &bull; Level {eq_avatar['level']}</div>
+                    <div style="font-size: 1.05rem; font-weight: 800; color: #172943;">{eq_avatar['name']}</div>
+                    <div style="font-size: 0.725rem; color: #64748B;">{eq_avatar['tier']} Digital Identity</div>
                 </div>
             </div>
             """
