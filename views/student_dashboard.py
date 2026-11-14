@@ -10,11 +10,13 @@ Zero emojis, strict professional typography, and real database telemetry.
 
 import streamlit as st
 import plotly.graph_objects as go
+import os
 from datetime import datetime
 from database.db import (
     get_student_mastery, get_user_attempts, get_user_lesson_progress,
     get_all_learning_content, save_recommendations, get_student_recommendations,
-    mark_recommendation_followed
+    mark_recommendation_followed, get_user_learning_dates, calculate_learning_streak,
+    get_user_assessment_stats, get_user_daily_goal_progress, get_course_curriculum_progress
 )
 from core.bkt import BayesianKnowledgeTracing
 from core.recommender import RecommenderEngine
@@ -31,17 +33,21 @@ def render_student_dashboard(user: dict):
     attempts = get_user_attempts(user_id, limit=30, course_id=course_id)
     lesson_progress = get_user_lesson_progress(user_id)
 
-    # Calculate Summary Statistics from Actual Database Records
-    total_attempts = len(attempts)
-    correct_attempts = sum(1 for a in attempts if a["is_correct"])
-    accuracy = (correct_attempts / total_attempts * 100) if total_attempts > 0 else 0.0
-    streak_days = _calculate_streak(attempts)
+    # Calculate Verified Summary Statistics from Database Records
+    assess_stats = get_user_assessment_stats(user_id, course_id=course_id)
+    total_attempts = assess_stats["total_attempts"]
+    correct_attempts = assess_stats["correct_attempts"]
+    accuracy = assess_stats["accuracy"]
 
-    # Average BKT Mastery
+    # Calculate Genuine Learning Streak from Verified Activity Dates
+    act_dates = get_user_learning_dates(user_id)
+    streak_days, streak_label = calculate_learning_streak(act_dates)
+
+    # Average BKT Mastery from Latent Estimates
     avg_mastery = (sum(m["mastery_prob"] for m in mastery_data) / len(mastery_data)) if mastery_data else 0.20
     bkt = BayesianKnowledgeTracing()
 
-    # Categorize Concepts
+    # Categorize Concepts strictly by BKT Mastery Thresholds
     strong_concepts = [m for m in mastery_data if m["mastery_prob"] >= 0.70]
     weak_concepts = [m for m in mastery_data if m["mastery_prob"] < 0.60]
     mastered_concepts = [m for m in mastery_data if m["mastery_prob"] >= 0.85]
@@ -49,9 +55,14 @@ def render_student_dashboard(user: dict):
     developing_concepts = [m for m in mastery_data if 0.40 <= m["mastery_prob"] < 0.60]
     novice_concepts = [m for m in mastery_data if m["mastery_prob"] < 0.40]
 
-    completed_lessons_count = sum(1 for v in lesson_progress.values() if v)
-    total_lessons_count = max(len(mastery_data), 6)
-    progress_pct = int((completed_lessons_count / total_lessons_count) * 100) if total_lessons_count > 0 else 36
+    # Real Curriculum Progression from Completed Learning Content
+    curr_prog = get_course_curriculum_progress(user_id, course_id)
+    completed_lessons_count = curr_prog["completed_lessons"]
+    total_lessons_count = curr_prog["total_lessons"]
+    progress_pct = curr_prog["progress_pct"]
+
+    # Verified Daily Learning Goal Progress
+    daily_goal_info = get_user_daily_goal_progress(user_id)
 
     # ==========================================================
     # 1. PAGE TITLE & SUBJECT SELECTION (Matching Reference)
@@ -96,7 +107,7 @@ def render_student_dashboard(user: dict):
                     🪙 {u_coins:,} Coins
                 </span>
                 <span style="background: #FEF2F2; border: 1px solid #FECDD3; color: #DC2626; padding: 2px 8px; border-radius: 8px; font-size: 0.725rem; font-weight: 700;">
-                    🔥 {u_streak}d Streak
+                    🔥 {streak_label}
                 </span>
             </div>
         </div>
@@ -194,8 +205,8 @@ def render_student_dashboard(user: dict):
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
                 </span>
             </div>
-            <div style="font-size: 1.55rem; font-weight: 700; color: #243B64; margin-top: 0.15rem; line-height: 1.2;">{streak_days} Days</div>
-            <div style="font-size: 0.725rem; color: #718096; margin-top: 0.2rem;">Consecutive active learning</div>
+            <div style="font-size: 1.55rem; font-weight: 700; color: #243B64; margin-top: 0.15rem; line-height: 1.2;">{streak_label}</div>
+            <div style="font-size: 0.725rem; color: #718096; margin-top: 0.2rem;">Consecutive verified study days</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -250,14 +261,25 @@ def render_student_dashboard(user: dict):
             </div>
             """, unsafe_allow_html=True)
 
+        goal_status_color = "#36A879" if daily_goal_info["is_reached"] else "#3976B9"
+        goal_status_badge = '<span class="lm-pill pill-completed" style="font-size:0.65rem;">Goal Met ✓</span>' if daily_goal_info["is_reached"] else f'<span style="font-size:0.7rem; color:#718096;">{daily_goal_info["daily_goal"] - daily_goal_info["completed_today"]} more needed</span>'
+
         st.markdown(f"""
-        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #F5F6F8;">
+        <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px solid #F5F6F8;">
             <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #718096; margin-bottom: 0.25rem;">
-                <span style="font-weight: 600; color: #243B64;">Curriculum Progression</span>
-                <span style="font-weight: 600; color: #36A879;">{progress_pct}% of the progress</span>
+                <span style="font-weight: 600; color: #243B64;">Curriculum Progression ({completed_lessons_count}/{total_lessons_count} Modules)</span>
+                <span style="font-weight: 600; color: #36A879;">{progress_pct}%</span>
             </div>
-            <div class="lm-progress-wrap">
+            <div class="lm-progress-wrap" style="height: 5px; margin-bottom: 0.75rem;">
                 <div class="lm-progress-bar" style="width: {progress_pct}%;"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                <span style="font-weight: 600; color: #243B64;">Daily Goal: {daily_goal_info['completed_today']} of {daily_goal_info['daily_goal']} Activities</span>
+                {goal_status_badge}
+            </div>
+            <div class="lm-progress-wrap" style="height: 5px;">
+                <div class="lm-progress-bar" style="width: {daily_goal_info['progress_pct']}%; background: {goal_status_color};"></div>
             </div>
         </div>
         </div>
@@ -555,31 +577,18 @@ def render_student_dashboard(user: dict):
 
 
 def _calculate_streak(attempts: list) -> int:
-    """Calculates active daily streak from attempt timestamps."""
+    """Calculates active daily streak from attempt timestamps without fake fallbacks."""
     if not attempts:
         return 0
 
-    dates = set()
+    dates = []
     for a in attempts:
         raw = a["attempted_at"]
         dt = raw.split("T")[0] if "T" in raw else raw.split(" ")[0]
-        dates.add(dt)
+        dates.append(dt)
 
-    sorted_dates = sorted(dates, reverse=True)
-    today = datetime.now().date()
-
-    streak = 0
-    curr = today
-    for d_str in sorted_dates:
-        d = datetime.strptime(d_str, "%Y-%m-%d").date()
-        diff = (curr - d).days
-        if diff <= 1:
-            streak += 1
-            curr = d
-        else:
-            break
-
-    return max(streak, 1 if dates else 0)
+    streak, _ = calculate_learning_streak(dates)
+    return streak
 
 
 def _render_recommendations_section(user, active_course, mastery_data, attempts, lesson_progress):

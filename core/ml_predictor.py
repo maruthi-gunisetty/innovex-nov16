@@ -30,8 +30,8 @@ class _NumpyStandardScaler:
 
 
 class _NumpyLogisticRegression:
-    """Pure-NumPy binary logistic regression with L2 regularization."""
-    def __init__(self, max_iter: int = 500, lr: float = 0.1, l2: float = 0.01):
+    """Pure-NumPy binary logistic regression with L2 regularization and early convergence."""
+    def __init__(self, max_iter: int = 150, lr: float = 0.1, l2: float = 0.01):
         self.max_iter = max_iter
         self.lr = lr
         self.l2 = l2
@@ -45,10 +45,13 @@ class _NumpyLogisticRegression:
         for _ in range(self.max_iter):
             z = np.clip(np.dot(X, w) + b, -25.0, 25.0)
             p = 1.0 / (1.0 + np.exp(-z))
-            grad_w = np.dot(X.T, p - y) / n_samples + self.l2 * w
-            grad_b = float(np.mean(p - y))
+            diff = p - y
+            grad_w = np.dot(X.T, diff) / n_samples + self.l2 * w
+            grad_b = float(np.mean(diff))
             w -= self.lr * grad_w
             b -= self.lr * grad_b
+            if np.max(np.abs(grad_w)) < 1e-4:
+                break
         self.coef_ = np.array([w])
         self.intercept_ = np.array([b])
 

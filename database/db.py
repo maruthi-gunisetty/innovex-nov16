@@ -7,7 +7,7 @@ schema initialization, and state persistence.
 import sqlite3
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, date
 from contextlib import contextmanager
 from typing import List, Dict, Any, Optional, Tuple
 
@@ -18,10 +18,9 @@ SCHEMA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schema.s
 @contextmanager
 def get_db_connection():
     """Yields a SQLite connection with Row factory and foreign keys, safely closing on exit."""
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn = sqlite3.connect(DB_PATH, timeout=15.0, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
-    conn.execute("PRAGMA journal_mode = WAL;")
     try:
         yield conn
     finally:
@@ -37,6 +36,7 @@ def init_db(force: bool = False) -> None:
             pass
 
     with get_db_connection() as conn:
+        conn.execute("PRAGMA journal_mode = WAL;")
         with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
             conn.executescript(f.read())
 
@@ -880,5 +880,165 @@ def get_user_equipped_avatar(user_id: int) -> Optional[Dict[str, Any]]:
     except Exception:
         pass
     return None
+
+
+# ==========================================
+# VERIFIED TELEMETRY & PROGRESS HELPERS
+# ==========================================
+
+def get_user_learning_dates(user_id: int) -> List[str]:
+    """Returns sorted descending list of unique calendar dates (YYYY-MM-DD) of verified learning activity."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        query = """
+            SELECT DISTINCT substr(attempted_at, 1, 10) as act_date
+            FROM assessment_attempts
+            WHERE user_id = ?
+            UNION
+            SELECT DISTINCT substr(completed_at, 1, 10) as act_date
+            FROM lesson_progress
+            WHERE user_id = ? AND is_completed = 1 AND completed_at IS NOT NULL
+            UNION
+            SELECT DISTINCT substr(created_at, 1, 10) as act_date
+            FROM coin_transactions
+            WHERE user_id = ? AND transaction_type = 'EARN'
+            ORDER BY act_date DESC
+        """
+        cur.execute(query, (user_id, user_id, user_id))
+        return [row["act_date"] for row in cur.fetchall() if row["act_date"]]
+
+
+def calculate_learning_streak(dates: List[str]) -> Tuple[int, str]:
+    """
+    Calculates genuine consecutive daily learning streak from verified activity dates.
+    Returns: (streak_count, streak_label e.g. '1 Day Streak')
+    Never shows fake minimum or unearned streaks.
+    """
+    if not dates:
+        return 0, "0 Day Streak"
+
+    date_objs = set()
+    for d_str in dates:
+        try:
+            date_objs.add(datetime.strptime(d_str[:10], "%Y-%m-%d").date())
+        except Exception:
+            continue
+
+    if not date_objs:
+        return 0, "0 Day Streak"
+
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
+
+    # Active streak requires verified activity either today or yesterday
+    if today not in date_objs and yesterday not in date_objs:
+        return 0, "0 Day Streak"
+
+    # Count consecutive active days backwards
+    curr = today if today in date_objs else yesterday
+    streak = 0
+    while curr in date_objs:
+        streak += 1
+        curr = curr - timedelta(days=1)
+
+    label = f"{streak} Day Streak" if streak != 1 else "1 Day Streak"
+    return streak, label
+
+
+def get_user_assessment_stats(user_id: int, course_id: Optional[int] = None) -> Dict[str, Any]:
+    """Calculates true overall questions attempted and verified accuracy directly from saved database records."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        if course_id:
+            cur.execute("""
+                SELECT COUNT(*) as total_attempts,
+                       SUM(CASE WHEN aa.is_correct = 1 THEN 1 ELSE 0 END) as correct_attempts
+                FROM assessment_attempts aa
+                JOIN concepts c ON aa.concept_id = c.id
+                WHERE aa.user_id = ? AND c.course_id = ?
+            """, (user_id, course_id))
+        else:
+            cur.execute("""
+                SELECT COUNT(*) as total_attempts,
+                       SUM(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) as correct_attempts
+                FROM assessment_attempts
+                WHERE user_id = ?
+            """, (user_id,))
+        row = cur.fetchone()
+        tot = row["total_attempts"] if row and row["total_attempts"] else 0
+        corr = row["correct_attempts"] if row and row["correct_attempts"] else 0
+        acc = round((corr / tot * 100), 1) if tot > 0 else 0.0
+        return {
+            "total_attempts": tot,
+            "correct_attempts": corr,
+            "accuracy": acc
+        }
+
+
+def get_user_daily_goal_progress(user_id: int) -> Dict[str, Any]:
+    """Retrieves configured daily goal and verified activities completed today."""
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT daily_goal FROM users WHERE id = ?", (user_id,))
+        user_row = cur.fetchone()
+        goal = user_row["daily_goal"] if user_row and user_row["daily_goal"] else 5
+
+        cur.execute("""
+            SELECT COUNT(*) as cnt
+            FROM assessment_attempts
+            WHERE user_id = ? AND substr(attempted_at, 1, 10) = ?
+        """, (user_id, today_str))
+        attempt_cnt = cur.fetchone()["cnt"]
+
+        cur.execute("""
+            SELECT COUNT(*) as cnt
+            FROM lesson_progress
+            WHERE user_id = ? AND is_completed = 1 AND substr(completed_at, 1, 10) = ?
+        """, (user_id, today_str))
+        lesson_cnt = cur.fetchone()["cnt"]
+
+        total_done = attempt_cnt + lesson_cnt
+        pct = min(100, int((total_done / goal) * 100)) if goal > 0 else 100
+        is_reached = total_done >= goal
+
+        return {
+            "daily_goal": goal,
+            "completed_today": total_done,
+            "questions_today": attempt_cnt,
+            "lessons_today": lesson_cnt,
+            "progress_pct": pct,
+            "is_reached": is_reached
+        }
+
+
+def get_course_curriculum_progress(user_id: int, course_id: int) -> Dict[str, Any]:
+    """Calculates curriculum progression from real completed lessons for the course."""
+    with get_db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT COUNT(lc.id) as total_lessons
+            FROM learning_content lc
+            JOIN concepts c ON lc.concept_id = c.id
+            WHERE c.course_id = ?
+        """, (course_id,))
+        total = cur.fetchone()["total_lessons"]
+
+        cur.execute("""
+            SELECT COUNT(lp.id) as completed_lessons
+            FROM lesson_progress lp
+            JOIN learning_content lc ON lp.content_id = lc.id
+            JOIN concepts c ON lc.concept_id = c.id
+            WHERE lp.user_id = ? AND lp.is_completed = 1 AND c.course_id = ?
+        """, (user_id, course_id))
+        completed = cur.fetchone()["completed_lessons"]
+
+        pct = int((completed / total) * 100) if total > 0 else 0
+        return {
+            "total_lessons": total,
+            "completed_lessons": completed,
+            "progress_pct": pct
+        }
+
 
 

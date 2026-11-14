@@ -81,7 +81,12 @@ def render_navigation():
             </div>
             """, unsafe_allow_html=True)
         with col_u_profile:
-            role_title = "K-12 Faculty" if user.get("role") == "teacher" else "Student &bull; Level 3"
+            if user.get("role") == "admin":
+                role_title = "System Administrator"
+            elif user.get("role") == "teacher":
+                role_title = "K-12 Faculty"
+            else:
+                role_title = "Student &bull; Level 3"
             initials = "".join([part[0].upper() for part in user.get("full_name", "User").split()[:2]])
 
             # Check if user has an equipped 3D cartoon avatar (cached in session to avoid SQL queries on every page switch)
@@ -149,7 +154,23 @@ def render_navigation():
                 st.rerun()
 
         # Options Board Items
-        if user.get("role") == "teacher":
+        if user.get("role") == "admin":
+            nav_map = {
+                "Dashboard": "teacher_dashboard",
+                "AI Configuration": "ai_config",
+                "Subjects Hub": "subjects",
+                "Assessments": "assessment",
+                "SARVA AI Companion": "sarva_ai_page",
+                "Learning Path": "learning_path",
+                "Student Progress": "analytics",
+                "Manage Students": "teacher_dashboard",
+                "Avatar Store (AvatarVerse)": "avatarverse",
+                "SARVAVIDYA Rewards": "rewards",
+                "My Profile": "settings",
+                "Settings": "settings",
+                "Sign Out": "auth"
+            }
+        elif user.get("role") == "teacher":
             nav_map = {
                 "Dashboard": "teacher_dashboard",
                 "Subjects Hub": "subjects",

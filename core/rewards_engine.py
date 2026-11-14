@@ -92,8 +92,17 @@ def init_rewards_tables() -> None:
 
     with get_db_connection() as conn:
         with conn:
-            # Seed store items if empty
             cur = conn.cursor()
+            # Ensure system_config table for admin-configurable reward rules
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS system_config (
+                    key TEXT PRIMARY KEY,
+                    value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # Seed store items if empty
             cur.execute("SELECT COUNT(*) FROM reward_store_items")
             if cur.fetchone()[0] == 0:
                 for item in DEFAULT_STORE_ITEMS:
@@ -138,8 +147,40 @@ class RewardsEngine:
             return "Bronze Learner", "Silver Learner", 100, pct
 
     @classmethod
+    def get_reward_rule_value(cls, rule_name: str) -> int:
+        """Retrieves configured reward value from system_config or fallback dictionary."""
+        try:
+            with get_db_connection() as conn:
+                cur = conn.cursor()
+                cur.execute("SELECT value FROM system_config WHERE key = ?", (f"rule_{rule_name}",))
+                r = cur.fetchone()
+                if r:
+                    return int(r["value"])
+        except Exception:
+            pass
+        return REWARD_RULES.get(rule_name, 25)
+
+    @classmethod
+    def set_reward_rule_value(cls, rule_name: str, new_val: int) -> bool:
+        """Allows administrator to configure reward values (e.g. teacher milestones)."""
+        if new_val < 0:
+            return False
+        try:
+            with get_db_connection() as conn:
+                with conn:
+                    conn.execute("""
+                        INSERT INTO system_config (key, value, updated_at)
+                        VALUES (?, ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+                    """, (f"rule_{rule_name}", str(new_val)))
+            REWARD_RULES[rule_name] = new_val
+            return True
+        except Exception:
+            return False
+
+    @classmethod
     def get_or_create_wallet(cls, user_id: int) -> Dict[str, Any]:
-        """Fetches student wallet; creates one initialized to 0 coins if not present."""
+        """Fetches student wallet; creates one initialized to 0 coins if not present. Recalculates verified streak."""
         init_rewards_tables()
         with get_db_connection() as conn:
             with conn:
@@ -165,6 +206,21 @@ class RewardsEngine:
                 w["next_level_name"] = next_lvl
                 w["next_level_threshold"] = thresh
                 w["level_progress_pct"] = pct
+
+                # Synchronize genuine learning streak from verified database records
+                try:
+                    from database.db import get_user_learning_dates, calculate_learning_streak
+                    act_dates = get_user_learning_dates(user_id)
+                    streak_cnt, streak_lbl = calculate_learning_streak(act_dates)
+                    if w["current_streak"] != streak_cnt:
+                        longest = max(w.get("longest_streak", 0) or 0, streak_cnt)
+                        cur.execute("UPDATE student_wallets SET current_streak = ?, longest_streak = ? WHERE user_id = ?", (streak_cnt, longest, user_id))
+                        w["current_streak"] = streak_cnt
+                        w["longest_streak"] = longest
+                    w["streak_label"] = streak_lbl
+                except Exception:
+                    w["streak_label"] = f"{w.get('current_streak', 0)} Day Streak"
+
                 return w
 
     @classmethod

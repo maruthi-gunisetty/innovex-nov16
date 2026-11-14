@@ -13,11 +13,36 @@ import os
 import json
 import urllib.request
 import urllib.error
-from typing import Optional, Dict, Any, List
+from datetime import datetime
+from typing import Optional, Dict, Any, List, Tuple
+
+_RUNTIME_GEMINI_API_KEY: Optional[str] = None
+_AI_RESPONSE_CACHE: Dict[str, str] = {}
+_LAST_CONNECTION_STATUS: Dict[str, Any] = {
+    "status": "Unknown",
+    "timestamp": None,
+    "latency_ms": None,
+    "message": "Connection has not been tested in this session."
+}
+
+
+def mask_api_key(key: Optional[str]) -> str:
+    """Returns securely masked representation of API key e.g. AIzaSy...4aB8."""
+    if not key or not key.strip():
+        return "Not Configured"
+    k = key.strip()
+    if len(k) <= 8:
+        return "********"
+    return f"{k[:6]}...{k[-4:]}"
 
 
 def get_gemini_api_key() -> Optional[str]:
-    """Retrieves the Gemini API key from environment, Streamlit secrets, or .env file."""
+    """Retrieves the Gemini API key from runtime memory, environment, Streamlit secrets, or .env file."""
+    global _RUNTIME_GEMINI_API_KEY
+    # 0. Check in-memory runtime replacement key (supports zero-restart updates)
+    if _RUNTIME_GEMINI_API_KEY and _RUNTIME_GEMINI_API_KEY.strip():
+        return _RUNTIME_GEMINI_API_KEY.strip()
+
     # 1. Check Streamlit secrets
     try:
         import streamlit as st
@@ -47,7 +72,204 @@ def get_gemini_api_key() -> Optional[str]:
     return None
 
 
-_AI_RESPONSE_CACHE: Dict[str, str] = {}
+def test_gemini_connection(api_key: str) -> Dict[str, Any]:
+    """
+    Tests connection to Google Gemini API using a minimal safe request.
+    Handles responses:
+    - 200: Success
+    - 400: Invalid API Key
+    - 403: Forbidden / Permission Denied
+    - 429: Quota exceeded / Rate limited (RESOURCE_EXHAUSTED)
+    - Timeout / Network errors
+    Returns structured status dictionary.
+    """
+    global _LAST_CONNECTION_STATUS
+    if not api_key or not api_key.strip():
+        return {
+            "success": False,
+            "status_code": 400,
+            "status_text": "Missing Key",
+            "message": "API key cannot be empty.",
+            "latency_ms": 0.0,
+            "is_quota_exceeded": False,
+            "is_invalid_key": True
+        }
+
+    clean_key = api_key.strip()
+    test_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
+    payload = {
+        "contents": [{"parts": [{"text": "ping"}]}],
+        "generationConfig": {"maxOutputTokens": 3, "temperature": 0.1}
+    }
+    data_bytes = json.dumps(payload).encode("utf-8")
+
+    import time
+    t_start = time.perf_counter()
+
+    last_error_details = ""
+    for model in test_models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={clean_key}"
+        req = urllib.request.Request(
+            url,
+            data=data_bytes,
+            headers={"Content-Type": "application/json"}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=4.0) as response:
+                latency = round((time.perf_counter() - t_start) * 1000, 1)
+                _LAST_CONNECTION_STATUS = {
+                    "status": "Active",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "latency_ms": latency,
+                    "message": f"Connection verified successfully via '{model}' ({latency}ms)."
+                }
+                return {
+                    "success": True,
+                    "status_code": 200,
+                    "status_text": "Connected & Active",
+                    "message": f"Gemini API connection verified successfully via '{model}'. Latency: {latency} ms.",
+                    "latency_ms": latency,
+                    "is_quota_exceeded": False,
+                    "is_invalid_key": False
+                }
+        except urllib.error.HTTPError as e:
+            latency = round((time.perf_counter() - t_start) * 1000, 1)
+            if e.code == 429:
+                _LAST_CONNECTION_STATUS = {
+                    "status": "Quota Exceeded",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "latency_ms": latency,
+                    "message": "HTTP 429: API quota or rate limit exhausted for this key."
+                }
+                return {
+                    "success": False,
+                    "status_code": 429,
+                    "status_text": "Quota / Rate Limit Exceeded",
+                    "message": "Gemini API reports quota exhaustion (HTTP 429). The request was rate-limited. Please configure an alternative API key with active quota.",
+                    "latency_ms": latency,
+                    "is_quota_exceeded": True,
+                    "is_invalid_key": False
+                }
+            elif e.code == 400:
+                _LAST_CONNECTION_STATUS = {
+                    "status": "Invalid Key",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "latency_ms": latency,
+                    "message": "HTTP 400: API key is invalid or unrecognized."
+                }
+                return {
+                    "success": False,
+                    "status_code": 400,
+                    "status_text": "Invalid API Key",
+                    "message": "Gemini API returned HTTP 400: The provided API key format is invalid or unrecognized by Google Cloud.",
+                    "latency_ms": latency,
+                    "is_quota_exceeded": False,
+                    "is_invalid_key": True
+                }
+            elif e.code == 403:
+                _LAST_CONNECTION_STATUS = {
+                    "status": "Permission Denied",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "latency_ms": latency,
+                    "message": "HTTP 403: API key lacks required permissions for Generative Language API."
+                }
+                return {
+                    "success": False,
+                    "status_code": 403,
+                    "status_text": "Authentication Error (403)",
+                    "message": "Gemini API returned HTTP 403: Access is forbidden. Ensure 'Generative Language API' is enabled on your Google Cloud project.",
+                    "latency_ms": latency,
+                    "is_quota_exceeded": False,
+                    "is_invalid_key": True
+                }
+            else:
+                last_error_details = f"HTTP {e.code}: {e.reason}"
+        except Exception as ex:
+            last_error_details = str(ex)
+
+    latency = round((time.perf_counter() - t_start) * 1000, 1)
+    _LAST_CONNECTION_STATUS = {
+        "status": "Connection Error",
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "latency_ms": latency,
+        "message": f"Network error: {last_error_details}"
+    }
+    return {
+        "success": False,
+        "status_code": 500,
+        "status_text": "Connection Error",
+        "message": f"Unable to reach Google Gemini API servers ({last_error_details}). Please check internet connectivity.",
+        "latency_ms": latency,
+        "is_quota_exceeded": False,
+        "is_invalid_key": False
+    }
+
+
+def save_gemini_api_key(new_key: str) -> Tuple[bool, str]:
+    """
+    Saves and activates new Gemini API key securely on the server:
+    1. Updates runtime in-memory key immediately (zero restart required).
+    2. Writes to server .env file securely.
+    3. Invalidates previous response cache.
+    Never exposes key to frontend or student logs.
+    """
+    global _RUNTIME_GEMINI_API_KEY, _AI_RESPONSE_CACHE
+    if not new_key or not new_key.strip():
+        return False, "Cannot save an empty API key."
+
+    clean_key = new_key.strip()
+    _RUNTIME_GEMINI_API_KEY = clean_key
+    _AI_RESPONSE_CACHE.clear()
+
+    # Save to server .env file
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+    try:
+        lines = []
+        if os.path.exists(env_path):
+            with open(env_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+        key_written = False
+        new_lines = []
+        for line in lines:
+            if line.strip().startswith("GEMINI_API_KEY="):
+                new_lines.append(f'GEMINI_API_KEY="{clean_key}"\n')
+                key_written = True
+            else:
+                new_lines.append(line)
+
+        if not key_written:
+            new_lines.append(f'GEMINI_API_KEY="{clean_key}"\n')
+
+        with open(env_path, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+
+        os.environ["GEMINI_API_KEY"] = clean_key
+        return True, "API key successfully saved to server and activated in memory without restarting."
+    except Exception as e:
+        return True, f"Key activated in memory for current session (could not update .env: {e})."
+
+
+def get_ai_configuration_status() -> Dict[str, Any]:
+    """Returns the current Gemini API status and connection telemetry."""
+    current_key = get_gemini_api_key()
+    has_key = bool(current_key and current_key.strip())
+    masked = mask_api_key(current_key)
+
+    status_str = "Active" if has_key else "Unconfigured"
+    if _LAST_CONNECTION_STATUS["status"] in ("Quota Exceeded", "Invalid Key", "Permission Denied", "Connection Error"):
+        status_str = _LAST_CONNECTION_STATUS["status"]
+
+    return {
+        "provider": "Google Gemini Live AI",
+        "models": ["gemini-flash-lite-latest", "gemini-3.1-flash-lite"],
+        "has_key": has_key,
+        "masked_key": masked,
+        "status": status_str,
+        "last_tested": _LAST_CONNECTION_STATUS.get("timestamp"),
+        "last_latency_ms": _LAST_CONNECTION_STATUS.get("latency_ms"),
+        "last_message": _LAST_CONNECTION_STATUS.get("message")
+    }
 
 
 def _call_gemini_api(prompt: str, temperature: float = 0.4, max_tokens: int = 800) -> Optional[str]:

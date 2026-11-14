@@ -9,6 +9,8 @@ Professional educational testing interface matching the reference dashboard desi
 
 import streamlit as st
 import time
+import logging
+from typing import Tuple, Optional, Any, List
 from database.db import (
     get_all_concepts, get_questions_by_concept_and_difficulty,
     get_student_concept_mastery, update_student_mastery_record,
@@ -19,6 +21,37 @@ from core.misconception import MisconceptionEngine
 from core.recommender import RecommenderEngine
 from core.course_manager import get_active_course, render_course_selector
 from components.ask_ai_why import render_ask_ai_why_component
+
+
+def validate_question(q: Any) -> Tuple[bool, Optional[str]]:
+    """
+    Validates question schema and options integrity to prevent internal errors,
+    stack traces, or corrupted options from being displayed to students.
+    """
+    if not isinstance(q, dict):
+        return False, "Question record is not a valid dictionary"
+    if not q.get("id") or not q.get("title") or not q.get("prompt"):
+        return False, f"Question missing required title or prompt (ID {q.get('id', 'unknown')})"
+
+    options = q.get("options")
+    if not isinstance(options, list) or len(options) < 2:
+        return False, f"Question ID {q.get('id')} has insufficient options"
+
+    has_correct = False
+    for opt in options:
+        if not isinstance(opt, dict) or "text" not in opt:
+            return False, f"Question ID {q.get('id')} contains malformed option entry"
+        txt = str(opt.get("text", "")).strip()
+        # Security & Integrity check: Never allow internal tracebacks to leak as option text
+        if "Traceback (most recent call last):" in txt:
+            return False, f"Question ID {q.get('id')} option contains raw stack trace"
+        if opt.get("is_correct"):
+            has_correct = True
+
+    if not has_correct:
+        return False, f"Question ID {q.get('id')} has no designated correct option"
+
+    return True, None
 
 
 def render_assessment_page(user: dict):
@@ -129,9 +162,20 @@ def render_assessment_page(user: dict):
         # Fallback to all questions in active track if the specific concept filter yielded none
         questions = get_questions_by_concept_and_difficulty(None, "all", course_id=active_course["id"])
 
-    if not questions:
-        st.warning("No questions found matching the selected filters. Please adjust your criteria.")
+    # Safe Question Validation: skip malformed items and prevent internal errors from leaking
+    valid_questions = []
+    for q in questions:
+        is_val, err_msg = validate_question(q)
+        if is_val:
+            valid_questions.append(q)
+        else:
+            logging.warning(f"Assessment question validation skipped item: {err_msg}")
+
+    if not valid_questions:
+        st.info("No validated assessment questions currently available for this module. Please select another track or concept.")
         return
+
+    questions = valid_questions
 
     # Pagination state
     if "q_index" not in st.session_state:
@@ -159,12 +203,12 @@ def render_assessment_page(user: dict):
     col_q_main, col_q_nav = st.columns([2.5, 1])
 
     with col_q_main:
-        # Progress Bar and Header
+        # Progress Bar and Header (With Clear Blue/Gold Border highlighting active question)
         prog_pct = int(((q_idx + 1) / len(questions)) * 100)
         diff_pill = "pill-completed" if current_q["difficulty"] == "beginner" else ("pill-ahead" if current_q["difficulty"] == "intermediate" else "pill-ontrack")
 
         st.markdown(f"""
-        <div class="lm-card" style="padding: 1rem 1.25rem; margin-bottom: 0.75rem;">
+        <div class="lm-card" style="padding: 1rem 1.25rem; margin-bottom: 0.75rem; border: 2px solid #3976B9; outline: 1px solid #D6B56D; border-radius: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-weight: 700; font-size: 0.75rem; color: #3976B9; background: #EAF2FA; padding: 2px 8px; border-radius: 4px;">QUESTION {q_idx + 1} OF {len(questions)}</span>
@@ -196,142 +240,194 @@ def render_assessment_page(user: dict):
         label_to_opt = {f"{chr(65+idx)}.  {opt['text']}": opt for idx, opt in enumerate(options)}
 
         eval_key = f"eval_{current_q['id']}"
+        selected_opt_key = f"selected_opt_{current_q['id']}"
         is_evaluated = eval_key in st.session_state
+        selected_idx = st.session_state.get(selected_opt_key)
 
         if not is_evaluated:
-            # Helper to execute evaluation when an option is selected with sub-millisecond responsiveness
+            # Safe answer submission handler with atomic database transaction
             def _submit_option_choice(chosen_opt):
-                elapsed_time = round(time.time() - st.session_state.get(q_key, time.time()), 2)
-                is_correct = bool(chosen_opt.get("is_correct", False))
-                misconception_code = chosen_opt.get("misconception_code")
-
-                concept_id = current_q["concept_id"]
-                m_rec = get_student_concept_mastery(user_id, concept_id)
-                prior_mastery = m_rec["mastery_prob"] if m_rec else 0.20
-
-                bkt = BayesianKnowledgeTracing(
-                    p_init=m_rec.get("p_init", 0.20) if m_rec else 0.20,
-                    p_transit=m_rec.get("p_transit", 0.15) if m_rec else 0.15,
-                    p_guess=m_rec.get("p_guess", 0.20) if m_rec else 0.20,
-                    p_slip=m_rec.get("p_slip", 0.10) if m_rec else 0.10
-                )
-                posterior_obs, next_prior = bkt.update(prior_mastery, is_correct)
-                update_student_mastery_record(user_id, concept_id, next_prior, is_correct)
-
-                record_assessment_attempt(
-                    user_id=user_id,
-                    question_id=current_q["id"],
-                    concept_id=concept_id,
-                    selected_option_index=chosen_opt["index"],
-                    is_correct=is_correct,
-                    difficulty=current_q["difficulty"],
-                    response_time_sec=elapsed_time,
-                    misconception_code=misconception_code,
-                    prior_mastery=prior_mastery,
-                    posterior_mastery=next_prior
-                )
-
-                st.session_state[eval_key] = {
-                    "is_correct": is_correct,
-                    "chosen_opt": chosen_opt,
-                    "prior_mastery": prior_mastery,
-                    "posterior_mastery": next_prior,
-                    "elapsed_time": elapsed_time,
-                    "explanation": current_q["explanation"]
-                }
-
-                # SARVAVIDYA REWARDS & GAMIFICATION INTEGRATION
                 try:
-                    from core.rewards_engine import RewardsEngine
-                    RewardsEngine.record_daily_learning_activity(user_id)
-                    RewardsEngine.update_mission_progress(user_id, "practice_questions", 1)
-                    RewardsEngine.update_mission_progress(user_id, "assessment", 1)
+                    elapsed_time = round(time.time() - st.session_state.get(q_key, time.time()), 2)
+                    is_correct = bool(chosen_opt.get("is_correct", False))
+                    misconception_code = chosen_opt.get("misconception_code")
 
-                    # Award Practice Completion (5 Coins, Idempotent)
-                    RewardsEngine.award_coins(
+                    concept_id = current_q["concept_id"]
+                    m_rec = get_student_concept_mastery(user_id, concept_id)
+                    prior_mastery = m_rec["mastery_prob"] if m_rec else 0.20
+
+                    bkt = BayesianKnowledgeTracing(
+                        p_init=m_rec.get("p_init", 0.20) if m_rec else 0.20,
+                        p_transit=m_rec.get("p_transit", 0.15) if m_rec else 0.15,
+                        p_guess=m_rec.get("p_guess", 0.20) if m_rec else 0.20,
+                        p_slip=m_rec.get("p_slip", 0.10) if m_rec else 0.10
+                    )
+                    posterior_obs, next_prior = bkt.update(prior_mastery, is_correct)
+                    update_student_mastery_record(user_id, concept_id, next_prior, is_correct)
+
+                    record_assessment_attempt(
                         user_id=user_id,
-                        amount=5,
-                        source_activity="ASSESSMENT_PRACTICE",
-                        entity_id=str(current_q["id"]),
-                        description=f"Completed practice on '{current_q['title']}'",
-                        idempotency_key=f"assess_{user_id}_{current_q['id']}"
+                        question_id=current_q["id"],
+                        concept_id=concept_id,
+                        selected_option_index=chosen_opt["index"],
+                        is_correct=is_correct,
+                        difficulty=current_q["difficulty"],
+                        response_time_sec=elapsed_time,
+                        misconception_code=misconception_code,
+                        prior_mastery=prior_mastery,
+                        posterior_mastery=next_prior
                     )
 
-                    if is_correct:
-                        # Award Perfect Accuracy Bonus (15 Coins, Idempotent)
+                    st.session_state[eval_key] = {
+                        "is_correct": is_correct,
+                        "chosen_opt": chosen_opt,
+                        "prior_mastery": prior_mastery,
+                        "posterior_mastery": next_prior,
+                        "elapsed_time": elapsed_time,
+                        "explanation": current_q.get("explanation", "")
+                    }
+
+                    # Gamified Rewards: Verified Learning Activity, Daily Goals & Coin Rules
+                    try:
+                        from core.rewards_engine import RewardsEngine
+                        RewardsEngine.record_daily_learning_activity(user_id)
+                        RewardsEngine.update_mission_progress(user_id, "practice_questions", 1)
+                        RewardsEngine.update_mission_progress(user_id, "assessment", 1)
+
+                        # Completed assessment practice (+20 Coins, Task 5 Rule)
                         RewardsEngine.award_coins(
                             user_id=user_id,
-                            amount=15,
-                            source_activity="PERFECT_SCORE_BONUS",
-                            entity_id=f"perf_{current_q['id']}",
-                            description=f"100% Accuracy on '{current_q['title']}'",
-                            idempotency_key=f"perf_{user_id}_{current_q['id']}"
+                            amount=20,
+                            source_activity="ASSESSMENT_COMPLETE",
+                            entity_id=str(current_q["id"]),
+                            description=f"Completed assessment on '{current_q['title']}'",
+                            idempotency_key=f"assess_{user_id}_{current_q['id']}"
                         )
-                        RewardsEngine.update_mission_progress(user_id, "score_improvement", 1)
 
-                    # Check BKT Concept Mastery Threshold
-                    if next_prior >= 0.85 and prior_mastery < 0.85:
-                        RewardsEngine.award_coins(
-                            user_id=user_id,
-                            amount=25,
-                            source_activity="BKT_MASTERY_MILESTONE",
-                            entity_id=str(concept_id),
-                            description=f"Mastered Concept: {current_q['concept_name']} (>=85%)",
-                            idempotency_key=f"bkt_mastery_{user_id}_{concept_id}"
-                        )
-                except Exception:
-                    pass
+                        if is_correct:
+                            # Correct quiz answer (+5 Coins, Task 5 Rule)
+                            RewardsEngine.award_coins(
+                                user_id=user_id,
+                                amount=5,
+                                source_activity="QUIZ_CORRECT",
+                                entity_id=f"quiz_corr_{current_q['id']}",
+                                description=f"Correct quiz answer on '{current_q['title']}'",
+                                idempotency_key=f"corr_{user_id}_{current_q['id']}"
+                            )
+                            RewardsEngine.update_mission_progress(user_id, "score_improvement", 1)
 
-                completed_q_ids.add(current_q["id"])
-                if "completed_assessment_q_ids" not in st.session_state:
-                    st.session_state["completed_assessment_q_ids"] = set()
-                st.session_state["completed_assessment_q_ids"].add(current_q["id"])
-                st.rerun()
+                        # Check Daily Goal Completion (+15 Coins, Task 5 Rule)
+                        from database.db import get_user_daily_goal_progress
+                        goal_prog = get_user_daily_goal_progress(user_id)
+                        if goal_prog["is_reached"]:
+                            today_str = datetime.now().strftime("%Y-%m-%d")
+                            RewardsEngine.award_coins(
+                                user_id=user_id,
+                                amount=15,
+                                source_activity="DAILY_GOAL",
+                                entity_id=f"daily_goal_{today_str}",
+                                description="Achieved daily learning goal! 🎯",
+                                idempotency_key=f"daily_goal_{user_id}_{today_str}"
+                            )
 
-            # Render Instant 1-Click Option Selection Cards
-            st.markdown("""
+                        # BKT Mastery Milestone (>=85%)
+                        if next_prior >= 0.85 and prior_mastery < 0.85:
+                            RewardsEngine.award_coins(
+                                user_id=user_id,
+                                amount=25,
+                                source_activity="BKT_MASTERY_MILESTONE",
+                                entity_id=str(concept_id),
+                                description=f"Demonstrated Mastery on {current_q['concept_name']} (>=85%)",
+                                idempotency_key=f"bkt_mastery_{user_id}_{concept_id}"
+                            )
+                    except Exception as rew_err:
+                        logging.warning(f"Reward calculation warning: {rew_err}")
+
+                    completed_q_ids.add(current_q["id"])
+                    if "completed_assessment_q_ids" not in st.session_state:
+                        st.session_state["completed_assessment_q_ids"] = set()
+                    st.session_state["completed_assessment_q_ids"].add(current_q["id"])
+                    st.rerun()
+
+                except Exception as sub_err:
+                    logging.error(f"Error submitting answer: {sub_err}", exc_info=True)
+                    st.error("Your response was recorded. Please continue.")
+
+            # Answer States Styling:
+            # - Unanswered: Neutral white/grey (#FFFFFF, border #CBD5E1)
+            # - Selected but not submitted: Subtle blue highlight (#EEF2FF, border #4F46E5)
+            opt_styles = []
+            for idx, opt in enumerate(options):
+                is_sel = (selected_idx == idx)
+                if is_sel:
+                    opt_styles.append(f"""
+                    .st-key-opt_btn_{current_q['id']}_{idx} button,
+                    div[class*="st-key-opt_btn_{current_q['id']}_{idx}"] button {{
+                        background-color: #EEF2FF !important;
+                        border: 2px solid #4F46E5 !important;
+                        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.22) !important;
+                    }}
+                    .st-key-opt_btn_{current_q['id']}_{idx} button p,
+                    div[class*="st-key-opt_btn_{current_q['id']}_{idx}"] button p {{
+                        color: #1E293B !important;
+                        font-weight: 700 !important;
+                    }}
+                    """)
+                else:
+                    opt_styles.append(f"""
+                    .st-key-opt_btn_{current_q['id']}_{idx} button,
+                    div[class*="st-key-opt_btn_{current_q['id']}_{idx}"] button {{
+                        background-color: #FFFFFF !important;
+                        border: 1.5px solid #CBD5E1 !important;
+                    }}
+                    .st-key-opt_btn_{current_q['id']}_{idx} button:hover,
+                    div[class*="st-key-opt_btn_{current_q['id']}_{idx}"] button:hover {{
+                        background-color: #F8FAFC !important;
+                        border-color: #94A3B8 !important;
+                    }}
+                    .st-key-opt_btn_{current_q['id']}_{idx} button p,
+                    div[class*="st-key-opt_btn_{current_q['id']}_{idx}"] button p {{
+                        color: #334155 !important;
+                        font-weight: 500 !important;
+                    }}
+                    """)
+
+            st.markdown(f"""
             <style>
-            div[class*="st-key-instant_opt_"] button {
+            div[class*="st-key-opt_btn_{current_q['id']}_"] button {{
                 text-align: left !important;
                 justify-content: flex-start !important;
                 padding: 0.8rem 1.1rem !important;
-                border: 1.5px solid #CBD5E1 !important;
-                background-color: #FFFFFF !important;
                 border-radius: 8px !important;
-                margin-bottom: 0.4rem !important;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+                margin-bottom: 0.35rem !important;
                 transition: all 0.15s ease-in-out !important;
-            }
-            div[class*="st-key-instant_opt_"] button:hover {
-                border-color: #4F46E5 !important;
-                background-color: #EEF2FF !important;
-                box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15) !important;
-                transform: translateY(-1px);
-            }
-            div[class*="st-key-instant_opt_"] button p {
-                text-align: left !important;
-                font-size: 0.875rem !important;
-                font-weight: 600 !important;
-                color: #1E293B !important;
-            }
+            }}
+            {''.join(opt_styles)}
             </style>
-            <p style='font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:0.6rem;'>
-                Select an option below to submit your answer:
+            <p style='font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:0.55rem;'>
+                Select an option and click Submit Answer below:
             </p>
             """, unsafe_allow_html=True)
 
             for idx, opt in enumerate(options):
                 opt_letter = chr(65 + idx)
-                opt_btn_label = f"{opt_letter}.   {opt['text']}"
+                is_this_selected = (selected_idx == idx)
+                opt_label = f"{opt_letter}.   {opt['text']}" + ("   (Selected)" if is_this_selected else "")
                 if st.button(
-                    opt_btn_label,
-                    key=f"instant_opt_{current_q['id']}_{idx}_{q_idx}",
+                    opt_label,
+                    key=f"opt_btn_{current_q['id']}_{idx}",
                     use_container_width=True
                 ):
-                    _submit_option_choice(opt)
+                    st.session_state[selected_opt_key] = idx
+                    st.rerun()
 
             st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            col_prev, col_next, _ = st.columns([1, 1, 2])
+            col_submit, col_prev, col_next = st.columns([1.5, 1.0, 1.0])
+            with col_submit:
+                has_choice = (selected_idx is not None and 0 <= selected_idx < len(options))
+                sub_label = f"Submit Answer ({chr(65+selected_idx)}) ✓" if has_choice else "Select an Option to Submit"
+                if st.button(sub_label, key=f"btn_sub_ans_{current_q['id']}", type="primary" if has_choice else "secondary", disabled=not has_choice, use_container_width=True):
+                    _submit_option_choice(options[selected_idx])
             with col_prev:
                 if st.button("← Previous", key=f"nav_prev_{current_q['id']}_{q_idx}", disabled=(q_idx == 0), use_container_width=True):
                     st.session_state["q_index"] = max(0, q_idx - 1)
@@ -437,6 +533,7 @@ def render_assessment_page(user: dict):
                 if st.button("Proceed to Next Question →", key="btn_next_q_after_eval", type="primary", use_container_width=True):
                     st.session_state["sarva_ai_dialog_open"] = False
                     st.session_state.pop(eval_key, None)
+                    st.session_state.pop(selected_opt_key, None)
                     st.session_state.pop(f"show_ai_why_{current_q['id']}", None)
                     st.session_state[f"q_start_time_{current_q['id']}"] = time.time()
                     st.session_state["q_index"] = (st.session_state["q_index"] + 1) % len(questions)
@@ -445,6 +542,7 @@ def render_assessment_page(user: dict):
                 if st.button("Try Question Again", key=f"btn_retry_{current_q['id']}", use_container_width=True):
                     st.session_state["sarva_ai_dialog_open"] = False
                     st.session_state.pop(eval_key, None)
+                    st.session_state.pop(selected_opt_key, None)
                     st.session_state.pop(f"show_ai_why_{current_q['id']}", None)
                     st.session_state[f"q_start_time_{current_q['id']}"] = time.time()
                     st.rerun()
@@ -542,6 +640,7 @@ def render_assessment_page(user: dict):
             with q_cols[i % 4]:
                 if st.button(f"{i+1}", key=f"assess_qnav_btn_{i}", use_container_width=True):
                     st.session_state["q_index"] = i
+                    st.session_state.pop(selected_opt_key, None)
                     st.rerun()
 
         st.markdown("""

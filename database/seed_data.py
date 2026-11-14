@@ -502,7 +502,7 @@ QUESTIONS = [
         "options": [
             {
                 "index": 0,
-                "text": "TypeError: 'str' object does not support item assignment",
+                "text": "Raises TypeError ('str' object does not support item assignment)",
                 "is_correct": True,
                 "misconception_code": "NONE",
                 "misconception_name": "Correct Understanding",
@@ -1719,6 +1719,17 @@ def seed_database(force: bool = False) -> None:
         salt=t123_salt,
         full_name="Dr. Sarah Bennett",
         role="teacher",
+        is_demo=1
+    )
+
+    admin_pwd_hash, admin_salt = AuthService.hash_password("admin123")
+    create_user(
+        username="admin@123",
+        email="admin@123",
+        password_hash=admin_pwd_hash,
+        salt=admin_salt,
+        full_name="System Administrator",
+        role="admin",
         is_demo=1
     )
 

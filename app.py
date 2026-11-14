@@ -28,6 +28,7 @@ from views.subjects_hub import render_subjects_hub_page
 from views.sarva_ai_page import render_sarva_ai_page
 from views.rewards_view import render_rewards_page
 from views.avatarverse import render_avatarverse_page
+from views.ai_config import render_ai_config_page
 from components.sarva_ai import render_sarva_ai_widget
 
 
@@ -76,13 +77,17 @@ def main():
     # Authenticated user session
     current_page = st.session_state.get("current_page", "student_dashboard")
     if current_page == "auth":
-        current_page = "teacher_dashboard" if user.get("role") == "teacher" else "student_dashboard"
+        current_page = "teacher_dashboard" if user.get("role") in ("teacher", "admin") else "student_dashboard"
         st.session_state["current_page"] = current_page
 
     # Role-based access control
-    if current_page == "teacher_dashboard" and user.get("role") != "teacher":
-        st.warning("Access restricted to faculty members. Redirecting to student dashboard.")
+    if current_page == "teacher_dashboard" and user.get("role") not in ("teacher", "admin"):
+        st.warning("Access restricted to faculty and administrative members. Redirecting to student dashboard.")
         st.session_state["current_page"] = "student_dashboard"
+        st.rerun()
+    elif current_page == "ai_config" and user.get("role") != "admin":
+        st.warning("Access restricted: Administrator role required.")
+        st.session_state["current_page"] = "teacher_dashboard" if user.get("role") == "teacher" else "student_dashboard"
         st.rerun()
 
     # 6. Inject Authenticated Sidebar Styling & Render Navigation
@@ -97,7 +102,7 @@ def main():
 
     # 7. Authenticated Route Rendering (Re-read current_page in case navigation callback updated it)
     current_page = st.session_state.get("current_page", "student_dashboard")
-    if current_page == "teacher_dashboard" and user.get("role") != "teacher":
+    if current_page == "teacher_dashboard" and user.get("role") not in ("teacher", "admin"):
         current_page = "student_dashboard"
         st.session_state["current_page"] = "student_dashboard"
 
@@ -105,6 +110,8 @@ def main():
         render_student_dashboard(user)
     elif current_page == "teacher_dashboard":
         render_teacher_dashboard(user)
+    elif current_page == "ai_config":
+        render_ai_config_page(user)
     elif current_page == "subjects":
         render_subjects_hub_page(user)
     elif current_page == "assessment":

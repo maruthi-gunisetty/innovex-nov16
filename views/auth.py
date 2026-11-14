@@ -330,24 +330,25 @@ Email: <code>teacher@123</code> &bull; Password: <code>teacher123</code>
             placeholder="Enter your faculty password",
             key="tchr_login_pass"
         )
-        submitted = st.form_submit_button("Sign In as Teacher", type="primary", use_container_width=True)
+        submitted = st.form_submit_button("Sign In as Educator / Admin", type="primary", use_container_width=True)
 
         if submitted:
             if not username or not password:
-                st.error("Please enter both your faculty username/email and password.")
+                st.error("Please enter both your username/email and password.")
                 return
 
             user = get_user_by_username(username) or get_user_by_email(username)
-            if not user or user.get("role") != "teacher":
-                st.error("Invalid faculty credentials or insufficient permissions.")
+            if not user or user.get("role") not in ("teacher", "admin"):
+                st.error("Invalid credentials or insufficient permissions.")
                 return
 
             if AuthService.verify_password(password, user["salt"], user["password_hash"]):
                 st.session_state["user"] = user
-                st.session_state["current_page"] = "teacher_dashboard"
-                st.session_state["_synced_page"] = "teacher_dashboard"
-                st.session_state["sidebar_nav_radio"] = "Dashboard"
-                st.session_state["_active_nav_label"] = "Dashboard"
+                target_page = "ai_config" if user["role"] == "admin" else "teacher_dashboard"
+                st.session_state["current_page"] = target_page
+                st.session_state["_synced_page"] = target_page
+                st.session_state["sidebar_nav_radio"] = "AI Configuration" if user["role"] == "admin" else "Dashboard"
+                st.session_state["_active_nav_label"] = "AI Configuration" if user["role"] == "admin" else "Dashboard"
                 st.session_state.pop("auth_tab", None)
                 st.success(f"Authenticated as {user['full_name']}.")
                 st.rerun()
@@ -520,4 +521,29 @@ Faculty portal with cohort-wide mastery distributions, misconception frequencies
             st.session_state["_synced_page"] = "teacher_dashboard"
             st.session_state["sidebar_nav_radio"] = "Dashboard"
             st.session_state["_active_nav_label"] = "Dashboard"
+            st.rerun()
+
+    admin_html = """
+<div style="background-color: #FFFFFF; border: 1px solid #D6B56D; border-radius: 10px; padding: 0.9rem; margin: 0.75rem 0;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+<div style="font-weight: 700; font-size: 0.875rem; color: #172943;">System Administrator (admin@123)</div>
+<span class="lm-pill pill-completed" style="font-size: 0.65rem; background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A;">Admin Console</span>
+</div>
+<div style="color: #64748B; font-size: 0.75rem; margin-bottom: 0.5rem;">
+Credentials: <code>admin@123</code> &bull; Pass: <code>admin123</code>
+</div>
+<div style="font-size: 0.775rem; color: #475569; line-height: 1.45;">
+Access Administrator Portal with live Google Gemini API key configuration, connection testing, and telemetry management.
+</div>
+</div>
+"""
+    st.markdown(_clean_html(admin_html), unsafe_allow_html=True)
+    if st.button("Launch Administrator Portal (admin@123)", key="launch_admin", use_container_width=True):
+        user = get_user_by_email("admin@123") or get_user_by_username("admin@123")
+        if user:
+            st.session_state["user"] = user
+            st.session_state["current_page"] = "ai_config"
+            st.session_state["_synced_page"] = "ai_config"
+            st.session_state["sidebar_nav_radio"] = "AI Configuration"
+            st.session_state["_active_nav_label"] = "AI Configuration"
             st.rerun()
