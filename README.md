@@ -3,12 +3,10 @@
 **Brand:** SARVAVIDYA  
 **Tagline:** One Platform. Every Subject. Infinite Knowledge.  
 **Domain:** Artificial Intelligence in Education, Educational Data Mining, Intelligent Tutoring Systems (ITS)  
-**Live 24/7 Deployment:** [https://sarvavidyaeducation01.streamlit.app/]
 
 ---
 
 ### 🚀 Permanent Cloud Access
-* **Live Website URL:** **[https://sarvavidyaeducation01.streamlit.app/]
 * **Demo Student Account:** `student@123` / `student123`
 * **Demo Faculty Account:** `teacher@123` / `teacher123`
 * **AI Engine:** Google Gemini 3.1 Flash Live + Bayesian Knowledge Tracing (BKT)
